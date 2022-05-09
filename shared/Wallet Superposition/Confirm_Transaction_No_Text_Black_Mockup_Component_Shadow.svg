@@ -1,0 +1,53 @@
+<svg id="prefix__a" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 344.4 99.84">
+    <defs>
+        <!-- <filter id="prefix__c" filterUnits="userSpaceOnUse">
+            <feOffset dx="8" dy="8" />
+            <feGaussianBlur result="d" stdDeviation="8" />
+            <feFlood flood-color="#888" flood-opacity=".88" />
+            <feComposite in2="d" operator="in" />
+            <feComposite in="SourceGraphic" />
+        </filter>
+        <filter id="prefix__e" filterUnits="userSpaceOnUse">
+            <feOffset dx="8" dy="8" />
+            <feGaussianBlur result="f" stdDeviation="8" />
+            <feFlood flood-color="#888" flood-opacity=".88" />
+            <feComposite in2="f" operator="in" />
+            <feComposite in="SourceGraphic" />
+        </filter>
+        <filter id="prefix__g" filterUnits="userSpaceOnUse">
+            <feOffset dx="8" dy="8" />
+            <feGaussianBlur result="h" stdDeviation="8" />
+            <feFlood flood-color="#888" flood-opacity=".88" />
+            <feComposite in2="h" operator="in" />
+            <feComposite in="SourceGraphic" />
+        </filter> -->
+        <linearGradient id="prefix__b" x1="207.61" y1="117.18" x2="120.71" y2="-33.32" gradientUnits="userSpaceOnUse">
+            <stop offset=".3" stop-color="#63f" />
+            <stop offset="1" stop-color="#f3f" />
+        </linearGradient>
+        <style>
+            .prefix__m {
+                fill: none;
+                stroke: #000;
+                stroke-miterlimit: 10;
+                stroke-width: 2.5px
+            }
+        </style>
+    </defs>
+    <!-- <rect x="16.13" y="16.18" width="296.07" height="51.49" rx="25.74" ry="25.74" fill="url(#prefix__b)"
+        filter="url(#prefix__c)" />
+    <rect x="22.56" y="22.62" width="205.96" height="38.62" rx="19.31" ry="19.31" fill="#0080ff"
+        filter="url(#prefix__e)" />
+    <rect x="267.94" y="22.62" width="38.62" height="38.62" rx="19.31" ry="19.31" filter="url(#prefix__g)"
+        fill="#0080ff" /><text transform="translate(241.48 44.32)" font-family="BF_Modernista-Regular,BF_Modernista"
+        font-size="18"> -->
+    <rect x="16.13" y="16.18" width="296.07" height="51.49" rx="25.74" ry="25.74" fill="url(#prefix__b)" />
+    <rect x="22.56" y="22.62" width="205.96" height="38.62" rx="19.31" ry="19.31" fill="#0080ff" />
+    <rect x="267.94" y="22.62" width="38.62" height="38.62" rx="19.31" ry="19.31" fill="#0080ff" />
+
+    <!-- <text
+        transform="translate(241.48 44.32)" font-family="BF_Modernista-Regular,BF_Modernista" font-size="18">
+        <tspan x="0" y="0">...</tspan>
+    </text> -->
+    <path class="prefix__m" d="M279.26 42.12l6.39 6.4M297 35.69l-12.87 12.87" />
+</svg>
