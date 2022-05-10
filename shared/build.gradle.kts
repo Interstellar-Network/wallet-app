@@ -53,4 +53,5 @@ android {
         minSdk = 16
         targetSdk = 31
     }
+    namespace = "gg.interstellar.wallet"
 }
