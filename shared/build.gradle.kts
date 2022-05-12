@@ -17,13 +17,35 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+//                implementation("com.strategyobject.substrateclient:scale:0.1.0-SNAPSHOT")
+//                implementation(project(":substrate-client"))
+//                implementation("com.github.strategyobject:substrate-client-java:-SNAPSHOT")
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+//                implementation(project(":substrate-client:scale"))
+//                implementation(project(":substrate-client:scale"))
+//                implementation("com.strategyobject.substrateclient:substrate-client-java:0.1.0")
+//                    implementation(project(":substrate-client"))
+//                implementation(project(":substrate-client:scale"))
+
+//                git {
+//                    implementation("https://github.com/strategyobject/substrate-client-java.git") {
+//                        name("substrate-client")
+//                        branch("develop")
+//                        projectPath("substrate-client")
+//                    }
+//                }
+            }
+        }
         val androidTest by getting
         val iosX64Main by getting
         val iosArm64Main by getting
