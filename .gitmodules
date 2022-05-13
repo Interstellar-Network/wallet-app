@@ -1,0 +1,6 @@
+[submodule ".\\shared\\3rd_party\\substrate-client-java"]
+	path = .\\shared\\3rd_party\\substrate-client-java
+	url = https://github.com/strategyobject/substrate-client-java.git
+[submodule ".\\shared\\3rd_party\\polkaj"]
+	path = .\\shared\\3rd_party\\polkaj
+	url = https://github.com/emeraldpay/polkaj.git

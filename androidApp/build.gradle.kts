@@ -54,13 +54,16 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
     implementation("androidx.activity:activity-compose:1.4.0")
 
-//    No matching configuration of project :substrate-client was found. The consumer was configured to find an API of a component, preferably optimized for Android, as well as attribute 'com.android.build.api.attributes.BuildTypeAttr' with value 'debug', attribute 'com.android.build.api.attributes.AgpVersionAttr' with value '7.2.0', attribute 'org.jetbrains.kotlin.platform.type' with value 'androidJvm' but:
-//    - None of the consumable configurations have attributes.
-//    implementation(project(":substrate-client"))
-//    implementation(project(":substrate-client:common"))
-
-    // TRY GH REGISTRY
-//    implementation("com.strategyobject.substrateclient:scale-codegen:0.1.0-SNAPSHOT")
+    // TODO commonMain? but even there we get "Unresolved Reference"???
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-api-base-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-api-http-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-common-types-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-json-types-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-scale-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-scale-types-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-ss58-0.5.0-SNAPSHOT.jar"))
+    implementation(files("${rootProject.projectDir}/shared/3rd_party/polkaj/build/libs/polkaj-tx-0.5.0-SNAPSHOT.jar"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2")
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${rootProject.extra["compose_version"]}")
     debugImplementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
