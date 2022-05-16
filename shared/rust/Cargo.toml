@@ -1,0 +1,14 @@
+[package]
+name = "shared-rs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+# "This must contain at least cdylib for Android libraries to be generated."
+# https://github.com/bbqsrc/cargo-ndk/blob/main/example/Cargo.toml
+# else:
+# [2022-05-16T09:53:58Z INFO  cargo_ndk::cli] Copying libraries to ./jniLibs...
+# [2022-05-16T09:53:58Z ERROR cargo_ndk::cli] No .so files found in path
+crate-type = ["cdylib"]
+
+[dependencies]
