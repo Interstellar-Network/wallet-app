@@ -25,6 +25,14 @@ use: https://github.com/bbqsrc/cargo-ndk#cargo-ndk---build-rust-code-for-android
   - `--release`
 
 - install Python
+- install Perl?
+  -[windows] FAIL: "This perl implementation doesn't produce Unix like paths"
+    Probably b/c https://github.com/alexcrichton/openssl-src-rs/blob/main/src/lib.rs#L226 hardcoded all Android NDK to match Linux...
+  -[windows] W/A: alias "perl=wsl perl" `${env:PERL} = 'wsl perl'`
+    eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
+    with wsl_perl.bat: `wsl perl %*`
+    CHECK: `perl -v`
+
 - CHECK:
   - `cd shared\rust`
   - `cargo build --verbose --target=armv7-linux-androideabi` and `cargo build --verbose --target=aarch64-linux-android`
