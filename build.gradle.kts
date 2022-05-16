@@ -17,6 +17,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { setUrl("https://jitpack.io") }
+        // com.github.NodleCode:substrate-client-kotlin:1.0 > com.github.NodleCode:BIP39:484f9d5d588
+        //   > Could not find io.github.novacrypto:ToRuntime:2019.01.27.
+        // cf https://github.com/NovaCrypto/ToRuntime/tree/12100273dd123d187af30f94c182567d56235149
+        maven { setUrl("https://dl.bintray.com/novacrypto/General/") }
     }
 }
 
