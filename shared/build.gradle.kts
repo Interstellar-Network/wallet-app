@@ -1,6 +1,8 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
+    // https://github.com/mozilla/rust-android-gradle
+    id("org.mozilla.rust-android-gradle.rust-android")
 }
 
 kotlin {
@@ -54,4 +56,22 @@ android {
         targetSdk = 31
     }
     namespace = "gg.interstellar.wallet"
+
+    ndkVersion = "22.1.7171670"
+}
+
+// https://github.com/mozilla/rust-android-gradle#configuration
+cargo {
+    module  = "./rust"
+    libname = "shared-rs"
+    // TODO add "arm64", but fails at linking stage?
+    targets = listOf("arm")
+    prebuiltToolchains = true
+}
+
+// https://github.com/mozilla/rust-android-gradle
+tasks.whenTaskAdded {
+    if (name == "javaPreCompileDebug" || name == "javaPreCompileRelease") {
+//        dependsOn(tasks.named("cargoBuild"))
+    }
 }
