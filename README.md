@@ -9,21 +9,6 @@ Uses:
 
 ### Android
 
-TODO cleanup
-
-use: https://github.com/bbqsrc/cargo-ndk#cargo-ndk---build-rust-code-for-android
-
-- install NDK using Android Studio "SDK Manager"(ie "NDK (Side by side)" latest)
-  - FOR NOW MUST BE <r23, cf below
-  - https://github.com/rust-lang/rust/pull/85806 and https://github.com/rust-windowing/android-ndk-rs/pull/189
-- `cargo install cargo-ndk`
-  - MAYBE `cargo install ndk-build` instead: NO, it is a lib, and can only work as part of https://github.com/rust-windowing/android-ndk-rs/tree/master/cargo-apk ?
-- `rustup target add aarch64-linux-android armv7-linux-androideabi`
-  - maybe later add `x86_64-linux-android i686-linux-android` but that cover maybe 1% of devices?
-- CHECK `cargo ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build`
-  NOTE: is will be called by gradle when needed, but better check in advance
-  - `--release`
-
 - install Python
 - install Perl?
   -[windows] FAIL: "This perl implementation doesn't produce Unix like paths"
@@ -32,11 +17,34 @@ use: https://github.com/bbqsrc/cargo-ndk#cargo-ndk---build-rust-code-for-android
     eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
     with wsl_perl.bat: `wsl perl %*`
     CHECK: `perl -v`
+- `rustup target add armv7-linux-androideabi`
+- `rustup target add aarch64-linux-android`
+- FAIL TOO: `sudo apt install gcc-arm-linux-gnueabihf`
+  https://github.com/briansmith/ring/issues/1488
+  Tried:
+  TARGET_CC=/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang
+  TARGET_AR=/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+  FAIL: "relocations in generic ELF (EM: 40)"
+  TODO investigate if we can use NDK toolchains
+  - tried with v21: `armv7a-linux-androideabi21-clang`
 
 - CHECK:
-  - `cd shared\rust`
+  - `cd shared/rust`
   - `cargo build --verbose --target=armv7-linux-androideabi` and `cargo build --verbose --target=aarch64-linux-android`
 - [in Root=InterstellarWallet] .\gradlew cargoBuild --info
+
+#### ARCHIVE alternative tested: cargo ndk
+
+- install NDK using Android Studio "SDK Manager"(ie "NDK (Side by side)" latest)
+  - FOR NOW MUST BE <r23, cf below
+  - https://github.com/rust-lang/rust/pull/85806 and https://github.com/rust-windowing/android-ndk-rs/pull/189
+- NO: `cargo install cargo-ndk`
+  - MAYBE `cargo install ndk-build` instead: NO, it is a lib, and can only work as part of https://github.com/rust-windowing/android-ndk-rs/tree/master/cargo-apk ?
+- `rustup target add aarch64-linux-android armv7-linux-androideabi`
+  - maybe later add `x86_64-linux-android i686-linux-android` but that cover maybe 1% of devices?
+- CHECK `cargo ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build`
+  NOTE: is will be called by gradle when needed, but better check in advance
+  - `--release`
 
 #### FIX(windows): `error: linker `cc` not found`
 

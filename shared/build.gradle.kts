@@ -57,7 +57,8 @@ android {
     }
     namespace = "gg.interstellar.wallet"
 
-    ndkVersion = "22.1.7171670"
+    // MUST match the version installed with SDK Manager
+    ndkVersion = "24.0.8215888"
 }
 
 // https://github.com/mozilla/rust-android-gradle#configuration
@@ -79,7 +80,11 @@ task<Exec>("cargoBuildExec") {
     //    Execution failed for task ':shared:cargoBuildExec'.
     //    > A problem occurred starting process 'command './gradlew''
     // cf https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Exec.html
-    commandLine("cmd", "/c", "gradlew", "--info", "cargoBuild")
+    // TODO windows vs linux
+//    commandLine("cmd", "/c", "gradlew", "--info", "cargoBuild")
+    commandLine("./gradlew", "--info", "cargoBuild")
+    environment("TARGET_CC", "/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang")
+    environment("TARGET_AR", "/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
     workingDir = rootDir
 }
 

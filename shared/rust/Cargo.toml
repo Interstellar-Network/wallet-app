@@ -16,4 +16,4 @@ substrate-api-client = "0.6.6"
 # [windows] error: failed to run custom build command for `openssl-sys v0.9.73
 # Still fails even with Perl(strawberry) cf README
 # So for now install Android Studio inside WSL2...
-# openssl = { version = '0.10', features = ["vendored"] }
+openssl = { version = '0.10', features = ["vendored"] }
