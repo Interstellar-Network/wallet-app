@@ -8,6 +8,10 @@ use substrate_api_client::{
     compose_extrinsic, Api, GenericAddress, UncheckedExtrinsicV4, XtStatus,
 };
 
+// This conditionally includes a module which implements WEBP support.
+#[cfg(feature = "with-jni")]
+pub mod jni_wrapper;
+
 // TODO TOREMOVE
 fn common() -> i32 {
     return 42;

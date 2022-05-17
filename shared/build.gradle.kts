@@ -79,6 +79,10 @@ cargo {
     // https://github.com/scs/substrate-api-client only supports nightly, cf README
     rustupChannel = "nightly"
 
+    features {
+        defaultAnd(arrayOf("with-jni"))
+    }
+
     // https://github.com/mozilla/rust-android-gradle/issues/91#issuecomment-1114916433
     exec = {spec, toolchain ->
         // cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
