@@ -64,7 +64,9 @@ android {
 // https://github.com/mozilla/rust-android-gradle#configuration
 cargo {
     module  = "./rust"
-    libname = "shared-rs"
+    // MUST match the FINAL .so name(which is the rust package name with - replaced by _)
+    // else the .so WILL NOT be moved into shared/build/rustJniLibs/android/ etc
+    libname = "shared_rs"
     // TODO x86_64 only needed for the emulator? Are there any device out there in x86?
     // else: java.lang.UnsatisfiedLinkError: dlopen failed: "/data/app/~~SxnFG9dqcce7NvMj1jGM9Q==/gg.interstellar.wallet.android-FvyY5G2RhoZerZMtIpvTvA==/lib/x86_64/libshared_rs.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
     targets = listOf("arm", "arm64", "x86_64")

@@ -30,6 +30,8 @@ TODO cleanup/rewrite below
   - TODO `cargo build --verbose --target=aarch64-linux-android`
 - [in Root=InterstellarWallet] .\gradlew cargoBuild --info
 
+NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
+
 #### FIX: -lgcc missing
 
 cf https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
