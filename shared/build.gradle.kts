@@ -68,6 +68,11 @@ cargo {
     // TODO add "arm64", but fails at linking stage?
     targets = listOf("arm")
     prebuiltToolchains = true
+    // needed because without this it defaults to 16, and it ends up trying to call
+    // /.../toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi16-clang
+    // which does NOT exist
+    // cf https://github.com/mozilla/rust-android-gradle/issues/66
+    apiLevel = 31
 }
 
 // dependsOn(tasks.named("cargoBuild")) FAILS with
@@ -76,6 +81,7 @@ cargo {
 // no task with name cargo in the list...
 // probably due to the fact that this project is NOT android so "org.mozilla.rust-android-gradle.rust-android" does not add it at this point?
 task<Exec>("cargoBuildExec") {
+    workingDir = rootDir
     // for some reason on windows we need "cmd /c" else
     //    Execution failed for task ':shared:cargoBuildExec'.
     //    > A problem occurred starting process 'command './gradlew''
@@ -83,9 +89,15 @@ task<Exec>("cargoBuildExec") {
     // TODO windows vs linux
 //    commandLine("cmd", "/c", "gradlew", "--info", "cargoBuild")
     commandLine("./gradlew", "--info", "cargoBuild")
-    environment("TARGET_CC", "/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang")
-    environment("TARGET_AR", "/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
-    workingDir = rootDir
+    // cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
+    // and https://github.com/briansmith/ring/issues/1488
+    // and https://github.com/briansmith/ring/issues/1206
+    // eg /home/XXX/Android/Sdk/ndk/$ndkVersion
+    println("android.ndkDirectory: ${android.ndkDirectory}")
+    val target_cc = "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang"
+    environment("CC_armv7_linux_androideabi", target_cc)
+    environment("AR_armv7_linux_androideabi", "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
+    environment("CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER", target_cc)
 }
 
 // https://github.com/mozilla/rust-android-gradle
