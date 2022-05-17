@@ -12,8 +12,58 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-substrate-api-client = "0.6.6"
+# default-features to disable all std related code?
+# "you can basically only use the compose_extrinsic_offline macro."
+# maybe see https://github.com/scs/substrate-api-client/issues/166 ?
+substrate-api-client = { version = "~0.6.0",  git = "https://github.com/scs/substrate-api-client.git", default-features = false, branch = "polkadot-v0.9.19" }
 # [windows] error: failed to run custom build command for `openssl-sys v0.9.73
 # Still fails even with Perl(strawberry) cf README
 # So for now install Android Studio inside WSL2...
 openssl = { version = '0.10', features = ["vendored"] }
+
+# those are for the examples cf https://github.com/scs/substrate-api-client/blob/master/Cargo.toml
+# but here need them as part of our public API
+# TODO cleanup eg MAYBE we need sp-core NOT the full node-template-runtime
+# env_logger = "0.9.0"
+# node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-keyring = { version = "6.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
+# clap = { version = "2.33", features = ["yaml"] }
+# wabt = "0.10.0"
+
+sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
+
+[features]
+# default = ["std", "ws-client"]
+# std = [
+# 	"sp-application-crypto/std",
+# 	"sp-core/std",
+# 	"codec/std",
+# 	"metadata/std",
+# 	"sp-version",
+# 	"balances",
+# 	"system",
+# 	"sp-runtime/std",
+# 	"support/std",
+# 	"sp-std/std",
+# 	"serde/std",
+# 	"serde_json",
+# 	"log",
+# 	"hex/std",
+# 	"primitive-types",
+# 	"thiserror",
+# 	"sp-rpc",
+# 	"transaction-payment/std",
+# 	# local deps
+# 	"ac-compose-macros/std",
+# 	"ac-node-api",
+# 	"ac-primitives/std",
+# ]
+# ws-client = ["ws"]
+
+default = ["std"]
+std = [
+	"sp-core/std",
+    "substrate-api-client/std",
+    "substrate-api-client/ws-client",
+]
+# ws-client = ["ws"]

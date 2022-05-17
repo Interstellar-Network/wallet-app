@@ -7,8 +7,11 @@ Uses:
 - Android: Jetpack Compose for easy UI
 - [TODO] iOs: SwiftUI for easy UI
 
+NOTE: the Rust dependencies only compile on **nightly**
+
 ### Android
 
+TODO cleanup/rewrite below
 - install Python
 - install Perl?
   -[windows] FAIL: "This perl implementation doesn't produce Unix like paths"
@@ -17,21 +20,32 @@ Uses:
     eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
     with wsl_perl.bat: `wsl perl %*`
     CHECK: `perl -v`
-- `rustup target add armv7-linux-androideabi`
-- `rustup target add aarch64-linux-android`
-- FAIL TOO: `sudo apt install gcc-arm-linux-gnueabihf`
-  https://github.com/briansmith/ring/issues/1488
-  Tried:
-  TARGET_CC=/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang
-  TARGET_AR=/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
-  FAIL: "relocations in generic ELF (EM: 40)"
-  TODO investigate if we can use NDK toolchains
-  - tried with v21: `armv7a-linux-androideabi21-clang`
-
+- `rustup target add armv7-linux-androideabi --toolchain nightly`
+- `rustup target add aarch64-linux-android --toolchain nightly`
 - CHECK:
   - `cd shared/rust`
-  - `cargo build --verbose --target=armv7-linux-androideabi` and `cargo build --verbose --target=aarch64-linux-android`
+  - `export NDK_ROOT=~/Android/Sdk/ndk/24.0.8215888`
+  - `CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang AR_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$CC_armv7_linux_androideabi cargo build --verbose --target=armv7-linux-androideabi` 
+  - TODO `cargo build --verbose --target=aarch64-linux-android`
 - [in Root=InterstellarWallet] .\gradlew cargoBuild --info
+
+#### FIX: -lgcc missing
+
+cf https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
+
+TODO check https://github.com/rust-windowing/android-ndk-rs/pull/270 and https://github.com/rust-lang/rust/pull/85806 for alternative
+
+#### WSL2: KVM for the emulator
+
+See https://github.com/microsoft/WSL/issues/7149
+
+```bash
+$ cat /etc/wsl.conf
+[boot]
+command = /bin/bash -c 'chown root:kvm /dev/kvm && chmod 660 /dev/kvm'
+```
+
+`sudo usermod -a -G kvm <username>`
 
 #### ARCHIVE alternative tested: cargo ndk
 
