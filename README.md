@@ -22,6 +22,7 @@ TODO cleanup/rewrite below
     CHECK: `perl -v`
 - `rustup target add armv7-linux-androideabi --toolchain nightly`
 - `rustup target add aarch64-linux-android --toolchain nightly`
+- `rustup target add x86_64-linux-android --toolchain nightly`
 - CHECK:
   - `cd shared/rust`
   - `export NDK_ROOT=~/Android/Sdk/ndk/24.0.8215888`

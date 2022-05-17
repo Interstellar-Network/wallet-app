@@ -65,14 +65,43 @@ android {
 cargo {
     module  = "./rust"
     libname = "shared-rs"
-    // TODO add "arm64", but fails at linking stage?
-    targets = listOf("arm")
+    // TODO x86_64 only needed for the emulator? Are there any device out there in x86?
+    // else: java.lang.UnsatisfiedLinkError: dlopen failed: "/data/app/~~SxnFG9dqcce7NvMj1jGM9Q==/gg.interstellar.wallet.android-FvyY5G2RhoZerZMtIpvTvA==/lib/x86_64/libshared_rs.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
+    targets = listOf("arm", "arm64", "x86_64")
     prebuiltToolchains = true
     // needed because without this it defaults to 16, and it ends up trying to call
     // /.../toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi16-clang
     // which does NOT exist
     // cf https://github.com/mozilla/rust-android-gradle/issues/66
     apiLevel = 31
+    // https://github.com/scs/substrate-api-client only supports nightly, cf README
+    rustupChannel = "nightly"
+
+    // https://github.com/mozilla/rust-android-gradle/issues/91#issuecomment-1114916433
+    exec = {spec, toolchain ->
+        // cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
+        // and https://github.com/briansmith/ring/issues/1488
+        // and https://github.com/briansmith/ring/issues/1206
+        // eg /home/XXX/Android/Sdk/ndk/$ndkVersion
+        // NOTE: below WILL NOT work on Windows!
+        println("android.ndkDirectory: ${android.ndkDirectory}")
+        if (toolchain.target == "x86_64-linux-android") {
+            val target_cc = "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang"
+            spec.environment("CC_x86_64-linux-android", target_cc)
+            spec.environment("AR_x86_64-linux-android", "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
+        }
+        if (toolchain.target == "armv7-linux-androideabi") {
+            val target_cc = "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang"
+            spec.environment("CC_armv7-linux-androideabi", target_cc)
+            spec.environment("AR_armv7-linux-androideabi", "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
+        }
+        if (toolchain.target == "aarch64-linux-android") {
+            val target_cc = "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android31-clang"
+            spec.environment("CC_aarch64-linux-android", target_cc)
+            spec.environment("AR_aarch64-linux-android", "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
+            spec.environment("CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER", target_cc)
+        }
+    }
 }
 
 // dependsOn(tasks.named("cargoBuild")) FAILS with
@@ -89,15 +118,6 @@ task<Exec>("cargoBuildExec") {
     // TODO windows vs linux
 //    commandLine("cmd", "/c", "gradlew", "--info", "cargoBuild")
     commandLine("./gradlew", "--info", "cargoBuild")
-    // cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
-    // and https://github.com/briansmith/ring/issues/1488
-    // and https://github.com/briansmith/ring/issues/1206
-    // eg /home/XXX/Android/Sdk/ndk/$ndkVersion
-    println("android.ndkDirectory: ${android.ndkDirectory}")
-    val target_cc = "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang"
-    environment("CC_armv7_linux_androideabi", target_cc)
-    environment("AR_armv7_linux_androideabi", "${android.ndkDirectory}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar")
-    environment("CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER", target_cc)
 }
 
 // https://github.com/mozilla/rust-android-gradle

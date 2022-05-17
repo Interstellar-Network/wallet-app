@@ -18,11 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.Greeting
 import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.RustWrapper
 
 @Preview
 @Composable
 fun TxPinpadScreen() {
     val greeting = Greeting().greeting()
+    val tx_hash = RustWrapper().CallExtrinsic("ws://127.0.0.1:9944")
     Column {
         MessageTopScreen()
 
