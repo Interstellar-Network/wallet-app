@@ -12,16 +12,22 @@ use substrate_api_client::{
 #[cfg(feature = "with-jni")]
 pub mod jni_wrapper;
 
+mod loggers;
+
 // TODO TOREMOVE
 fn common() -> i32 {
     return 42;
 }
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
-fn call_extrinsic(url: &str) -> Option<sp_core::H256> {
+fn call_extrinsic(url: &str) -> String {
+    println!("[+] call_extrinsic: {:?}", url); // OK
     let from = AccountKeyring::Alice.pair();
-    let client = WsRpcClient::new(&url);
+    println!("[+] call_extrinsic: from {:?}", from.public());
+    let client = WsRpcClient::new(&url); // OK
+    println!("[+] call_extrinsic: client {:?}", client);
     let api = Api::new(client).map(|api| api.set_signer(from)).unwrap();
+    println!("[+] call_extrinsic: api {:?}", api.genesis_hash.to_string());
 
     ////////////////////////////////////////////////////////////////////////////
     // // "set the recipient"
@@ -54,7 +60,10 @@ fn call_extrinsic(url: &str) -> Option<sp_core::H256> {
         .unwrap();
     println!("[+] Transaction got included. Hash: {:?}", tx_hash);
 
-    tx_hash
+    // TODO
+    // tx_hash
+
+    format!("api: {:?}", api.genesis_hash.to_string())
 }
 
 #[cfg(test)]
@@ -76,6 +85,6 @@ mod tests {
         // IMPORTANT also requires a running "api_circuits"
         let tx_hash = call_extrinsic("ws://127.0.0.1:9944");
         // TODO just check has length?
-        assert_eq!(tx_hash.expect("tx_hash ok").to_string(), "1213456");
+        assert_eq!(tx_hash.to_string(), "1213456");
     }
 }

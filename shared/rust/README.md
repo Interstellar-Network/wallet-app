@@ -4,4 +4,9 @@ NOTE: only compile with nightly toolchain else https://github.com/scs/substrate-
 `rustup override set nightly`
 
 - start the node template
-- cargo build
+- cargo build --features=with-jni
+- cargo test --features=with-jni
+
+### Debugging with VSCode
+
+cf "android-debugging"

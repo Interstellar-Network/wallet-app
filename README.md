@@ -31,6 +31,7 @@ TODO cleanup/rewrite below
 - [in Root=InterstellarWallet] .\gradlew cargoBuild --info
 
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
+NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = Dual
 
 #### FIX: -lgcc missing
 

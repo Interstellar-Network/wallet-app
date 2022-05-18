@@ -24,7 +24,8 @@ import gg.interstellar.wallet.RustWrapper
 @Composable
 fun TxPinpadScreen() {
     val greeting = Greeting().greeting()
-    val tx_hash = RustWrapper().CallExtrinsic("ws://127.0.0.1:9944")
+    // TODO DO NOT hardcode IP, or at least make it depends on Emulator vs Device
+    val tx_hash = RustWrapper().CallExtrinsic("ws://10.0.2.2:9944")
     Column {
         MessageTopScreen()
 
