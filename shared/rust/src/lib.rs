@@ -7,7 +7,8 @@ use substrate_api_client::{
 #[macro_use]
 extern crate log;
 
-// This conditionally includes a module which implements WEBP support.
+#[cfg(feature = "with-cwrapper")]
+pub mod c_wrapper;
 #[cfg(feature = "with-jni")]
 pub mod jni_wrapper;
 
