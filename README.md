@@ -2,6 +2,9 @@
 
 ## Dev Details
 
+NOTE: for now compiling on windows is not supported b/c of poor support of Rust cross-compiling wrt to Android NDK  
+It can probably be fixed but setting up Windows as dev env is a pain; it requires at least: Perl, Python, Rust, C++ Dev Tools, etc
+
 Uses:
 - Kotlin multiplatform to share as much code as possible b/w Android and iOs
 - Android: Jetpack Compose for easy UI
@@ -20,6 +23,7 @@ TODO cleanup/rewrite below
     eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
     with wsl_perl.bat: `wsl perl %*`
     CHECK: `perl -v`
+- `rustup toolchain install nightly`
 - `rustup target add armv7-linux-androideabi --toolchain nightly`
 - `rustup target add aarch64-linux-android --toolchain nightly`
 - `rustup target add x86_64-linux-android --toolchain nightly`
@@ -32,6 +36,28 @@ TODO cleanup/rewrite below
 
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
 NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = Dual
+
+### iOs
+
+cf https://kotlinlang.org/docs/multiplatform-mobile-integrate-in-existing-app.html#connect-the-framework-to-your-ios-project
+
+- `rustup toolchain install nightly`
+- `rustup target add aarch64-apple-ios x86_64-apple-ios --toolchain nightly`
+- Install Android Studio
+- Android Studio: open the project "wallet-app"; this is needed to download the SDK etc else iOs can not compile
+  - NOTE: you will have to download eg the NDK using the SDK Manager, and anything else that is required until you can Build on this machine
+- Once you have built the Android App successfully once, you can close Android Studio
+- Open the folder iOsApp in XCode and dev/compile/whatever
+- MAYBE Download a simulator using XCode?
+  - else:
+  `cargo:warning=xcrun: error: SDK "iphonesimulator" cannot be located`
+  `cargo:warning=xcrun: error: unable to lookup item 'Path' in SDK 'iphonesimulator'`
+- `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer/`
+- [to build on command line] `.../wallet-app/iosApp$ xcodebuild -scheme iosApp -sdk iphonesimulator build`
+  - [for real device] `xcodebuild -scheme iosApp build CODE_SIGN_IDENTITY=''`
+    NOTE: gradle task "embedAndSignAppleFrameworkForXcode" will fail if signing not setup; but at least that allows testing Rust arm64 cross-compiling
+
+- MAYBE NOT needed if done system wide: add `export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jre/Contents/Home` before ./gradlew in `Build Phase -> Run Script` -> works but ugly
 
 #### FIX: -lgcc missing
 
