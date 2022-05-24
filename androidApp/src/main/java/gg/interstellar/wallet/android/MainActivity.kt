@@ -35,13 +35,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // TODO can we(should we) move this to eg TxPinpadScreen.kt?
-    companion object {
-        init {
-            // MUST match the lib [package] name in shared/rust/Cargo.toml
-            System.loadLibrary("shared_rs")
-        }
-    }
 }
 
 @Preview

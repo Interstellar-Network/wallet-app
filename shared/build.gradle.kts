@@ -1,12 +1,11 @@
-import org.apache.tools.ant.taskdefs.condition.Os
 // Will be deprecated in Grable 8, but there is no public replacement...
-import org.gradle.util.VersionNumber
+import groovy.lang.Closure
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    // https://github.com/mozilla/rust-android-gradle
-    id("org.mozilla.rust-android-gradle.rust-android")
 }
 
 kotlin {
@@ -29,7 +28,12 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                api("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
+                api("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
+            }
+        }
         val androidTest by getting
         val iosX64Main by getting
         val iosArm64Main by getting
@@ -58,44 +62,140 @@ android {
     defaultConfig {
         minSdk = 16
         targetSdk = 31
+
+        // TODO? used by our own CargoTask NOT by externalNativeBuild
+        ndk {
+            abiFilters += listOf("x86_64", "armeabi-v7a", "arm64-v8a")
+        }
     }
     namespace = "gg.interstellar.wallet"
 
     // MUST match the version installed with SDK Manager
     ndkVersion = "24.0.8215888"
-}
 
-// https://github.com/mozilla/rust-android-gradle#configuration
-cargo {
-    module  = "./rust"
-    // MUST match the FINAL .so name(which is the rust package name with - replaced by _)
-    // else the .so WILL NOT be moved into shared/build/rustJniLibs/android/ etc
-    libname = "shared_rs"
-    // TODO x86_64 only needed for the emulator? Are there any device out there in x86?
-    // else: java.lang.UnsatisfiedLinkError: dlopen failed: "/data/app/~~SxnFG9dqcce7NvMj1jGM9Q==/gg.interstellar.wallet.android-FvyY5G2RhoZerZMtIpvTvA==/lib/x86_64/libshared_rs.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
-    targets = listOf("arm", "arm64", "x86_64")
-    prebuiltToolchains = true
-    // needed because without this it defaults to 16, and it ends up trying to call
-    // /.../toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi16-clang
-    // which does NOT exist
-    // cf https://github.com/mozilla/rust-android-gradle/issues/66
-    apiLevel = 31
-    // https://github.com/scs/substrate-api-client only supports nightly, cf README
-    rustupChannel = "nightly"
+    flavorDimensions += listOf("abi")
+    productFlavors {
+        create("armv7") {
+            // Assigns this product flavor to the "mode" flavor dimension.
+            dimension = "abi"
+            ndk {
+                abiFilters += listOf("armeabi-v7a")
+            }
+        }
 
-    features {
-        defaultAnd(arrayOf("with-jni"))
+        create("arm64") {
+            dimension = "abi"
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+        }
+
+        create("x86_64") {
+            dimension = "abi"
+            ndk {
+                abiFilters += listOf("x86_64")
+            }
+
+            // Currently the emulator does not fully support Vulkan??
+            // So we use a wrap.sh to force OpenGL backend
+            packagingOptions {
+                jniLibs.useLegacyPackaging = true
+            }
+        }
     }
 
-    // https://github.com/mozilla/rust-android-gradle/issues/91#issuecomment-1114916433
-    exec = {spec, toolchain ->
-        // cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
-        // and https://github.com/briansmith/ring/issues/1488
-        // and https://github.com/briansmith/ring/issues/1206
-        // eg /home/XXX/Android/Sdk/ndk/$ndkVersion
-        // NOTE: below WILL NOT work on Windows!
-        println("### android.ndkDirectory: ${android.ndkDirectory}")
-        println("### cargo.toolchainDirectory: ${toolchainDirectory}")
+}
+
+
+
+/**
+ * First try was using https://github.com/mozilla/rust-android-gradle
+ * BUT:
+ * - dependsOn(tasks.named("cargoBuild")) FAILS with
+ *   Caused by: org.gradle.api.UnknownTaskException: Task with name 'cargoBuild' not found in project ':shared'
+ *   Which required to call cargoBuild using Exec to have "proper" dependency
+ * - this plugin is NOT supported for other plateform than Android(logical) so we still need to call "cargo" manually for iOs
+ *
+ * ARCHIVE/HISTORY:
+ * https://github.com/mozilla/rust-android-gradle/issues/91#issuecomment-1114916433
+ * cf https://github.com/briansmith/ring/blob/main/mk/cargo.sh#L69
+ * and https://github.com/briansmith/ring/issues/1488
+ * and https://github.com/briansmith/ring/issues/1206
+ * - had to copy paste https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L176
+ * - had to set:
+ *  spec.environment("CC_${toolchain.target}", target_cc)
+ *  spec.environment("AR_${toolchain.target}", target_ar)
+ *
+ *
+// TODO? CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER etc
+// WARNING: if you change any env var, CLEAN EVERYTHING: cargo clean + gradle clean
+// else you may have compilation error when it would work on a clean build
+ */
+// DO NOT use a base DefaultTask, else calling exec {} in TaskAction fails:
+// Caused by: org.gradle.api.tasks.TaskInstantiationException: Could not create task of type 'CargoTask'.
+// Caused by: java.lang.IllegalArgumentException: The constructor for type Build_gradle.CargoTask should be annotated with @Inject.
+// FAIL: can not configure the args/executable etc via doFirst: https://discuss.gradle.org/t/dofirst-does-not-execute-first-but-only-after-task-execution/28129/5
+// BUT "project.exec" DOES WORK
+abstract class CargoTask : DefaultTask () {
+
+    // cargo target:
+    // - x86_64-apple-ios(SIMULATOR),aarch64-apple-ios
+    // - armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android(SIMULATOR)
+    // MUST have been added with eg: `rustup target add $TARGET [--toolchain nightly]`
+    @get:Input
+    abstract val target: Property<String>
+
+    // will default to "target/"; RELATIVE to project_dir
+//    @Input
+//    var target_dir = "./target"
+    @get:Input
+    abstract val target_dir: Property<String>
+
+    @get:Input
+    abstract val project_dir: Property<File>
+
+    @get:Input
+    abstract val use_nightly: Property<Boolean>
+
+    // comma separated list of features; will be passed directly as-is: --features=${features}
+    @get:Input
+    abstract val features: Property<String>
+
+    // cargo target -> NDK ABI(ie /.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/$NDk_ABI31-clang
+    @get:Input
+    abstract val map_cargo_target_to_ndk: MapProperty<String,String>
+
+    // cargo target -> ndkFilters(eg "x86_64", "armeabi-v7a", "arm64-v8a")
+    // "android_abi" SHOULD match jniLibs/
+    @get:Input
+    abstract val map_cargo_target_to_android_abi: MapProperty<String,String>
+
+    init {
+        target_dir.convention("./target")
+        // https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/RustAndroidPlugin.kt
+        // except armv7-linux-androideabi, those should be the identity function
+        // armv7-linux-androideabi -> armv7a-linux-androideabi
+        map_cargo_target_to_ndk.convention(mapOf(
+            "armv7-linux-androideabi" to "armv7a-linux-androideabi",
+            "aarch64-linux-android" to "aarch64-linux-android",
+            "x86_64-linux-android" to "x86_64-linux-android"
+        ))
+        map_cargo_target_to_android_abi.convention(mapOf(
+            "armv7-linux-androideabi" to "armeabi-v7a",
+            "aarch64-linux-android" to "arm64-v8a",
+            "x86_64-linux-android" to "x86_64"
+        ))
+    }
+
+    @TaskAction
+    fun doWork() {
+        // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
+
+        // Set a bunch of env vars needed for cross-compiling C++ projects
+        // This is needed at least for secp256k1-sys, and possibly other crates
+        // https://github.com/rust-lang/cc-rs#external-configuration-via-environment-variables
+        println("### android.ndkDirectory: ${project.android.ndkDirectory}")
+
         // That is the same logic as: https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L176
         // NOTE: it is exposed publicly but we are NOT using the plugin correctly??
         // So toolchainDirectory = /tmp/rust-android-ndk-toolchains
@@ -111,36 +211,152 @@ cargo {
             "linux-x86_64"
         }
 
-        val ndk_major = VersionNumber.parse(android.ndkVersion!!).major
-        val toolchains_prebuilt_path = "${android.ndkDirectory}/toolchains/llvm/prebuilt"
-        // toolchain.cc() eg "bin/x86_64-linux-android31-clang"
-        val target_cc = "${toolchains_prebuilt_path}/$hostTag/${toolchain.cc(android.compileSdk!!)}"
-        // toolchain.ar() eg "bin/llvm-ar"
-        val target_ar = "${toolchains_prebuilt_path}/$hostTag/${toolchain.ar(android.compileSdk!!, ndk_major)}"
+        // TODO? https://github.com/rust-lang/cc-rs/blob/f2e1b1c9ff92ad063957382ec445bc54e9570c71/src/lib.rs#L2296
+        // just call clang --target=$TARGET instead of this messy env var settings?
+        // FAIL: it works for MOST projects in Rust; ie all that use "rust-cc"
+        // BUT sdl2-sys DOES NOT, and using "NDK clang" instead of the versionned one breaks detection:
+        //        -- ANDROID_PLATFORM not set. Defaulting to minimum supported version 19.
+        //        -- Android: Targeting API '19' with architecture 'arm', ABI 'armeabi-v7a', and processor 'armv7-a'
+        //        -- Android: Selected unified Clang toolchain
+        // TODO investigate, sdl2-sys seems to build-dep on cmake-rs, which means it should work
+        // cf https://github.com/rust-lang/cmake-rs/issues/140 and if it works finda cleaner way
+        val ndk_major = VersionNumber.parse(project.android.ndkVersion!!).major
         println("### ndk major: ${ndk_major}")
-        println("### toolchain.cc: ${target_cc}")
-        println("### toolchain.ar: ${target_ar}")
-        println("### toolchain.target: ${toolchain.target}")
-        // TODO? CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER etc
-        spec.environment("CC_${toolchain.target}", target_cc)
-        spec.environment("AR_${toolchain.target}", target_ar)
+        val cargo_target = target.get()
+        val ndk_target = map_cargo_target_to_ndk.get().get(cargo_target)
+        println("### cargo_target: $cargo_target")
+        println("### ndk_target: $ndk_target")
+        val toolchains_prebuilt_path = "${project.android.ndkDirectory}/toolchains/llvm/prebuilt/$hostTag/bin"
+        // eg with "--target=x86_64-linux-android" we want:
+        // CC eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang"
+        // CXX eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang++"
+        // BUT AR is NOT versionned:
+        // eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+        val target_cc = "${toolchains_prebuilt_path}/$ndk_target${project.android.compileSdk!!}-clang"
+//        val target_cc = "${toolchains_prebuilt_path}/clang"
+        val target_cxx = "${target_cc}++"
+        val target_ar = "${toolchains_prebuilt_path}/llvm-ar"
+        println("### target_cc: $target_cc")
+        println("### target_cxx: $target_cxx")
+        println("### target_ar: $target_ar")
+
+        project.exec {
+            workingDir = project_dir.get()
+            println("### workingDir: $workingDir")
+
+            // TODO? use args and executable? but that result in empty commandLine?
+            val cmd = mutableListOf<String>("cargo")
+            // toolchain: stable or +nightly?
+            if (use_nightly.get()) {
+                cmd.add("+nightly")
+            }
+            cmd.add("build")
+            cmd.add("--target=$cargo_target")
+            if (features.get().isNotEmpty()) {
+                cmd.add("--features=${features.get()}")
+            }
+
+            println("### cmd: $cmd")
+            commandLine(cmd)
+
+            // TODO? or move up top?
+            //        inputs.files(fileTree("./rust/src"))
+            //            .withPropertyName("sourceFiles")
+            //            .withPathSensitivity(PathSensitivity.RELATIVE)
+            //        outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
+
+            // TODO? CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER etc
+            // WARNING: if you change any env var, CLEAN EVERYTHING: cargo clean + gradle clean
+            // else you may have compilation error when it would work on a clean build
+             environment("CC_$cargo_target", target_cc)
+             environment("CXX_$cargo_target", target_cxx)
+//            environment("TARGET_CC", target_cc)
+
+            environment("AR_$cargo_target", target_ar)
+            // TODO? spec.environment("SDL2_TOOLCHAIN", "${android.ndkDirectory}/build/cmake/android.toolchain.cmake")
+            // else:
+            //        -- SDL2 was configured with the following options:
+            //        --
+            //        -- Platform: Linux-5.10.102.1-microsoft-standard-WSL2
+            //        -- 64-bit:   TRUE
+            //        -- Compiler: /home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang
+            //        -- Revision
+            //        /usr/include/stdint.h:26:10: fatal error: 'bits/libc-header-start.h' file not found
+            //
+            // cf https://github.com/Rust-SDL2/rust-sdl2/blob/541f49af58fb55b678d0b209fc354a13a54318dd/sdl2-sys/build.rs#L94
+            // But we might as well set the proper env var for all CMake projects
+            environment("CMAKE_TOOLCHAIN_FILE", "${project.android.ndkDirectory}/build/cmake/android.toolchain.cmake")
+
+            // https://github.com/mozilla/rust-android-gradle/blob/4fba4b9db16d56ba4e4f9aef2c028a4c2d6a9126/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L195
+            // else:
+            // "error: linking with `cc` failed: exit status: "
+            // "/usr/bin/ld: cannot find -llog"
+            //
+            // https://doc.rust-lang.org/cargo/reference/environment-variables.html#configuration-environment-variables
+            // "CARGO_TARGET_<triple>_LINKER — The linker to use, see target.<triple>.linker."
+            // "The triple must be converted to uppercase and underscores."
+            val target_triple_upper = cargo_target.toUpperCaseAsciiOnly().replace("-", "_")
+            println("### target_triple_upper: $target_triple_upper")
+            // TODO should we use ld or lld instead of clang?
+            environment("CARGO_TARGET_${target_triple_upper}_LINKER", target_cc)
+
+            // TEMP WORKAROUND for "note: ld: error: unable to find library -lgcc"
+            // that is the same "fix" than in https://github.com/rust-windowing/android-ndk-rs/pull/189
+            // or the last comment of: https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
+            if(ndk_major >= 23){
+                val target_dir_resolved = project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/WORKAROUND-RUST-LANG-85806")
+                println("### target_dir_resolved: $target_dir_resolved")
+                project.file(target_dir_resolved).mkdirs()
+                File(target_dir_resolved, "libgcc.a").writeText("INPUT(-lunwind)")
+
+                // TODO can we use CARGO_TARGET_<triple>_RUSTFLAGS instead of -L?
+                // cmd.add("-L$target_dir_resolved") // error: Found argument '-L' which wasn't expected, or isn't valid in this context
+                environment("CARGO_TARGET_${target_triple_upper}_RUSTFLAGS", "-L$target_dir_resolved")
+            }
+
+            // useful to debug why we keep recompiling from scratch when switching from host build to Android target
+            // TODO remove
+            environment("CARGO_LOG", "cargo::core::compiler::fingerprint=info")
+        }
+
+        project.copy {
+            val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(map_cargo_target_to_android_abi.get().get(target.get())!!)
+
+            // TODO debug/release
+            from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/debug/"))
+            // TODO project.android or project.kotlin.
+            // TODO NOTE sourceSets["main"].jniLibs.srcDirs = [/.../shared/src/main/jniLibs, /.../shared/src/androidMain/jniLibs]
+            // which one should we use
+            into(output_jnilibs_dir)
+
+            include("*.so")
+            // TODO dylib?
+        }
     }
+
 }
 
-// dependsOn(tasks.named("cargoBuild")) FAILS with
-// Caused by: org.gradle.api.UnknownTaskException: Task with name 'cargoBuild' not found in project ':shared'
-// CHECK: println("tasks.names: ${tasks.names}")
-// no task with name cargo in the list...
-// probably due to the fact that this project is NOT android so "org.mozilla.rust-android-gradle.rust-android" does not add it at this point?
-task<Exec>("cargoBuildExec") {
-    workingDir = rootDir
-    // for some reason on windows we need "cmd /c" else
-    //    Execution failed for task ':shared:cargoBuildExec'.
-    //    > A problem occurred starting process 'command './gradlew''
-    // cf https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Exec.html
-    // TODO windows vs linux
-//    commandLine("cmd", "/c", "gradlew", "--info", "cargoBuild")
-    commandLine("./gradlew", "--info", "cargoBuild")
+// https://github.com/scs/substrate-api-client only supports nightly, cf README
+val cargo_use_nightly = true
+val cargo_project_dir = projectDir.absoluteFile.resolve("./rust")
+val cargo_features_android = "with-jni"
+tasks.register<CargoTask>("cargoBuildAndroidArm") {
+    project_dir.set(cargo_project_dir)
+    target.set("armv7-linux-androideabi")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
+}
+tasks.register<CargoTask>("cargoBuildAndroidArm64") {
+    project_dir.set(cargo_project_dir)
+    target.set("aarch64-linux-android")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
+}
+tasks.register<CargoTask>("cargoBuildAndroidX86") {
+    project_dir.set(cargo_project_dir)
+    target.set("x86_64-linux-android")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
 }
 
 // CUSTOM task for iOs <-> cargo
@@ -171,7 +387,7 @@ task("cargoBuildIosSimulator") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_rs.a"))
+    outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -197,7 +413,7 @@ task("cargoBuildIosDevice") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/aarch64-apple-ios/debug/libshared_rs.a"))
+    outputs.files(File("./shared/rust/target/aarch64-apple-ios/debug/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -210,15 +426,20 @@ task("cargoBuildIosDevice") {
 }
 // TODO if needed add for "iOs simulator on ARM MACs"
 
-// https://github.com/mozilla/rust-android-gradle
+
 tasks.whenTaskAdded {
     // TODO? https://github.com/mozilla/rust-android-gradle/issues/85
     //    if (name == "mergeDebugJniLibFolders" || name == "mergeReleaseJniLibFolders") {
-    if (name == "javaPreCompileDebug" || name == "javaPreCompileRelease") {
-        /// TODO add afterEvaluate { and remove "cargoBuildExec" -> replace by "cargoBuild"
-        // cf https://github.com/mozilla/rust-android-gradle/blob/master/samples/unittest/build.gradle
-        // for why it is "afterEvaluate": "The `cargoBuild` task isn't available until after evaluation."
-        dependsOn(tasks.named("cargoBuildExec"))
+    // TODO is there a better target? cf // https://github.com/mozilla/rust-android-gradle
+    // TODO Release variants
+    if(name == "javaPreCompileArmv7Debug") {
+        dependsOn(tasks.named("cargoBuildAndroidArm"))
+    }
+    if(name == "javaPreCompileArm64Debug") {
+        dependsOn(tasks.named("cargoBuildAndroidArm64"))
+    }
+    if(name == "javaPreCompileX86_64Debug") {
+        dependsOn(tasks.named("cargoBuildAndroidX86"))
     }
 
     // TODO cf https://kotlinlang.org/docs/multiplatform-dsl-reference.html#targets
@@ -250,7 +471,7 @@ tasks.whenTaskAdded {
     //    > Task :shared:assembleDebugAppleFrameworkForXcode
     //
     // NOTE: all the link* etc are always considered UP-TO-DATE b/c they have no file(at least right now)
-    // file or directory '/Users/pratn/Documents/workspace/interstellar/wallet-app/shared/src/iosSimulatorArm64Main/kotlin', not found
+    // file or directory '/Users/XXX/Documents/workspace/interstellar/wallet-app/shared/src/iosSimulatorArm64Main/kotlin', not found
     // Skipping task ':shared:compileKotlinIosSimulatorArm64' as it is up-to-date.
     // Skipping task ':shared:linkReleaseFrameworkIosSimulatorArm64' as it is up-to-date.
     // Skipping task ':shared:iosSimulatorArm64Binaries' as it has no actions.

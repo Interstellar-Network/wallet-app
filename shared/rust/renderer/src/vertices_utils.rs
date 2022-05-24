@@ -1,0 +1,107 @@
+// NOTE: for consistency we define our Rect(=bounding box) the same way than Android
+// https://developer.android.com/reference/android/graphics/Rect#summary
+// https://developer.android.com/ndk/reference/struct/a-rect
+#[non_exhaustive] // make this struct NON-constructible(ie MUST use Rect::new)
+#[derive(Default, Clone, Debug, PartialEq)]
+pub struct Rect {
+    pub bottom: f32,
+    pub left: f32,
+    pub right: f32,
+    pub top: f32,
+}
+
+impl Rect {
+    /// Create a new Rect
+    /// NOTE: the order of the parameter matches Rect.fromLTRB from Android Compose
+    /// @param: MUST be in NDC[-1.0,1.0]
+    pub fn new(left: f32, top: f32, right: f32, bottom: f32) -> Self {
+        if !(-1.0..=1.0).contains(&left) {
+            panic!("left NOT in NDC[-1.0,1.0]: {}", left)
+        }
+        if !(-1.0..=1.0).contains(&top) {
+            panic!("top NOT in NDC[-1.0,1.0]: {}", top)
+        }
+        if !(-1.0..=1.0).contains(&right) {
+            panic!("right NOT in NDC[-1.0,1.0]: {}", right)
+        }
+        if !(-1.0..=1.0).contains(&bottom) {
+            panic!("bottom NOT in NDC[-1.0,1.0]: {}", bottom)
+        }
+        if bottom > top {
+            panic!("bottom > top: {} > {}", bottom, top)
+        }
+        if left > right {
+            panic!("left > right: {} > {} ", left, right)
+        }
+
+        Rect {
+            bottom: bottom,
+            left: left,
+            right: right,
+            top: top,
+        }
+    }
+
+    /// new: with conversion from screen space(x: [0;width], y: [0:height])
+    /// NOTE: y axis is top = 0, bottom = height to match Android
+    pub fn new_to_ndc_android(
+        mut left: f32,
+        mut top: f32,
+        mut right: f32,
+        mut bottom: f32,
+        width: f32,
+        height: f32,
+    ) -> Self {
+        // IMPORTANT: we HAVE to correct based on BOTH the aspect ration and
+        // scaling mode
+        //
+        // eg: with a vertical window 1080*1920:
+        // world_top: 1.0, world_width: 1.125, aspect_ratio: 0.5625, world_left: -0.5625
+        //
+        // convert to range [0,1.0]; but what we WANT is [-1,1]
+        // also MUST invert y axis
+        left = left / width;
+        top = (height - top) / height;
+        right = right / width;
+        bottom = (height - bottom) / height;
+        // then convert [0.0,1.0] -> [-1.0,1.0]
+        left = left * 2.0 - 1.0;
+        top = top * 2.0 - 1.0;
+        right = right * 2.0 - 1.0;
+        bottom = bottom * 2.0 - 1.0;
+        // finally, adjust for aspect ratio and scaling mode
+        // eg with ScalingMode::FixedVertical: the y axis is [-1,1]
+        // but the horizontal axis is [-1 / (16/9), 1 / (16/9)] == [-0.5625, 0.5625]
+        match crate::CameraScalingMode {
+            bevy::render::camera::ScalingMode::None => todo!("ScalingMode::None not yet supported"),
+            bevy::render::camera::ScalingMode::WindowSize => {
+                todo!("ScalingMode::WindowSize not yet supported")
+            }
+            bevy::render::camera::ScalingMode::FixedVertical => {
+                left = left * (width / height);
+                right = right * (width / height);
+            }
+            bevy::render::camera::ScalingMode::FixedHorizontal => {
+                top = top * (width / height);
+                bottom = bottom * (width / height);
+            }
+        }
+
+        Self::new(left, top, right, bottom)
+    }
+
+    pub fn center(&self) -> [f32; 2] {
+        return [
+            self.left + self.width() / 2.0,
+            self.bottom + self.height() / 2.0,
+        ];
+    }
+
+    pub fn width(&self) -> f32 {
+        return self.right - self.left;
+    }
+
+    pub fn height(&self) -> f32 {
+        return self.top - self.bottom;
+    }
+}
