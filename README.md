@@ -57,7 +57,10 @@ cf https://kotlinlang.org/docs/multiplatform-mobile-integrate-in-existing-app.ht
   - [for real device] `xcodebuild -scheme iosApp build CODE_SIGN_IDENTITY=''`
     NOTE: gradle task "embedAndSignAppleFrameworkForXcode" will fail if signing not setup; but at least that allows testing Rust arm64 cross-compiling
 
-- MAYBE NOT needed if done system wide: add `export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jre/Contents/Home` before ./gradlew in `Build Phase -> Run Script` -> works but ugly
+NOTE: below SHOULD already be set, but double check the value:
+- Project settings -> click "+" add "new User defined": `JAVA_HOME`
+  - eg `/Applications/Android Studio.app/Contents/jre/Contents/Home/`(no need for double quotes or escaping)
+  - ALTERNATIVE: add `export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jre/Contents/Home` before ./gradlew in `Build Phase -> Run Script` -> works but ugly
 
 #### FIX: -lgcc missing
 

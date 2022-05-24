@@ -1,0 +1,58 @@
+[package]
+name = "renderer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# ANDROID: "This must contain at least cdylib for Android libraries to be generated."
+# https://github.com/bbqsrc/cargo-ndk/blob/main/example/Cargo.toml
+# else:
+# [2022-05-16T09:53:58Z INFO  cargo_ndk::cli] Copying libraries to ./jniLibs...
+# [2022-05-16T09:53:58Z ERROR cargo_ndk::cli] No .so files found in path
+#
+# IOS: error: cannot produce cdylib for `shared-rs v0.1.0 (/.../wallet-app/shared/rust)` as the target `x86_64-apple-ios` does not support these crate types
+crate-type = ["cdylib", "staticlib", "lib"]
+
+[dependencies]
+# TODO static linking? only for iOs?
+# sdl2 = { version = "0.35.2", features = ["bundled"] }
+cfg-if = "1"
+anyhow = "1.0"
+bytemuck = { version = "1.4", features = [ "derive" ] }
+env_logger = "0.9"
+log = "0.4"
+pollster = "0.2"
+winit = "0.26" # TODO TOREMOVE? only for desktop examples?
+cgmath = "0.18"
+# TODO dev-dependencies
+image = "0.24"
+
+#TODO [target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.11"
+jni = { version = "0.19.0" }  # TODO optional = true
+jni_fn = "0.1"
+raw-window-handle = "0.4"
+futures = "0.3"
+
+# default to 0.34 caused the a segfault on Linux+Vulkan
+# same as https://github.com/nannou-org/nannou/issues/742
+# and/or https://github.com/gfx-rs/wgpu/issues/2632
+# wgpu MASTER examples worked fine, and those are using ash 0.37
+# but wgpu crates(O.12) DOES NOT work with 0.34, or 0.37; the call is "enumerate_instance_extension_properties()"
+# ash = "0.34"  # fatal: library not found: vulkan
+# ash = "0.35"
+# TODO should probably use feature "ash/vulkan" when plateform is Linux
+# wgpu-hal = { version = "0.12.0", features = ["vulkan"] }
+# crates version(0.12) FAIL depending on the machine
+# wgpu = "0.12"
+wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "75db572bf7de57" }
+
+[dev-dependencies]
+png = "0.17.5"
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"

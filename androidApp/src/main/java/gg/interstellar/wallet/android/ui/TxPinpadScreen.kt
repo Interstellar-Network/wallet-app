@@ -17,12 +17,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import gg.interstellar.wallet.WGPUSurfaceView
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import gg.interstellar.wallet.android.ui.theme.Modernista
@@ -71,21 +74,13 @@ private fun MessageTopScreen() {
             .fillMaxWidth()
             .fillMaxHeight(0.25f)
     ) {
-        Text(
-            text = " 0.5 ETH \n TO\n SATOSHI",
-            textAlign = TextAlign.Center,
-            fontFamily = Modernista, fontWeight = FontWeight.Normal,
-            fontSize = 45.sp,
-            modifier = Modifier
-                .fillMaxHeight()
-                .wrapContentHeight(Alignment.CenterVertically),
+        AndroidView(
+            factory = { ctx ->
+                WGPUSurfaceView(context = ctx)
+            }
         )
     }
-
-    // Blank row before confirm to adjust
-    Row { Spacer(Modifier.height(10.dp)) }
 }
-
 
 @Composable
 private fun ConfirmMessageMiddleScreen() {

@@ -8,4 +8,8 @@ interface RustInterface {
     // WARNING: this CAN NOT be "external" if part of the commonMain?
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation
     fun CallExtrinsic(url: String) : String?
+
+    fun <Surface> initSurface(surface: Surface): Long
+    fun render(rustObj: Long)
+    fun update(rustObj: Long)
 }
