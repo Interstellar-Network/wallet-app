@@ -1,32 +1,30 @@
 package gg.interstellar.wallet.android.ui
 
 //import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+// import com.google.android.material.elevation
+
+import android.R.attr.fontFamily
+import android.text.style.TextAppearanceSpan
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.Canvas
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-// import com.google.android.material.elevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.geometry.Offset
 import gg.interstellar.wallet.Greeting
 import gg.interstellar.wallet.android.R
-
+import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
 @Preview
@@ -36,9 +34,7 @@ fun TxPinpadScreen() {
     val greeting = Greeting().greeting()
     Column {
 
-
-
-        DisplayLogo()
+        DisplayInterstellar()
         MessageTopScreen()
 
         ConfirmMessageMiddleScreen()
@@ -56,17 +52,29 @@ fun TxPinpadScreen() {
     }
 }
 @Composable
-fun DisplayLogo() {
+fun DisplayInterstellar() {
+    Row(
+        horizontalArrangement = Arrangement.Center,
 
-    //Row(modifier = Modifier
-      //  .fillMaxWidth()
-      //  .fillMaxHeight(0.33f)) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.08f)
+    ){
 
 
-
+        Text("INTERSTELLAR",
+            textAlign = TextAlign.Center,
+            fontFamily = Modernista, fontWeight = FontWeight.Normal,
+            //style = MaterialTheme.typography.body1,
+            fontSize = 11.sp,
+            modifier = Modifier
+                .fillMaxHeight()
+                .wrapContentHeight(Alignment.CenterVertically)
+                .shadow(elevation = 2.dp)
+        )
+    }
 
 }
-
 
 
 @Composable
@@ -74,7 +82,7 @@ fun SetPadCircle() {
 
         Surface(
             modifier = Modifier
-                    //Adjust Keypad topology with this values
+                //Adjust Keypad topology with this values
                 .sizeIn(90.dp, 140.dp, 90.dp, 140.dp)
                 .aspectRatio(1f)
                 .padding(5.dp),
@@ -92,7 +100,6 @@ fun SetPadCircle() {
 }
 
 /*
-
              {
                 Canvas(modifier = Modifier
                     .fillMaxSize()
@@ -128,11 +135,17 @@ fun SetPadCircle() {
 
 @Composable
 private fun MessageTopScreen() {
-    Row(modifier = Modifier
+    Row( horizontalArrangement = Arrangement.Center,   modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight(0.33f)) {
         // TODO proper OpenGL render using lib_eval?
-        Text("0.06 ETH to \"SATOSHI\"", textAlign = TextAlign.Center,
+
+
+        //TEST Modernista
+        Text("0.06 ETH TO \"SATOSHI\"",
+            textAlign = TextAlign.Center,
+            fontFamily = Modernista, fontWeight = FontWeight.Normal,
+            //style = MaterialTheme.typography.body1,
             fontSize = 50.sp,
             modifier = Modifier
                 .fillMaxHeight()
@@ -143,16 +156,84 @@ private fun MessageTopScreen() {
 @Composable
 private fun ConfirmMessageMiddleScreen() {
     Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-        Icon(painterResource(R.drawable.ic_confirm_transaction_no_text_black_mockup_component_shadow),
-            contentDescription = "confirm transaction",
-            tint = Color.Unspecified)
-    }
+
+        Surface(
+            modifier = Modifier
+                //.fillMaxSize()
+                //.preferredWidthIn(min = 145.dp).preferredHeight(56.dp),
+                .sizeIn(200.dp, 50.dp, 350.dp, 90.dp)
+                //.aspectRatio(1f)
+               .padding(15.dp),
+
+            contentColor = Color(0x080ff),
+            shape = CircleShape,
+            elevation = 2.dp,
+            color = Color(0x080ff)
+
+            //) {
+            //Row(
+            //    modifier = Modifier
+            //        .fillMaxSize()
+            //        .padding(horizontal = 10.dp),
+             //   verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .sizeIn(300.dp, 30.dp, 350.dp, 90.dp)
+                        .shadow( 2.dp,RectangleShape,true)
+                        .padding(horizontal = 40.dp)
+                        .padding(vertical = 8.dp),
+
+                    color =  Color(0x080ff),
+                    contentColor =  Color.White,
+                    shape = CircleShape,
+                    elevation = 2.dp,
+
+
+                ) {
+
+
+
+                    Text(
+                        "Confirm Transaction",
+                        textAlign = TextAlign.Center,
+                        fontFamily = Modernista, fontWeight = FontWeight.Normal,
+                        //style = MaterialTheme.typography.body1,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .wrapContentHeight(Alignment.CenterVertically)
+                            //.wrapContentWidth(Alignement.Start)
+
+                            //.padding(vertical = 5.dp)
+
+                            .shadow(elevation = 1.dp)
+                    )
+                }
+            }
+        }
+
 }
+
+
+@Composable
+private fun ConfirmMessageMiddleScreenbis() {
+    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            Icon(
+                painterResource(R.drawable.ic_confirm_transaction_no_text_black_mockup_component_shadow),
+                contentDescription = "confirm transaction",
+                tint = Color.Unspecified
+            )
+        }
+}
+
 @Composable
 private fun PinpadBottomScreen() {
 //    val numbers = (0..12).toList()
 
-    // TODO TOREMOVE sort of works, but this is a scrollable layout; which is not what we want
+        // TODO TOREMOVE sort of works, but this is a scrollable layout; which is not what we want
 //    LazyVerticalGrid(
 //        cells = GridCells.Fixed(3)
 //    ) {
@@ -182,216 +263,85 @@ private fun PinpadBottomScreen() {
 //        }
 //    }
 
-
-
-    // We MUST set "weight" on each children, that weight each row will have the same height
-    Column {
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.15f)
-        )
-        {
-
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-
-
-        }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.15f)
-        )
-        {
-
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-
-        }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.15f)
-        )
-        {
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-        }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.15f),
-            verticalAlignment = Alignment.CenterVertically) {
-            // In this case we must set the wight b/c we have different children contrary to the
-            // other rows. TODO? is there a better way to do this?
-            Spacer(Modifier.weight(0.33f))
-
-            SetPadCircle()
-
-
-            Icon(
-                painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
-                contentDescription = "pinpad input cancel",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
+        // We MUST set "weight" on each children, that weight each row will have the same height
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.15f)
             )
-        }
-    }
-}
+            {
 
+                SetPadCircle()
+                SetPadCircle()
+                SetPadCircle()
 
+            }
 
+            Row(
+                horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.15f)
+            )
+            {
 
+                SetPadCircle()
+                SetPadCircle()
+                SetPadCircle()
 
+            }
 
+            Row(
+                horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.15f)
+            )
+            {
+                SetPadCircle()
+                SetPadCircle()
+                SetPadCircle()
+            }
 
+            Row(
+                horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.15f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // In this case we must set the wight b/c we have different children contrary to the
+                // other rows. TODO? is there a better way to do this?
+                Spacer(Modifier.weight(0.33f))
 
+                SetPadCircle()
 
-
-
-
-
-
-
-
-@Composable
-private fun PinpadBottomScreenBis() {
-//    val numbers = (0..12).toList()
-
-    // TODO TOREMOVE sort of works, but this is a scrollable layout; which is not what we want
-//    LazyVerticalGrid(
-//        cells = GridCells.Fixed(3)
-//    ) {
-//        items(numbers.size) {
-//            // standard: draw a "circle" for everything except bottom left and bottom right
-//            if(it < 9 || it == 10){
-//                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//                    // TOREMOVE
-////                    Text(text = "Number")
-////                    Text(text = "  $it",)
-//                    Icon(
-//                        painterResource(R.drawable.ic_circle_black_background_shadow),
-//                        // TODO correct contentDescription eg "top left"
-//                        contentDescription = "pinpad input",
-//                        tint = Color.Unspecified
-//                    )
-//                }
-//            }
-//            // bottom right: draw "undo"
-//            else if(it == 11) {
-//                Icon(
-//                    painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
-//                    contentDescription = "pinpad input cancel",
-//                    tint = Color.Unspecified
-//                )
-//            }
-//        }
-//    }
-
-
-
-    // We MUST set "weight" on each children, that weight each row will have the same height
-    Column {
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.25f)) {
-
-                Icon (
-                    painterResource(R.drawable.ic_circle_black_background_shadow),
-                    contentDescription = "pinpad input top left",
+                Icon(
+                    painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
+                    contentDescription = "pinpad input cancel",
                     tint = Color.Unspecified,
-                    modifier = Modifier.weight(0.33f),
-                   // elevation = "2dp"
+                    modifier = Modifier.weight(0.33f)
                 )
-
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input top middle",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input top right",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
+            }
         }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.25f)) {
-
-
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input middle left",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f),
-
-            )
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input middle middle",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input middle right",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.25f)) {
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input bottom left",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input bottom middle",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input bottom right",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.25f),
-            verticalAlignment = Alignment.CenterVertically) {
-            // In this case we must set the wight b/c we have different children contrary to the
-            // other rows. TODO? is there a better way to do this?
-            Spacer(Modifier.weight(0.33f))
-            Icon(
-                painterResource(R.drawable.ic_circle_black_background_shadow),
-                contentDescription = "pinpad input bottom bottom middle",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-            Icon(
-                painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
-                contentDescription = "pinpad input cancel",
-                tint = Color.Unspecified,
-                modifier = Modifier.weight(0.33f)
-            )
-        }
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
