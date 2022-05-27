@@ -29,7 +29,7 @@ import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
-@Preview(showBackground = true)
+@Preview (showBackground = true)
 @Composable
 fun TxPinpadScreen() {
 
@@ -112,7 +112,7 @@ private fun ConfirmMessageMiddleScreen() {
 
             //contentColor = Colors.White,
             shape = CircleShape,
-            elevation = 1.dp,
+            elevation = 12.dp,
             color = MaterialTheme.colors.primary,
 
             //TO DO change to gradient
@@ -141,7 +141,7 @@ private fun ConfirmMessageMiddleScreen() {
                     // TO DO change theme with right color value
                     contentColor =  Color.White,
                     shape = CircleShape,
-                    //elevation = 1.dp,
+                    elevation = 12.dp,
                     ) { Text(
                         "Confirm Transaction",
                         textAlign = TextAlign.Center,
@@ -167,7 +167,7 @@ private fun ConfirmMessageMiddleScreen() {
                             //.padding(horizontal = 1.dp),
                         color = MaterialTheme.colors.secondary,
                         shape = CircleShape,
-                        elevation = 1.dp,
+                        elevation = 12.dp,
 
                         //color = Color(0x080ff)
                     ) {    // TO ADD ICON}
@@ -278,13 +278,17 @@ fun SetPadCircle() {
             .padding(4.dp),
 
         shape = CircleShape,
-        elevation = 25.dp,
+        elevation = 12.dp,
 
         ) { Surface(
         modifier = Modifier
             .fillMaxSize(),
+
         color = if (MaterialTheme.colors.isLight)  Color.Black
         else Color.White,
+
+
+
     ) {} }
 }
 
