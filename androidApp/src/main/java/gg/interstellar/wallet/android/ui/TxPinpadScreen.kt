@@ -84,7 +84,7 @@ private fun MessageTopScreen() {
 
 
         //TEST Modernista
-        Text("0.06 ETH TO \"SATOSHI\"",
+        Text("0.06 ETH\n TO\n \"SATOSHI\"",
             textAlign = TextAlign.Center,
             fontFamily = Modernista, fontWeight = FontWeight.Normal,
             //style = MaterialTheme.typography.body1,
@@ -94,8 +94,6 @@ private fun MessageTopScreen() {
                 .wrapContentHeight(Alignment.CenterVertically))
     }
 }
-
-
 
 
 @Composable
