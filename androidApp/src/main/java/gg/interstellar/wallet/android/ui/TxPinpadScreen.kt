@@ -115,7 +115,7 @@ private fun ConfirmMessageMiddleScreen() {
             //contentColor = Colors.White,
             shape = CircleShape,
             elevation = 1.dp,
-            //color = MaterialTheme.colors.primary,
+            color = MaterialTheme.colors.primary,
 
             //TO DO change to gradient
            //color = Brush.horizontalGradient(
