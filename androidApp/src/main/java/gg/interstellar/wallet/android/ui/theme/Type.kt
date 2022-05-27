@@ -20,7 +20,7 @@ val Typography = Typography(
     body1 = TextStyle(
         fontFamily = Modernista,
         fontWeight = FontWeight.Normal,
-        fontSize = 50.sp
+        fontSize = 16.sp
     )
 )
 

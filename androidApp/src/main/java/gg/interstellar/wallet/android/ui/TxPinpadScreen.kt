@@ -8,12 +8,14 @@ import android.text.style.TextAppearanceSpan
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
@@ -27,7 +29,7 @@ import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun TxPinpadScreen() {
 
@@ -53,15 +55,10 @@ fun TxPinpadScreen() {
 }
 @Composable
 fun DisplayInterstellar() {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-
-        modifier = Modifier
+    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.08f)
     ){
-
-
         Text("INTERSTELLAR",
             textAlign = TextAlign.Center,
             fontFamily = Modernista, fontWeight = FontWeight.Normal,
@@ -70,67 +67,12 @@ fun DisplayInterstellar() {
             modifier = Modifier
                 .fillMaxHeight()
                 .wrapContentHeight(Alignment.CenterVertically)
-                .shadow(elevation = 2.dp)
+                //.shadow(elevation = 2.dp)
         )
     }
 
 }
 
-
-@Composable
-fun SetPadCircle() {
-
-        Surface(
-            modifier = Modifier
-                //Adjust Keypad topology with this values
-                .sizeIn(90.dp, 140.dp, 90.dp, 140.dp)
-                .aspectRatio(1f)
-                .padding(5.dp),
-
-            shape = CircleShape,
-            elevation = 25.dp,
-
-        ) { Surface(
-            modifier = Modifier
-                .fillMaxSize(),
-
-            //TO DO  if Theme Dark or Light Theme -> Black or White
-            color = Color.Black
-        ) {} }
-}
-
-/*
-             {
-                Canvas(modifier = Modifier
-                    .fillMaxSize()
-                    //.alpha(10f)
-                    .drawBehind {
-                        drawCircle(
-                            color = Color.DarkGray,
-                            //center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
-                            radius = size.minDimension / 3
-                        )
-                    }
-                    //.shadow(
-                    //elevation = 10.dp,
-                    //shape = CircleShape,
-                    //clip = true
-                ) {
-
-                    val canvasWidth = size.width
-                    val canvasHeight = size.height
-                    drawCircle(
-                        color = Color.Black,
-                        center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
-                        radius = size.minDimension / 4
-                    )
-                }
-
-            }
-        }
-}
-
- */
 
 
 @Composable
@@ -153,81 +95,93 @@ private fun MessageTopScreen() {
     }
 }
 
+
+
+
 @Composable
 private fun ConfirmMessageMiddleScreen() {
-    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-
+    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth())
+    {
         Surface(
+
             modifier = Modifier
                 //.fillMaxSize()
-                //.preferredWidthIn(min = 145.dp).preferredHeight(56.dp),
-                .sizeIn(200.dp, 50.dp, 350.dp, 90.dp)
+                //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
+                .sizeIn(200.dp, 50.dp, 300.dp, 80.dp)
                 //.aspectRatio(1f)
                .padding(15.dp),
 
-            contentColor = Color(0x080ff),
+
+            //contentColor = Colors.White,
             shape = CircleShape,
-            elevation = 2.dp,
-            color = Color(0x080ff)
+            elevation = 1.dp,
+            //color = MaterialTheme.colors.primary,
 
-            //) {
-            //Row(
-            //    modifier = Modifier
-            //        .fillMaxSize()
-            //        .padding(horizontal = 10.dp),
-             //   verticalAlignment = Alignment.CenterVertically
+            //TO DO change to gradient
+           //color = Brush.horizontalGradient(
+            //colors = listOf(
+                   //MaterialTheme.colors.primary,
+                   //MaterialTheme.colors.secondary
+                //)
+            //)
+
+            ) { Row(
+                modifier = Modifier
+                    .fillMaxSize(),
+                    //.padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Surface(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .sizeIn(300.dp, 30.dp, 350.dp, 90.dp)
-                        .shadow( 2.dp,RectangleShape,true)
-                        .padding(horizontal = 40.dp)
-                        .padding(vertical = 8.dp),
+                        //.fillMaxSize()
+                        .sizeIn(200.dp, 99.dp, 300.dp, 90.dp)
+                        //.shadow( 2.dp,RectangleShape,true)
+                        .padding(horizontal = 9.dp)
+                        .padding(vertical = 6.dp),
 
-                    color =  Color(0x080ff),
+                    color =  MaterialTheme.colors.secondary,
+                    // TO DO change theme with right color value
                     contentColor =  Color.White,
                     shape = CircleShape,
-                    elevation = 2.dp,
-
-
-                ) {
-
-
-
-                    Text(
+                    //elevation = 1.dp,
+                    ) { Text(
                         "Confirm Transaction",
                         textAlign = TextAlign.Center,
                         fontFamily = Modernista, fontWeight = FontWeight.Normal,
                         //style = MaterialTheme.typography.body1,
                         fontSize = 18.sp,
+                        //color = Color.White,
                         modifier = Modifier
-                            .fillMaxHeight()
+                            //.fillMaxHeight()
                             .wrapContentHeight(Alignment.CenterVertically)
                             //.wrapContentWidth(Alignement.Start)
-
                             //.padding(vertical = 5.dp)
-
-                            .shadow(elevation = 1.dp)
+                            //.padding(3.dp)
+                            //.shadow(elevation = 0.3.dp)
                     )
-                }
+                   }
+                    Spacer(Modifier.width(27.dp))
+                    Surface(modifier = Modifier
+                            //.fillMaxSize()
+                            //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
+                            .sizeIn(30.dp, 30.dp, 40.dp, 40.dp)
+                            .aspectRatio(1f),
+                            //.padding(horizontal = 1.dp),
+                        color = MaterialTheme.colors.secondary,
+                        shape = CircleShape,
+                        elevation = 1.dp,
+
+                        //color = Color(0x080ff)
+                    ) {    // TO ADD ICON}
+                    }
             }
         }
-
+    }
 }
 
 
-@Composable
-private fun ConfirmMessageMiddleScreenbis() {
-    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            Icon(
-                painterResource(R.drawable.ic_confirm_transaction_no_text_black_mockup_component_shadow),
-                contentDescription = "confirm transaction",
-                tint = Color.Unspecified
-            )
-        }
-}
+
+
 
 @Composable
 private fun PinpadBottomScreen() {
@@ -264,56 +218,43 @@ private fun PinpadBottomScreen() {
 //    }
 
         // We MUST set "weight" on each children, that weight each row will have the same height
-        Column {
-            Row(
-                horizontalArrangement = Arrangement.Center, modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.15f)
-            )
+        Column (
+        )
             {
-
-                SetPadCircle()
-                SetPadCircle()
-                SetPadCircle()
-
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.Center, modifier = Modifier
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.15f)
-            )
-            {
-
-                SetPadCircle()
-                SetPadCircle()
-                SetPadCircle()
-
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.Center, modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.15f)
-            )
-            {
+                    .weight(0.330f)
+            ) {
                 SetPadCircle()
                 SetPadCircle()
                 SetPadCircle()
             }
-
-            Row(
-                horizontalArrangement = Arrangement.Center, modifier = Modifier
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.15f),
+                    .weight(0.33f)
+            ) {
+                SetPadCircle()
+                SetPadCircle()
+                SetPadCircle()
+            }
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.33f)
+            ) {
+                SetPadCircle()
+                SetPadCircle()
+                SetPadCircle()
+            }
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.33f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // In this case we must set the wight b/c we have different children contrary to the
                 // other rows. TODO? is there a better way to do this?
                 Spacer(Modifier.weight(0.33f))
-
                 SetPadCircle()
-
+                //TO DO
                 Icon(
                     painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
                     contentDescription = "pinpad input cancel",
@@ -321,10 +262,66 @@ private fun PinpadBottomScreen() {
                     modifier = Modifier.weight(0.33f)
                 )
             }
+            Row {
+                Spacer(Modifier.height(100.dp)) }
         }
 }
 
 
+
+@Composable
+fun SetPadCircle() {
+
+    Surface(
+        modifier = Modifier
+            //Adjust Keypad topology with this values
+            .sizeIn(80.dp, 100.dp, 80.dp, 100.dp)
+            .aspectRatio(1f)
+            .padding(4.dp),
+
+        shape = CircleShape,
+        elevation = 25.dp,
+
+        ) { Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = if (MaterialTheme.colors.isLight)  Color.Black
+        else Color.White,
+    ) {} }
+}
+
+/*
+             {
+                Canvas(modifier = Modifier
+                    .fillMaxSize()
+                    //.alpha(10f)
+                    .drawBehind {
+                        drawCircle(
+                            color = Color.DarkGray,
+                            //center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
+                            radius = size.minDimension / 3
+                        )
+                    }
+                    //.shadow(
+                    //elevation = 10.dp,
+                    //shape = CircleShape,
+                    //clip = true
+                ) {
+
+                    val canvasWidth = size.width
+                    val canvasHeight = size.height
+                    drawCircle(
+                        color = Color.Black,
+                        center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
+                        radius = size.minDimension / 4
+                    )
+                }
+
+            }
+        }
+}
+
+ */
 
 
 
