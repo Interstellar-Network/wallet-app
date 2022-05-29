@@ -4,7 +4,9 @@ package gg.interstellar.wallet.android.ui
 // import com.google.android.material.elevation
 
 import android.R.attr.fontFamily
+import android.graphics.drawable.Icon
 import android.text.style.TextAppearanceSpan
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
@@ -15,12 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection.Companion.Content
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,11 +33,12 @@ import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
-@Preview (showBackground = true)
+
+@Preview //(showBackground = true)
 @Composable
 fun TxPinpadScreen() {
 
-    val greeting = Greeting().greeting()
+    //val greeting = Greeting().greeting()
     Column {
 
         DisplayInterstellar()
@@ -56,8 +61,8 @@ fun TxPinpadScreen() {
 @Composable
 fun DisplayInterstellar() {
     Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.08f)
+        .fillMaxWidth()
+        .fillMaxHeight(0.08f)
     ){
         Text("INTERSTELLAR",
             textAlign = TextAlign.Center,
@@ -107,13 +112,13 @@ private fun ConfirmMessageMiddleScreen() {
                 //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
                 .sizeIn(200.dp, 50.dp, 300.dp, 80.dp)
                 //.aspectRatio(1f)
-               .padding(15.dp),
+                .padding(15.dp),
 
 
             //contentColor = Colors.White,
             shape = CircleShape,
-            elevation = 12.dp,
-            color = MaterialTheme.colors.primary,
+            elevation = 14.dp,
+            color = MaterialTheme.colors.secondary,
 
             //TO DO change to gradient
            //color = Brush.horizontalGradient(
@@ -123,12 +128,37 @@ private fun ConfirmMessageMiddleScreen() {
                 //)
             //)
 
-            ) { Row(
+            ) {
+            Box(
+                modifier = Modifier
+                    .background( Brush.linearGradient(
+                        0.3f to Color(0xFF6633FF),
+                        1f to Color( 0xFFFF33FF0),
+                        //1.0f to Color.Blue,
+                        start = Offset(117.18f, 207.61f),
+                        end = Offset(-33.32f, 128.71f)
+                        // From original vector svg
+                            //startY="117.18",
+                            //startX="207.61",
+                            //endY="-33.32",
+                            //endX="120.71",
+                            //type="linear",
+                            //offset="0.3",color="#FF6633FF",
+                            //offset="1",color="#FFFF33FF"
+                            )
+                        )
+                    // test shadow for box
+                    //.shadow(elevation =15.dp, shape= RectangleShape, clip =false)
+                    )
+             {
+            Row(
                 modifier = Modifier
                     .fillMaxSize(),
                     //.padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+
                 Surface(
                     modifier = Modifier
                         //.fillMaxSize()
@@ -137,41 +167,63 @@ private fun ConfirmMessageMiddleScreen() {
                         .padding(horizontal = 9.dp)
                         .padding(vertical = 6.dp),
 
-                    color =  MaterialTheme.colors.secondary,
+                    color = MaterialTheme.colors.surface,
                     // TO DO change theme with right color value
-                    contentColor =  Color.White,
+                    contentColor = Color.White,
                     shape = CircleShape,
-                    elevation = 12.dp,
-                    ) { Text(
+                    elevation = 16.dp,
+                ) {
+                    Text(
                         "Confirm Transaction",
                         textAlign = TextAlign.Center,
                         fontFamily = Modernista, fontWeight = FontWeight.Normal,
                         //style = MaterialTheme.typography.body1,
                         fontSize = 18.sp,
+                        color = if (MaterialTheme.colors.isLight)  Color.White
+                        else Color.Black,
                         //color = Color.White,
                         modifier = Modifier
                             //.fillMaxHeight()
                             .wrapContentHeight(Alignment.CenterVertically)
-                            //.wrapContentWidth(Alignement.Start)
-                            //.padding(vertical = 5.dp)
-                            //.padding(3.dp)
-                            //.shadow(elevation = 0.3.dp)
+                        //.wrapContentWidth(Alignement.Start)
+                        //.padding(vertical = 5.dp)
+                        //.padding(3.dp)
+                        //.shadow(elevation = 0.3.dp)
                     )
-                   }
-                    Spacer(Modifier.width(27.dp))
-                    Surface(modifier = Modifier
-                            //.fillMaxSize()
-                            //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
-                            .sizeIn(30.dp, 30.dp, 40.dp, 40.dp)
-                            .aspectRatio(1f),
-                            //.padding(horizontal = 1.dp),
-                        color = MaterialTheme.colors.secondary,
-                        shape = CircleShape,
-                        elevation = 12.dp,
+                }
+                    Text(
+                    "...  ",
+                    textAlign = TextAlign.Center,
+                    fontFamily = Modernista, fontWeight = FontWeight.Normal,
+                    //style = MaterialTheme.typography.body1,
+                    fontSize = 21.sp,
+                    color = if (MaterialTheme.colors.isLight)  Color.White
+                    else Color.Black,
+                    modifier = Modifier
+                        //.fillMaxHeight()
+                        //.alignmentH()
+                       //.wrapContentHeight(Alignment.CenterVertically)
+                       //.padding(vertical =4.dp)
+                       //.padding(horizontal = 0.dp)
+                    //TO DO find right alignement use icon
+                    )
 
-                        //color = Color(0x080ff)
-                    ) {    // TO ADD ICON}
-                    }
+                //Spacer(Modifier.width(27.dp))
+                Surface(
+                    modifier = Modifier
+                        //.fillMaxSize()
+                        //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
+                        .sizeIn(30.dp, 30.dp, 40.dp, 40.dp)
+                        .aspectRatio(1f),
+                    //.padding(horizontal = 1.dp),
+                    color = MaterialTheme.colors.surface,
+                    shape = CircleShape,
+                    elevation = 12.dp,
+
+                    //color = Color(0x080ff)
+                ) {    // TO ADD ICON}
+                }
+            }
             }
         }
     }
@@ -220,16 +272,16 @@ private fun PinpadBottomScreen() {
         )
             {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.330f)
+                .fillMaxWidth()
+                .weight(0.330f)
             ) {
                 SetPadCircle()
                 SetPadCircle()
                 SetPadCircle()
             }
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.33f)
+                .fillMaxWidth()
+                .weight(0.33f)
             ) {
                 SetPadCircle()
                 SetPadCircle()
@@ -246,25 +298,24 @@ private fun PinpadBottomScreen() {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.33f),
-                verticalAlignment = Alignment.CenterVertically
+                //verticalAlignment = Alignment.CenterVertically
             ) {
                 // In this case we must set the wight b/c we have different children contrary to the
                 // other rows. TODO? is there a better way to do this?
                 Spacer(Modifier.weight(0.33f))
+
                 SetPadCircle()
-                //TO DO
                 Icon(
                     painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
                     contentDescription = "pinpad input cancel",
                     tint = Color.Unspecified,
-                    modifier = Modifier.weight(0.33f)
+                    modifier = Modifier.weight(0.33f),
                 )
             }
             Row {
                 Spacer(Modifier.height(100.dp)) }
         }
 }
-
 
 
 @Composable
@@ -276,20 +327,17 @@ fun SetPadCircle() {
             .sizeIn(80.dp, 100.dp, 80.dp, 100.dp)
             .aspectRatio(1f)
             .padding(4.dp),
-
         shape = CircleShape,
         elevation = 12.dp,
 
         ) { Surface(
         modifier = Modifier
             .fillMaxSize(),
-
         color = if (MaterialTheme.colors.isLight)  Color.Black
         else Color.White,
 
-
-
-    ) {} }
+    ) {}
+    }
 }
 
 /*
