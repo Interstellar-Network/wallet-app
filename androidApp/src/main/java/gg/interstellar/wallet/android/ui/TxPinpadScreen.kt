@@ -6,7 +6,9 @@ package gg.interstellar.wallet.android.ui
 import android.R.attr.fontFamily
 import android.graphics.drawable.Icon
 import android.text.style.TextAppearanceSpan
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
@@ -34,7 +36,7 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
 
-@Preview //(showBackground = true)
+@Preview (showBackground = true)
 @Composable
 fun TxPinpadScreen() {
 
@@ -309,7 +311,9 @@ private fun PinpadBottomScreen() {
                     painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
                     contentDescription = "pinpad input cancel",
                     tint = Color.Unspecified,
-                    modifier = Modifier.weight(0.33f),
+                    modifier = Modifier
+                        .weight(0.33f),
+
                 )
             }
             Row {
@@ -317,29 +321,42 @@ private fun PinpadBottomScreen() {
         }
 }
 
-
 @Composable
-fun SetPadCircle() {
+fun SetPadCircle()  {
 
-    Surface(
+    Box(
         modifier = Modifier
-            //Adjust Keypad topology with this values
-            .sizeIn(80.dp, 100.dp, 80.dp, 100.dp)
-            .aspectRatio(1f)
-            .padding(4.dp),
-        shape = CircleShape,
-        elevation = 12.dp,
+            .shadow(elevation = 20.dp, shape = CircleShape, clip = false)
 
-        ) { Surface(
-        modifier = Modifier
-            .fillMaxSize(),
-        color = if (MaterialTheme.colors.isLight)  Color.Black
-        else Color.White,
+    ) {
 
-    ) {}
+        Surface(
+            modifier = Modifier
+                //Adjust Keypad topology with this values
+                //.fillMaxSize()
+                .sizeIn(90.dp, 90.dp, 90.dp, 90.dp)
+                .aspectRatio(1f)
+                .padding(10.dp),
+            shape = CircleShape,
+            elevation = 28.dp,
+            color = if (MaterialTheme.colors.isLight) Color.Black
+            else Color.White,
+        ) {
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize(),
+                shape = CircleShape,
+                color = if (MaterialTheme.colors.isLight) Color.Black
+                else Color.White,
+
+
+
+                ) { }
+        }
     }
-}
 
+}
 /*
              {
                 Canvas(modifier = Modifier
