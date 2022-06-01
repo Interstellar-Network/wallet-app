@@ -141,7 +141,7 @@ private fun ConfirmMessageMiddleScreen() {
 
             //contentColor = Colors.White,
             shape = CircleShape,
-            elevation = 14.dp,
+            elevation = 30.dp,
             color = MaterialTheme.colors.secondary,
 
             //TO DO change to gradient
@@ -172,7 +172,7 @@ private fun ConfirmMessageMiddleScreen() {
                             )
                         )
                     // test shadow for box
-                    //.shadow(elevation =15.dp, shape= RectangleShape, clip =false)
+                    .shadow(elevation =20.dp, shape= RectangleShape, clip =true)
                     )
              {
             Row(
@@ -195,7 +195,7 @@ private fun ConfirmMessageMiddleScreen() {
                     // TO DO change theme with right color value
                     contentColor = Color.White,
                     shape = CircleShape,
-                    elevation = 16.dp,
+                    elevation = 30.dp,
                 ) {
                     Text(
                         "Confirm Transaction",
@@ -325,22 +325,58 @@ private fun PinpadBottomScreen() {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.33f)
-                    .padding(horizontal = 10.dp, vertical=10.dp)
+                    //.padding(horizontal = 10.dp, vertical=10.dp)
                 //verticalAlignment = Alignment.CenterVertically
             ) {
                 // In this case we must set the wight b/c we have different children contrary to the
                 // other rows. TODO? is there a better way to do this?
-                Spacer(Modifier.weight(0.33f))
+                Spacer(Modifier.weight(0.400f))
 
                 SetPadCircle()
-                Icon(
-                    painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
-                    contentDescription = "pinpad input cancel",
-                    tint = Color.Unspecified,
-                    modifier = Modifier
-                        .weight(0.33f),
 
-                )
+                BoxWithConstraints(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        //.shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
+                        .weight(0.20f)
+                        .wrapContentSize()
+                        //.requiredSize(30.dp,30.dp)
+                        //.sizeIn(30.dp, 30.dp, 30.dp, 30.dp),
+
+                    .padding(horizontal=0.dp, vertical = 0.dp),
+                    //propagateMinConstraints = true,
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            //Adjust Keypad topology with this values
+                            //.fillMaxSize(),
+                            //TO DO check device resolution to increase Circle size
+                            //TO DO or use prefered size or something similar
+                            //.sizeIn(30.dp, 30.dp, 30.dp, 30.dp),
+                            //.aspectRatio(1f),
+                            .padding(horizontal=25.dp, vertical = 25.dp),
+                        //.padding(10.dp, 10.dp),
+
+                        shape = RectangleShape,
+                        elevation = 28.dp,
+                        color = if (MaterialTheme.colors.isLight) Color.Black
+                        else Color.White,
+                    ) {
+
+
+                        Icon(
+                            painterResource(R.drawable.ic_undo_black_mockup_component_shadow),
+                            contentDescription = "pinpad input cancel",
+                            tint = Color.Unspecified,
+                            modifier = Modifier
+
+                            //.padding(horizontal=0.dp, vertical = 10.dp),
+                        )
+                    }
+
+                }
+
+                Spacer(Modifier.weight(0.20f))
             }
             Row {
                 Spacer(Modifier.height(100.dp)) }
@@ -362,7 +398,7 @@ fun SetPadCircle()  {
                 //.fillMaxSize()
                     //TO DO check device resolution to increase Circle size
                     //TO DO or use prefered size or something similar
-                .sizeIn(70.dp, 70.dp, 70.dp, 70.dp)
+                .sizeIn(85.dp, 85.dp, 85.dp, 85.dp)
                 .aspectRatio(1f)
                 .padding(10.dp),
                 //.padding(10.dp, 10.dp),
