@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection.Companion.Content
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +37,28 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
 
-@Preview (showBackground = true)
+@Preview //(showBackground = true)
+@Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
+@Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
+@Preview(name = "NEXUS_5", device = Devices.NEXUS_5)
+@Preview(name = "NEXUS_6", device = Devices.NEXUS_6)
+@Preview(name = "NEXUS_9", device = Devices.NEXUS_9)
+@Preview(name = "NEXUS_10", device = Devices.NEXUS_10)
+@Preview(name = "NEXUS_5X", device = Devices.NEXUS_5X)
+@Preview(name = "NEXUS_6P", device = Devices.NEXUS_6P)
+@Preview(name = "PIXEL_C", device = Devices.PIXEL_C)
+@Preview(name = "PIXEL", device = Devices.PIXEL)
+@Preview(name = "PIXEL_XL", device = Devices.PIXEL_XL)
+@Preview(name = "PIXEL_2", device = Devices.PIXEL_2)
+@Preview(name = "PIXEL_2_XL", device = Devices.PIXEL_2_XL)
+@Preview(name = "PIXEL_3", device = Devices.PIXEL_3)
+@Preview(name = "PIXEL_3_XL", device = Devices.PIXEL_3_XL)
+@Preview(name = "PIXEL_3A", device = Devices.PIXEL_3A)
+@Preview(name = "PIXEL_3A_XL", device = Devices.PIXEL_3A_XL)
+@Preview(name = "PIXEL_4", device = Devices.PIXEL_4)
+@Preview(name = "PIXEL_4_XL", device = Devices.PIXEL_4_XL)
+@Preview(name = "AUTOMOTIVE_1024p", device = Devices.AUTOMOTIVE_1024p)
+
 @Composable
 fun TxPinpadScreen() {
 
@@ -276,6 +298,7 @@ private fun PinpadBottomScreen() {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.330f)
+                .padding(horizontal = 10.dp, vertical=10.dp)
             ) {
                 SetPadCircle()
                 SetPadCircle()
@@ -284,6 +307,7 @@ private fun PinpadBottomScreen() {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.33f)
+                .padding(horizontal = 10.dp, vertical=10.dp)
             ) {
                 SetPadCircle()
                 SetPadCircle()
@@ -292,6 +316,7 @@ private fun PinpadBottomScreen() {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.33f)
+                    .padding(horizontal = 10.dp, vertical=10.dp)
             ) {
                 SetPadCircle()
                 SetPadCircle()
@@ -299,7 +324,8 @@ private fun PinpadBottomScreen() {
             }
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.33f),
+                    .weight(0.33f)
+                    .padding(horizontal = 10.dp, vertical=10.dp)
                 //verticalAlignment = Alignment.CenterVertically
             ) {
                 // In this case we must set the wight b/c we have different children contrary to the
@@ -334,9 +360,13 @@ fun SetPadCircle()  {
             modifier = Modifier
                 //Adjust Keypad topology with this values
                 //.fillMaxSize()
-                .sizeIn(90.dp, 90.dp, 90.dp, 90.dp)
+                    //TO DO check device resolution to increase Circle size
+                    //TO DO or use prefered size or something similar
+                .sizeIn(70.dp, 70.dp, 70.dp, 70.dp)
                 .aspectRatio(1f)
                 .padding(10.dp),
+                //.padding(10.dp, 10.dp),
+
             shape = CircleShape,
             elevation = 28.dp,
             color = if (MaterialTheme.colors.isLight) Color.Black
