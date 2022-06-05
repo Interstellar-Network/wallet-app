@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.Icon
@@ -96,7 +97,7 @@ fun TxPinpadScreen() {
 fun DisplayInterstellar() {
     val myId = "inlineContent"
     val intLogoText = buildAnnotatedString {
-        append("I N T E R S T L L ")
+        append("I N T E R S T E L L ")
         // Append a placeholder string "[icon]" and attach an annotation "inlineContent" on it.
         appendInlineContent(myId, "[icon]")
         append(" R")
@@ -110,8 +111,8 @@ fun DisplayInterstellar() {
                 // Placeholder tells text layout the expected size and vertical alignment of
                 // children composable.
                 Placeholder(
-                    width = 12.sp,
-                    height = 12.sp,
+                    width = 13.sp,
+                    height = 13.sp,
                     placeholderVerticalAlign  = PlaceholderVerticalAlign.TextCenter
                 )
             ) {
@@ -122,11 +123,12 @@ fun DisplayInterstellar() {
                 Icon(
                     //Icons.Filled.Face, to test
                     // replace with Interstellar Logo
-                    painterResource(R.drawable.ic_close_fill0_wght400_grad0_opsz48),
+                    painterResource(R.drawable.ic_interstellar_black_logo),
                 contentDescription = "logo",
                 tint = if (MaterialTheme.colors.isLight) Color.Black
                 else Color.White,
                 modifier = Modifier
+                    .padding(1.dp)
                 )
             }
         )
@@ -452,14 +454,14 @@ Column()
                 ) {
                     Surface(
                         modifier = Modifier.padding(25.dp, 25.dp),
-                        shape = RectangleShape,
+                        shape = RoundedCornerShape(25),
                         elevation = 28.dp,
                         color = if (MaterialTheme.colors.isLight) Color.Black
                         else Color.White,
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_close_fill0_wght400_grad0_opsz48),
-                            contentDescription = "pinpad input cancel",
+                            contentDescription = "reset/close",
                             tint = if (MaterialTheme.colors.isLight) Color.White
                             else Color.Black,
                             modifier = Modifier
