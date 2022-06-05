@@ -343,12 +343,11 @@ private fun ConfirmMessageMiddleScreen() {
                         ) {
                             Icon(
                                 painterResource(R.drawable.ic_check_fill0_wght400_grad0_opsz48),
-                                contentDescription = "pinpad input cancel",
+                                contentDescription = "check icon",
                                 tint = if (MaterialTheme.colors.isLight) Color.White
                                 else Color.Black,
                                 modifier = Modifier
-
-                                //.padding(horizontal=0.dp, vertical = 10.dp),
+                                    .padding(horizontal=0.dp, vertical = 3.5.dp),
                             )
                         }
                     }
@@ -484,7 +483,7 @@ fun SetPadCircle() {
 
     Box(
             modifier = Modifier
-                .shadow(elevation = 30.dp, shape = CircleShape, clip = false)
+                .shadow(elevation = 35.dp, shape = CircleShape, clip = false)
 
         ) {
 
@@ -500,7 +499,7 @@ fun SetPadCircle() {
                 //.padding(10.dp, 10.dp),
 
                 shape = CircleShape,
-                elevation = 12.dp,
+                elevation = 15.dp,
                 color = if (MaterialTheme.colors.isLight) Color.Black
                 else Color.White,
             ) {
