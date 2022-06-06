@@ -43,7 +43,10 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun WalletApp() {
-    InterstellarWalletTheme {
+    InterstellarWalletTheme(
+        darkTheme = true
+        //To test dark mode
+    ) {
         val allScreens = WalletScreen.values().toList()
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()

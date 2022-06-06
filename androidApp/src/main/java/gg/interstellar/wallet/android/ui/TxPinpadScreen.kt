@@ -7,19 +7,13 @@ import android.R.attr.fontFamily
 import android.graphics.drawable.Icon
 import android.media.Image
 import android.text.style.TextAppearanceSpan
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.runtime.Composable
@@ -43,11 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.Greeting
 import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
+import gg.interstellar.wallet.android.ui.theme.MagentaCustom
 import gg.interstellar.wallet.android.ui.theme.Modernista
 
 
 
-@Preview (showBackground = true)
+
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
 @Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
@@ -70,16 +66,20 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Preview(name = "PIXEL_4_XL", device = Devices.PIXEL_4_XL)
 @Preview(name = "AUTOMOTIVE_1024p", device = Devices.AUTOMOTIVE_1024p)
 */
+@Preview (showBackground = true)
 @Composable
 fun TxPinpadScreen() {
+    InterstellarWalletTheme(
+        darkTheme = true
 
-    //val greeting = Greeting().greeting()
-    Column {
-        //TestGradient()
-        DisplayInterstellar()
-        MessageTopScreen()
+    ) {
+        //val greeting = Greeting().greeting()
+        Column {
+            //TestGradient()
+            DisplayInterstellar()
+            MessageTopScreen()
 
-        ConfirmMessageMiddleScreen()
+            ConfirmMessageMiddleScreen()
 //        Image(
 //            painter = painterResource(R.drawable.profile_picture),
 //            contentDescription = "Contact profile picture",
@@ -90,73 +90,8 @@ fun TxPinpadScreen() {
 //                .clip(CircleShape)
 //        )
 
-        PinpadBottomScreen()
-    }
-}
-@Composable
-fun DisplayInterstellar() {
-    val myId = "inlineContent"
-    val intLogoText = buildAnnotatedString {
-        append("I N T E R S T E L L ")
-        // Append a placeholder string "[icon]" and attach an annotation "inlineContent" on it.
-        appendInlineContent(myId, "[icon]")
-        append(" R")
-    }
-    val inlineContent = mapOf(
-        Pair(
-            // This tells the [CoreText] to replace the placeholder string "[icon]" by
-            // the composable given in the [InlineTextContent] object.
-            myId,
-            InlineTextContent(
-                // Placeholder tells text layout the expected size and vertical alignment of
-                // children composable.
-                Placeholder(
-                    width = 13.sp,
-                    height = 13.sp,
-                    placeholderVerticalAlign  = PlaceholderVerticalAlign.TextCenter
-                )
-            ) {
-                // This Icon will fill maximum size, which is specified by the [Placeholder]
-                // above. Notice the width and height in [Placeholder] are specified in TextUnit,
-                // and are converted into pixel by text layout.
-
-                Icon(
-                    //Icons.Filled.Face, to test
-                    // replace with Interstellar Logo
-                    painterResource(R.drawable.ic_interstellar_black_logo),
-                contentDescription = "logo",
-                tint = if (MaterialTheme.colors.isLight) Color.Black
-                else Color.White,
-                modifier = Modifier
-                    .padding(1.dp)
-                )
-            }
-        )
-    )
-    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-        .fillMaxWidth()
-        .fillMaxHeight(0.10f)
-    ) {
-        Text(
-            intLogoText,
-            textAlign = TextAlign.Center,
-            fontFamily = Modernista, fontWeight = FontWeight.Normal,
-            fontSize = 12.sp,
-            color = if (MaterialTheme.colors.isLight) Color.Black
-            else Color.White,
-
-            modifier = Modifier
-                .fillMaxHeight()
-                //.fillMaxWidth()
-                .wrapContentHeight(Alignment.CenterVertically)
-
-
-                .shadow(elevation = 52.dp,clip=true),
-            inlineContent = inlineContent //add logo in place holder
-
-
-
-            )
+            PinpadBottomScreen()
+        }
     }
 }
 
@@ -164,30 +99,17 @@ fun DisplayInterstellar() {
 
 @Composable
 fun TestGradient(){
-
     Box(
     modifier = Modifier
-        .size(300.dp)
+        .sizeIn(200.dp, 50.dp, 300.dp, 80.dp)
         .background(
             Brush.linearGradient(
-                0.3f to Color(0xFF6633FF),
-                1f to Color(0xFFFF33FF0),
-                //1.0f to Color.Blue,
-                start = Offset(900.18f, 200.61f),
-                end = Offset(-33.32f, 128.71f)
-// From original vector svg
-//startY="117.18",
-//startX="207.61",
-//endY="-33.32",
-//endX="120.71",
-//type="linear",
-//offset="0.3",color="#FF6633FF",
-//offset="1",color="#FFFF33FF"
+                0.3f to MaterialTheme.colors.primary,
+                1.0f to MaterialTheme.colors.secondary,
+                start = Offset(420f, 90f),
+                end = Offset(70f, 0f)
             )
         )
-
-    //.shadow(elevation = 0.dp, shape = RectangleShape, clip = true)
-
     ) {}
 
 }
@@ -241,7 +163,7 @@ private fun ConfirmMessageMiddleScreen() {
 
                 //contentColor = Colors.White,
                 shape = CircleShape,
-                elevation = 30.dp,
+                //elevation = 30.dp,
                 //color = MaterialTheme.colors.secondary,
                 //color = MaterialTheme.colors.surface,
 
@@ -249,29 +171,18 @@ private fun ConfirmMessageMiddleScreen() {
                 ) {
                 Box(
                     modifier = Modifier
+                        //TODO optimize gradient
                         .background(
                             Brush.linearGradient(
-                                0.3f to Color(0xFF6633FF),
-                                1f to Color(0xFFFF33FF0),
-                                //1.0f to Color.Blue,
-                                start = Offset(900.18f, 207.61f),
-                                end = Offset(-33.32f, 128.71f)
-                                //start = Offset (207.18f,117.18f ),
-                                //end  =  Offset( 128.71f, -33.32f)
-
-                                // From original vector svg
-                                //startY="117.18",
-                                //startX="207.61",
-                                //endY="-33.32",
-                                //endX="120.71",
-                                //type="linear",
-                                //offset="0.3",color="#FF6633FF",
-                                //offset="1",color="#FFFF33FF"
-                            )// strange behavior? are axis inversed or origin different?
+                                0.6f to MaterialTheme.colors.primary,
+                                1f to MaterialTheme.colors.secondary,
+                                start = Offset(420f, 90f),
+                                end = Offset(70f, 0f)
+                            )
                         )
                         // test shadow for box/strange behavior/same as circle pad/but working
                         // combination of both shadow and elevation to get expected shadow???
-                        .shadow(elevation = 30.dp, shape = RectangleShape, clip = true)
+                        //.shadow(elevation = 30.dp, shape = RectangleShape, clip = true)
                 )
                 {
                     Row(
@@ -292,7 +203,7 @@ private fun ConfirmMessageMiddleScreen() {
                             // TO DO change theme with right color value
                             //contentColor = Color.White,
                             shape = CircleShape,
-                            elevation = 20.dp,
+                            //elevation = 20.dp,
                         ) {
                             Text(
                                 "Confirm Transaction",
@@ -302,7 +213,6 @@ private fun ConfirmMessageMiddleScreen() {
                                 fontSize = 16.sp,
                                 color = if (MaterialTheme.colors.isLight) Color.White
                                 else Color.Black,
-                                //color = Color.White,
                                 modifier = Modifier
                                     //.fillMaxHeight()
                                     .wrapContentHeight(Alignment.CenterVertically)
@@ -326,7 +236,7 @@ private fun ConfirmMessageMiddleScreen() {
                             //.wrapContentHeight(Alignment.CenterVertically)
                             //.padding(vertical =4.dp)
                             //.padding(horizontal = 0.dp)
-                            //TO DO find right alignement use icon
+                            //TO DO find right alignement use icon?
                         )
 
                         Spacer(Modifier.width(7.dp))
@@ -337,11 +247,12 @@ private fun ConfirmMessageMiddleScreen() {
                                 .sizeIn(30.dp, 30.dp, 40.dp, 40.dp)
                                 .aspectRatio(1f),
                             //.padding(horizontal = 1.dp),
-                            color = MaterialTheme.colors.surface,
+                            //color = MaterialTheme.colors.surface,
                             shape = CircleShape,
-                            elevation = 20.dp,
-
-                            //color = Color(0x080ff)
+                            //elevation = 20.dp,
+                            //TODO fix difference of color surface in darkmode???
+                            //TODO does it come from elevation/shadow surface? yes
+                            //color = Color(0x0080ff) ->0069d2 ???
                         ) {
                             Icon(
                                 painterResource(R.drawable.ic_check_fill0_wght400_grad0_opsz48),
