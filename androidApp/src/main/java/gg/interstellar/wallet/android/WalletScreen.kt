@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 enum class WalletScreen(
     val icon: ImageVector,
 ) {
-    SwapCurrencies(
+    SendCurrencies(
         icon = Icons.Default.Send,
     ),
     TxPinpad(
@@ -21,10 +21,10 @@ enum class WalletScreen(
     companion object {
         fun fromRoute(route: String?): WalletScreen =
             when (route?.substringBefore("/")) {
-                SwapCurrencies.name -> SwapCurrencies
+                SendCurrencies.name -> SendCurrencies
                 TxPinpad.name -> TxPinpad
                 // TODO start screen(=landing page) on null
-                null -> SwapCurrencies
+                null -> SendCurrencies
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
     }

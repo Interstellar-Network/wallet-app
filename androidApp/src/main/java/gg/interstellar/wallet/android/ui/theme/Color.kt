@@ -10,3 +10,4 @@ val BlueCustom = Color(0xFF0080FF)
 
 val PurpleCustom =  Color(0xFF6633FF)
 val MagentaCustom = Color(0xFFF33FF0)
+val BlueCustom1   = Color( 0xFF627EEA )

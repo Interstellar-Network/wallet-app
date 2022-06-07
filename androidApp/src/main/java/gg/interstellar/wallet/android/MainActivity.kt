@@ -17,7 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import gg.interstellar.wallet.android.ui.SwapCurrenciesScreen
+import gg.interstellar.wallet.android.ui.SendCurrenciesScreen
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WalletApp() {
     InterstellarWalletTheme(
-        darkTheme = true
+        //darkTheme = true
         //To test dark mode
     ) {
         val allScreens = WalletScreen.values().toList()
@@ -74,13 +74,13 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        //startDestination = WalletScreen.SwapCurrencies.name,
+        startDestination = WalletScreen.SendCurrencies.name,
 
-        startDestination = WalletScreen.TxPinpad.name,
+        //startDestination = WalletScreen.TxPinpad.name,
         modifier = modifier
     ) {
-        composable(WalletScreen.SwapCurrencies.name) {
-            SwapCurrenciesScreen(
+        composable(WalletScreen.SendCurrencies.name) {
+            SendCurrenciesScreen(
                 onClickGo = {navController.navigate(WalletScreen.TxPinpad.name)}
                 // TODO?
 //                onClickSeeAllAccounts = { navController.navigate(Accounts.name) },
