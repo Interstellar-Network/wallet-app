@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +36,7 @@ import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 fun SendCurrenciesScreen(onClickGo: () -> Unit = {},) {
 
     InterstellarWalletTheme(
-        darkTheme = true
+        //darkTheme = true
 
     ) {
 
@@ -67,7 +69,7 @@ private fun SendButtonTop(shape: Shape) {
                 .sizeIn(280.dp, 150.dp, 280.dp, 150.dp)
                 .padding(25.dp),
             shape = CircleShape,
-            elevation = 30.dp,
+            elevation = 50.dp,
         ) { Box(
                 modifier = Modifier
                     //TODO optimize gradient
@@ -95,10 +97,10 @@ private fun SendButtonTop(shape: Shape) {
 @Composable
 private fun FromToCurrenciesMiddle(shape: Shape){
 
-
-    Box(
+    Row {
+        Box(
         modifier = Modifier
-            .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
+            .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
             .sizeIn(180.dp, 100.dp, 180.dp, 100.dp)
             .clip(shape)
             //.padding(3.dp)
@@ -110,16 +112,32 @@ private fun FromToCurrenciesMiddle(shape: Shape){
                     end = Offset(420f, 0f),
                 )
             )
-    ) {
-        Text("O.6 ETH", modifier = Modifier
-            .align(Alignment.Center),
-            //fontSize = 10.dp,
-            // TODO fix fontsize does not work, Why?
+        ) {
+                Text(
+            "O.6 ETH",
+                modifier = Modifier
+                    .align(Alignment.Center),
+                //fontSize = 10.dp,
+                // TODO fix fontsize does not work, Why?
 
-            color =if (MaterialTheme.colors.isLight) Color.White
+                color = if (MaterialTheme.colors.isLight) Color.White
+                else Color.Black,
+
+            )
+        }
+        /*
+        Icon(
+            painterResource(R.drawable.ic_check_fill0_wght400_grad0_opsz48),
+             modifier = Modifier
+                .padding(horizontal = 0.dp, vertical = 0.0.dp),
+                HorizontalArrangement = TopCenter,
+            //.fillMaxSize(),
+            contentDescription = "check icon",
+            tint = if (MaterialTheme.colors.isLight) Color.White
             else Color.Black,
-
         )
+
+         */
     }
 
     Row{ Spacer(Modifier.height(10.dp)) }// Blank row to adjust
@@ -133,7 +151,7 @@ private fun FromToCurrenciesMiddle(shape: Shape){
 private fun DestinationMiddle(shape: Shape){
     Box(
         modifier = Modifier
-            .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
+            .shadow(elevation = 15.dp, shape = RectangleShape, clip = false)
             .sizeIn(180.dp, 100.dp, 180.dp, 100.dp)
             .clip(shape)
             .background(
@@ -198,7 +216,7 @@ private fun TransactionFee(shape: Shape){
     }
     Box(
         modifier = Modifier
-            .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
+            .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
             .sizeIn(180.dp, 50.dp, 180.dp, 50.dp)
             .clip(shape)
             .background(
