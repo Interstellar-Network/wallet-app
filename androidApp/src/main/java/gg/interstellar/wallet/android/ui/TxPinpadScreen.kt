@@ -70,7 +70,7 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Composable
 fun TxPinpadScreen() {
     InterstellarWalletTheme(
-        //darkTheme = true
+        darkTheme = true
 
     ) {
         //val greeting = Greeting().greeting()
@@ -174,10 +174,10 @@ private fun ConfirmMessageMiddleScreen() {
                         //TODO optimize gradient
                         .background(
                             Brush.linearGradient(
-                                0.6f to MaterialTheme.colors.primary,
-                                1f to MaterialTheme.colors.secondary,
-                                start = Offset(420f, 90f),
-                                end = Offset(70f, 0f)
+                                0.3f to MaterialTheme.colors.secondary,
+                                1f to MaterialTheme.colors.primary,
+                                start = Offset(0f, 0f),
+                                end = Offset(280f, 280f)
                             )
                         )
                         // test shadow for box/strange behavior/same as circle pad/but working

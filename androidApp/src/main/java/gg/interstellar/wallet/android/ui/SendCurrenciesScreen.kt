@@ -29,12 +29,12 @@ import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
-@Preview(showBackground = true)
+@Preview (showBackground = true)
 @Composable
 fun SendCurrenciesScreen(onClickGo: () -> Unit = {},) {
 
     InterstellarWalletTheme(
-        //darkTheme = true
+        darkTheme = true
 
     ) {
 
@@ -53,18 +53,6 @@ fun SendCurrenciesScreen(onClickGo: () -> Unit = {},) {
     }
 }
 
-// First button, at the top
-@Composable
-private fun SendButtonTopbis(shape: Shape){
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(50f)
-            .clip(shape)
-            .background(Color.Magenta)
-    ) {
-        Text("Send", modifier = Modifier.align(Alignment.Center))
-    }
-}
 
 @Composable
 private fun SendButtonTop(shape: Shape) {
@@ -85,10 +73,10 @@ private fun SendButtonTop(shape: Shape) {
                     //TODO optimize gradient
                     .background(
                         Brush.linearGradient(
-                            0.1f to MaterialTheme.colors.primary,
-                            1f to MaterialTheme.colors.secondary,
-                            start = Offset(420f, 90f),
-                            end = Offset(70f, 0f)
+                            0.3f to MaterialTheme.colors.secondary,
+                            1f to MaterialTheme.colors.primary,
+                            start = Offset(0f, 0f),
+                            end = Offset(310f, 310f)
                         )
                     )
 
@@ -116,10 +104,10 @@ private fun FromToCurrenciesMiddle(shape: Shape){
             //.padding(3.dp)
             .background(
                 Brush.linearGradient(
-                    0.1f to Color(0xFF627eea),
+                    0.4f to Color(0xFF627eea),
                     1f to Color.White,
-                    start = Offset(70f, 0f),
-                    end = Offset(420f, 90f),
+                    start = Offset(0f, 0f),
+                    end = Offset(420f, 0f),
                 )
             )
     ) {
@@ -127,6 +115,10 @@ private fun FromToCurrenciesMiddle(shape: Shape){
             .align(Alignment.Center),
             //fontSize = 10.dp,
             // TODO fix fontsize does not work, Why?
+
+            color =if (MaterialTheme.colors.isLight) Color.White
+            else Color.Black,
+
         )
     }
 
@@ -146,16 +138,20 @@ private fun DestinationMiddle(shape: Shape){
             .clip(shape)
             .background(
                 Brush.linearGradient(
-                    0.1f to Color(0xFF627eea),
-                    1f to Color.White,
-                    start = Offset(70f, 0f),
-                    end = Offset(420f, 90f),
+                    0.4f to Color(0xFF627eea),
+                    1.1f to Color.White,
+                    start = Offset(0f, 0f),
+                    end = Offset(420f, 0f),
                 )
             )
     ) {
         Text("John Doe", modifier = Modifier
             .align(Alignment.Center),
             //fontSize = 10.dp,
+
+            color =if (MaterialTheme.colors.isLight) Color.White
+            else Color.Black,
+
             // TODO fix fontsize does not work, Why?
         )
     }
@@ -185,13 +181,16 @@ private fun TransactionFee(shape: Shape){
 
         ) {
             Icon(
-                Icons.Rounded.Add,
+                Icons.Filled.Add,//TODO replace with Vector Icon
                 modifier = Modifier
                     .padding(horizontal = 0.dp, vertical = 0.0.dp),
 
                 contentDescription = "add icon",
-                tint = if (MaterialTheme.colors.isLight) Color.White
-                else Color.White,
+                tint =if (MaterialTheme.colors.isLight) Color.White
+                else Color.Black,
+                //TODO with vector asset and painter we could get finer tuning
+                //TODO and tint apply only on vector
+
             )
         }
 
@@ -206,14 +205,20 @@ private fun TransactionFee(shape: Shape){
                 Brush.linearGradient(
                     0.0f to Color.Black,
                     0.8f to Color.White,
-                    start = Offset(5f, 0f),
-                    end = Offset(500f, 90f),
+                    start = Offset(0f, 0f),
+                    end = Offset(520f, 0f),
                 )
             )
     ) {
         Text("0.10 USD", modifier = Modifier
             .align(Alignment.Center),
             //fontSize = 10.dp,
+
+            color =if (MaterialTheme.colors.isLight) Color.White
+            else Color.Black,
+
+
+
             // TODO fix fontsize does not work, Why?
         )
     }
