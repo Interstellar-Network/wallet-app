@@ -66,7 +66,7 @@ private fun SendButtonTop(shape: Shape) {
             modifier = Modifier
                 //.fillMaxSize()
                 //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
-                .sizeIn(280.dp, 150.dp, 280.dp, 150.dp)
+                .sizeIn(280.dp, 130.dp, 280.dp, 130.dp)
                 .padding(25.dp),
             shape = CircleShape,
             elevation = 50.dp,
@@ -101,7 +101,7 @@ private fun FromToCurrenciesMiddle(shape: Shape){
         Box(
         modifier = Modifier
             .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
-            .sizeIn(180.dp, 100.dp, 180.dp, 100.dp)
+            .sizeIn(200.dp, 80.dp, 280.dp, 80.dp)
             .clip(shape)
             //.padding(3.dp)
             .background(
@@ -109,12 +109,12 @@ private fun FromToCurrenciesMiddle(shape: Shape){
                     0.4f to Color(0xFF627eea),
                     1f to Color.White,
                     start = Offset(0f, 0f),
-                    end = Offset(420f, 0f),
+                    end = Offset(500f, 0f),
                 )
             )
         ) {
                 Text(
-            "O.6 ETH",
+                "O.6 ETH",
                 modifier = Modifier
                     .align(Alignment.Center),
                 //fontSize = 10.dp,
@@ -152,14 +152,14 @@ private fun DestinationMiddle(shape: Shape){
     Box(
         modifier = Modifier
             .shadow(elevation = 15.dp, shape = RectangleShape, clip = false)
-            .sizeIn(180.dp, 100.dp, 180.dp, 100.dp)
+            .sizeIn(200.dp, 80.dp, 200.dp, 80.dp)
             .clip(shape)
             .background(
                 Brush.linearGradient(
                     0.4f to Color(0xFF627eea),
                     1.1f to Color.White,
                     start = Offset(0f, 0f),
-                    end = Offset(420f, 0f),
+                    end = Offset(500f, 0f),
                 )
             )
     ) {
@@ -270,7 +270,7 @@ private fun GoButtonBottom(onClickGo: () -> Unit) {
         modifier = Modifier
             //.fillMaxSize()
             //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
-            .sizeIn(80.dp, 80.dp, 80.dp, 80.dp)
+            .sizeIn(70.dp, 70.dp, 70.dp, 70.dp)
             .aspectRatio(1f),
         //.padding(horizontal = 1.dp),
         //color = MaterialTheme.colors.surface,

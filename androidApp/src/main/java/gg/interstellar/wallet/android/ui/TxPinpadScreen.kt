@@ -41,9 +41,6 @@ import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import gg.interstellar.wallet.android.ui.theme.MagentaCustom
 import gg.interstellar.wallet.android.ui.theme.Modernista
 
-
-
-
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
 @Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
