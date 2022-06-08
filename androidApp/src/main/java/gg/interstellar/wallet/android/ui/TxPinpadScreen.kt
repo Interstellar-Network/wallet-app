@@ -70,7 +70,7 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Composable
 fun TxPinpadScreen() {
     InterstellarWalletTheme(
-        darkTheme = true
+        //darkTheme = true
 
     ) {
         //val greeting = Greeting().greeting()
