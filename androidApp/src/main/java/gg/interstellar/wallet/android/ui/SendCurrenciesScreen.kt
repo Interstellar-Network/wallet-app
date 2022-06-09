@@ -82,7 +82,7 @@ private fun SendButtonTop(shape: Shape) {
             elevation = 50.dp,
         ) { Box(
                 modifier = Modifier
-                    //TODO optimize gradient
+
                     .background(
                         Brush.linearGradient(
                             0.3f to MaterialTheme.colors.secondary,
