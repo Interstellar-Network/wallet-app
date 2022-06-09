@@ -55,7 +55,7 @@ fun SendCurrenciesScreen(onClickGo: () -> Unit = {},) {
             DisplayInterstellar()
             SendButtonTop(RoundedCornerShape(33))
 
-            FromToCurrenciesMiddle(RoundedCornerShape(20.dp))
+            FromToCurrenciesMiddle(RoundedCornerShape(20.dp),onClickGo)
             DestinationMiddle( RoundedCornerShape(20.dp))
 
             TransactionFee(RoundedCornerShape(20.dp))
@@ -104,7 +104,7 @@ private fun SendButtonTop(shape: Shape) {
 }
 
 @Composable
-private fun FromToCurrenciesMiddle(shape: Shape){
+private fun FromToCurrenciesMiddle(shape: Shape, onClickGo:() -> Unit ){
 
      Row {
         Box() {
@@ -132,21 +132,19 @@ private fun FromToCurrenciesMiddle(shape: Shape){
                     // TODO fix fontsize does not work, Why?
                 )
             }
-            CircleButton25(Icons.Filled.Add, "add", 205.dp,25.5.dp,)
-            //onClickGo )
-            //TODO why onClickGo does not work
+            CircleButton25(Icons.Filled.Add, "add", 205.dp,25.5.dp, onClickGo )
+            //TODO add border and size of button
         }
      }
     //Row{ Spacer(Modifier.height(10.dp)) }// Blank row to adjust
 }
 
 @Composable
-private fun CircleButton25(imageVector: ImageVector, string: String, dpx: Dp, dpy :Dp,)
-                           //onClickGo: () -> Unit)
+private fun CircleButton25(imageVector: ImageVector, string: String, dpx: Dp, dpy :Dp,
+                           onClickGo:() -> Unit)
 {
     Surface(
         modifier = Modifier
-
             .sizeIn(25.dp, 25.dp, 25.dp, 25.dp)
             .aspectRatio(1f)
         //.padding(horizontal = 1.dp),
@@ -156,16 +154,11 @@ private fun CircleButton25(imageVector: ImageVector, string: String, dpx: Dp, dp
         shape = CircleShape,
         elevation = 20.dp,
     ) {
-        //IconButton(//TODO solve onClickGo issue
-            //onClick = onClickGo,
-
-            //Modifier.offset(x =dpx, y = dpy)
-        //) {
-            MaterialIcon(imageVector = imageVector, contentDescription = string,
-
-
-            )
-        //}
+        IconButton(//TODO solve onClickGo issue
+            onClick = onClickGo,
+            ) {
+            MaterialIcon(imageVector = imageVector, contentDescription = string,)
+        }
     }
 }
 
