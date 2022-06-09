@@ -67,7 +67,7 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Composable
 fun TxPinpadScreen() {
     InterstellarWalletTheme(
-        //darkTheme = true
+        darkTheme = true
 
     ) {
         //val greeting = Greeting().greeting()
@@ -196,7 +196,7 @@ private fun ConfirmMessageMiddleScreen() {
                                 .padding(horizontal = 6.dp)
                                 .padding(vertical = 6.dp),
 
-                            //color = MaterialTheme.colors.surface,
+                            color = MaterialTheme.colors.secondaryVariant,
                             // TO DO change theme with right color value
                             //contentColor = Color.White,
                             shape = CircleShape,
@@ -205,11 +205,11 @@ private fun ConfirmMessageMiddleScreen() {
                             Text(
                                 "Confirm Transaction",
                                 textAlign = TextAlign.Center,
-                                fontFamily = Modernista, fontWeight = FontWeight.Normal,
+                                //fontFamily = Modernista, fontWeight = FontWeight.Normal,
                                 //style = MaterialTheme.typography.body1,
                                 fontSize = 16.sp,
-                                color = if (MaterialTheme.colors.isLight) Color.White
-                                else Color.Black,
+                                //color = if (MaterialTheme.colors.isLight) Color.White
+                                //else Color.Black,
                                 modifier = Modifier
                                     //.fillMaxHeight()
                                     .wrapContentHeight(Alignment.CenterVertically)
@@ -222,18 +222,14 @@ private fun ConfirmMessageMiddleScreen() {
                         Text(
                             " ... ",
                             textAlign = TextAlign.Center,
-                            fontFamily = Modernista, fontWeight = FontWeight.Normal,
+                            //fontFamily = Modernista, fontWeight = FontWeight.Normal,
                             //style = MaterialTheme.typography.body1,
                             fontSize = 15.sp,
-                            color = if (MaterialTheme.colors.isLight) Color.White
-                            else Color.Black,
+                            //color = if (MaterialTheme.colors.isLight) Color.White
+                            //else Color.Black,
                             modifier = Modifier
-                            //.fillMaxHeight()
-                            //.alignmentH()
-                            //.wrapContentHeight(Alignment.CenterVertically)
-                            //.padding(vertical =4.dp)
-                            //.padding(horizontal = 0.dp)
-                            //TO DO find right alignement use icon?
+
+                            //TODO find right alignement use icon?
                         )
 
                         Spacer(Modifier.width(7.dp))
@@ -244,7 +240,7 @@ private fun ConfirmMessageMiddleScreen() {
                                 .sizeIn(30.dp, 30.dp, 40.dp, 40.dp)
                                 .aspectRatio(1f),
                             //.padding(horizontal = 1.dp),
-                            //color = MaterialTheme.colors.surface,
+                            color = MaterialTheme.colors.secondaryVariant,
                             shape = CircleShape,
                             //elevation = 20.dp,
                             //TODO fix difference of color surface in darkmode???
@@ -254,8 +250,8 @@ private fun ConfirmMessageMiddleScreen() {
                             Icon(
                                 painterResource(R.drawable.ic_check_fill0_wght400_grad0_opsz48),
                                 contentDescription = "check icon",
-                                tint = if (MaterialTheme.colors.isLight) Color.White
-                                else Color.Black,
+                                //tint = if (MaterialTheme.colors.isLight) Color.White
+                                //else Color.Black,
                                 modifier = Modifier
                                     .padding(horizontal=0.dp, vertical = 3.5.dp),
                             )

@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WalletApp() {
     InterstellarWalletTheme(
-        //darkTheme = true
+        darkTheme = true
         //To test dark mode
     ) {
         val allScreens = WalletScreen.values().toList()
@@ -74,9 +74,9 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        //startDestination = WalletScreen.SendCurrencies.name,
+        startDestination = WalletScreen.SendCurrencies.name,
 
-        startDestination = WalletScreen.TxPinpad.name,
+       //startDestination = WalletScreen.TxPinpad.name,
         modifier = modifier
     ) {
         composable(WalletScreen.SendCurrencies.name) {
