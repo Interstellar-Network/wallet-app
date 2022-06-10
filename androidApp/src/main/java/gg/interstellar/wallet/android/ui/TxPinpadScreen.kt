@@ -10,6 +10,8 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -196,33 +198,22 @@ private fun PinpadBottomScreen() {
                 modifier = Modifier
                     .weight(0.20f)
                     .wrapContentSize()
-                    .padding(horizontal = 0.dp, vertical = 0.dp),
             ) {
                 Surface(
                     modifier = Modifier.padding(25.dp, 25.dp),
                     shape = RoundedCornerShape(25),
                     elevation = 28.dp,
-                    color = if (MaterialTheme.colors.isLight) Color.Black
-                    else Color.White,
                 ) {
-                    Surface(
-                        modifier = Modifier.padding(25.dp, 25.dp),
-                        shape = RoundedCornerShape(25),
-                        elevation = 28.dp,
-                        color = if (MaterialTheme.colors.isLight) Color.Black
-                        else Color.White,
-                    ) {
                         MaterialIcon(
-                            Icons.Filled.Check,
-                            modifier = Modifier
-                                .padding(horizontal = 0.dp, vertical = 0.0.dp),
-                            contentDescription = "Check icon",
+                            Icons.Filled.Close,
+                            modifier = Modifier,
+                            contentDescription = "close icon",
                         )
                     }
 
                 }
 
-            }
+
             Spacer(Modifier.weight(0.20f))
         }
 
