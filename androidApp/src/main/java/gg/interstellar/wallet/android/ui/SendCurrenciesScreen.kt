@@ -38,7 +38,10 @@ import androidx.compose.material.Icon as MaterialIcon
 @Preview
 @Composable
 fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
-    InterstellarWalletTheme {
+    InterstellarWalletTheme(
+        //darkTheme = true
+    ) {
+
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -92,25 +95,34 @@ private fun SendButtonTop(shape: Shape) {
 
 @Composable
 private fun FromToCurrenciesToDestinationMiddle(onClickGo: () -> Unit) {
-    FromToCurrencies(RoundedCornerShape(20.dp), onClickGo)
+    FromToCurrencies(RoundedCornerShape(20.dp))
     Destination(RoundedCornerShape(20.dp))
     TransactionFee(RoundedCornerShape(20.dp))
 
-    CircleButton25(Icons.Filled.ArrowDropDown, 4.dp, "drop down", 4.dp, -200.dp, onClickGo)
+    CircleButton25(Icons.Filled.ArrowDropDown, 4.dp, "drop down", 4.dp, -230.dp, onClickGo)
     CircleButtonCurrencies(
         painterResource(R.drawable.ic_eth),
-        "btc", 110.dp, -270.dp, onClickGo
+        "btc", 110.dp, -300.dp, onClickGo
+    )
+    CircleButtonCurrencies(
+        painterResource(R.drawable.ic_eth),
+        "btc", 110.dp, -230.dp, onClickGo
     )
 
-    CircleButton25(Icons.Filled.Add, 0.dp, "add", 4.dp, -138.dp, onClickGo)
+
+    CircleButtonCurrencies(
+        painterResource(R.drawable.ic_interstellar_black_icon_white_border),
+        "btc", 112.dp, -114.dp, onClickGo
+    )
+    DisplayInFiat("120 USD", 4.dp,-245.dp )
+
+    CircleButton25(Icons.Filled.Add, 0.dp, "add", 4.dp, -230.dp, onClickGo)
 }
 
 @Composable
-private fun FromToCurrencies(shape: Shape, onClickGo: () -> Unit) {
+private fun FromToCurrencies(shape: Shape) {
     // Blank row to adjust
     Row { Spacer(Modifier.height(40.dp)) }
-    Box() {
-
         Box(
             modifier = Modifier
                 .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
@@ -131,7 +143,7 @@ private fun FromToCurrencies(shape: Shape, onClickGo: () -> Unit) {
                     .align(Alignment.Center),
             )
         }
-    }
+
 }
 
 @Composable
@@ -164,6 +176,30 @@ private fun CircleButton25(
 }
 
 @Composable
+private fun DisplayInFiat(string: String, dpx: Dp, dpy: Dp) {
+    Surface(
+        modifier = Modifier
+            .sizeIn(60.dp, 25.dp, 60.dp, 25.dp)
+            //.aspectRatio(1f)
+            .offset(x = dpx, y = dpy),
+        shape = CircleShape,
+        //color = if (MaterialTheme.colors.isLight) Color.Black
+        //else Color.Black
+
+    ) {
+       Box(modifier = Modifier
+           .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
+
+       ) { Text(string, modifier = Modifier
+                .align(Alignment.Center),
+                fontSize = 10.sp)
+       }
+
+    }
+}
+
+
+@Composable
 private fun CircleButtonCurrencies(
     paintDrawable: Painter, string: String, dpx: Dp, dpy: Dp,
     onClickGo: () -> Unit
@@ -184,7 +220,6 @@ private fun CircleButtonCurrencies(
         }
     }
 }
-
 
 @Composable
 private fun Destination(shape: Shape) {
@@ -210,13 +245,13 @@ private fun Destination(shape: Shape) {
                 .align(Alignment.Center),
         )
     }
-    Row { Spacer(Modifier.height(30.dp)) }
+    Row { Spacer(Modifier.height(40.dp)) }
 }
 
 @Composable
 private fun TransactionFee(shape: Shape) {
 
-    Row { Spacer(Modifier.height(20.dp)) }
+    Row { Spacer(Modifier.height(40.dp)) }
     Box(
         modifier = Modifier
             .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
@@ -243,7 +278,7 @@ private fun TransactionFee(shape: Shape) {
 @Composable
 private fun GoButtonBottom(onClickGo: () -> Unit) {
     // Blank row to adjust
-    Row { Spacer(Modifier.height(50.dp)) }
+    //Row { Spacer(Modifier.height(20.dp)) }
     Surface(
         modifier = Modifier
             .sizeIn(60.dp, 60.dp, 60.dp, 60.dp)
@@ -261,5 +296,5 @@ private fun GoButtonBottom(onClickGo: () -> Unit) {
         }
     }
     // Blank row to adjust
-    Row { Spacer(Modifier.height(10.dp)) }
+    Row { Spacer(Modifier.height(8000.dp)) }//TODO fix issue
 }
