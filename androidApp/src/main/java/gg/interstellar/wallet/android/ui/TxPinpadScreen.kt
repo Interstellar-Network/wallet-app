@@ -172,43 +172,17 @@ private fun ConfirmMessageMiddleScreen() {
     }
 }
 
-
 @Composable
 private fun PinpadBottomScreen() {
     // We MUST set "weight" on each children, that weight each row will have the same height
     Column()
     {
         Row { Spacer(Modifier.height(20.dp)) }
-        Row(
-            horizontalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.25f)
-                .padding(horizontal = 10.dp, vertical = 10.dp)
-        ) {
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-        }
-        Row(
-            horizontalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.25f)
-                .padding(horizontal = 10.dp, vertical = 10.dp)
-        ) {
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-        }
-        Row(
-            horizontalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.25f)
-                .padding(horizontal = 10.dp, vertical = 10.dp)
-        ) {
-            SetPadCircle()
-            SetPadCircle()
-            SetPadCircle()
-        }
+
+        StandardPinpadRow()
+        StandardPinpadRow()
+        StandardPinpadRow()
+
         Row(
             horizontalArrangement = Arrangement.Center, modifier = Modifier
                 .fillMaxWidth()
@@ -256,6 +230,23 @@ private fun PinpadBottomScreen() {
         }
 
         Row { Spacer(Modifier.height(20.dp)) }
+    }
+}
+
+/**
+ * Standard Pinpad row, with 3 circles
+ */
+@Composable
+private fun ColumnScope.StandardPinpadRow() {
+    Row(
+        horizontalArrangement = Arrangement.Center, modifier = Modifier
+            .fillMaxWidth()
+            .weight(0.25f)
+            .padding(horizontal = 10.dp, vertical = 10.dp)
+    ) {
+        SetPadCircle()
+        SetPadCircle()
+        SetPadCircle()
     }
 }
 
