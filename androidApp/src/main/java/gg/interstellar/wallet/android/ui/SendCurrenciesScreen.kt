@@ -296,5 +296,5 @@ private fun GoButtonBottom(onClickGo: () -> Unit) {
         }
     }
     // Blank row to adjust
-    Row { Spacer(Modifier.height(8000.dp)) }//TODO fix issue
+    Row { Spacer(Modifier.height(80.dp)) }//TODO fix issue
 }
