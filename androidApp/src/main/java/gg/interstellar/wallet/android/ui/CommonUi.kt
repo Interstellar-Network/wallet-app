@@ -51,8 +51,6 @@ fun DisplayInterstellar() {
                 // and are converted into pixel by text layout.
 
                 Icon(
-                    //Icons.Filled.Face, to test
-                    // replace with Interstellar Logo
                     painterResource(R.drawable.ic_interstellar_black_logo),
                     contentDescription = "logo",
                     tint = if (MaterialTheme.colors.isLight) Color.Black
@@ -77,9 +75,7 @@ fun DisplayInterstellar() {
 
             modifier = Modifier
                 .fillMaxHeight()
-                //.fillMaxWidth()
                 .wrapContentHeight(Alignment.CenterVertically)
-
 
                 .shadow(elevation = 52.dp,clip=true),
             inlineContent = inlineContent //add logo in place holder

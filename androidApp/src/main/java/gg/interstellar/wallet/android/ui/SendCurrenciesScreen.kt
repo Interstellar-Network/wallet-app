@@ -3,17 +3,18 @@ package gg.interstellar.wallet.android.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.*
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,14 +35,10 @@ import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import androidx.compose.material.Icon as MaterialIcon
 
-@Preview //(showBackground = true)
+@Preview
 @Composable
-fun SendCurrenciesScreen(onClickGo: () -> Unit = {},) {
-
-    InterstellarWalletTheme(
-        //darkTheme = true
-
-    ) {
+fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
+    InterstellarWalletTheme {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -65,13 +62,12 @@ private fun SendButtonTop(shape: Shape) {
     ) {
         Surface(
             modifier = Modifier
-                //.fillMaxSize()
-                //.requiredWidthIn(min = 344.4.dp).requiredHeightIn(99.84.dp)
                 .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
                 .padding(25.dp),
             shape = CircleShape,
             elevation = 50.dp,
-        ) { Box(
+        ) {
+            Box(
                 modifier = Modifier
 
                     .background(
@@ -83,117 +79,104 @@ private fun SendButtonTop(shape: Shape) {
                         )
                     )
             ) {
-                Text("Send", modifier = Modifier
-                    .align(Alignment.Center),
+                Text(
+                    "Send",
+                    modifier = Modifier
+                        .align(Alignment.Center),
                     fontSize = 35.sp,
                 )
             }
-
         }
-
     }
 }
 
 @Composable
-private fun FromToCurrenciesToDestinationMiddle(onClickGo:() -> Unit ){
+private fun FromToCurrenciesToDestinationMiddle(onClickGo: () -> Unit) {
+    FromToCurrencies(RoundedCornerShape(20.dp), onClickGo)
+    Destination(RoundedCornerShape(20.dp))
+    TransactionFee(RoundedCornerShape(20.dp))
 
+    CircleButton25(Icons.Filled.ArrowDropDown, 4.dp, "drop down", 4.dp, -200.dp, onClickGo)
+    CircleButtonCurrencies(
+        painterResource(R.drawable.ic_eth),
+        "btc", 110.dp, -270.dp, onClickGo
+    )
 
-
-
-        FromToCurrencies(RoundedCornerShape(20.dp), onClickGo)
-        Destination(RoundedCornerShape(20.dp))
-        TransactionFee(RoundedCornerShape(20.dp))
-
-        CircleButton25(Icons.Filled.ArrowDropDown,4.dp ,"drop down", 4.dp,-200.dp, onClickGo )
-        CircleButtonCurrencies(painterResource(R.drawable.ic_eth),
-            "btc", 110.dp , -270.dp,onClickGo )
-
-        CircleButton25(Icons.Filled.Add,0.dp,"add",4.dp, -138.dp,onClickGo)
-
-
-
-
+    CircleButton25(Icons.Filled.Add, 0.dp, "add", 4.dp, -138.dp, onClickGo)
 }
 
 @Composable
-private fun FromToCurrencies(shape: Shape, onClickGo:() -> Unit ){
+private fun FromToCurrencies(shape: Shape, onClickGo: () -> Unit) {
+    // Blank row to adjust
+    Row { Spacer(Modifier.height(40.dp)) }
+    Box() {
 
-
-        Row{ Spacer(Modifier.height(40.dp)) }// Blank row to adjust
-        Box() {
-
-            Box(
-                modifier = Modifier
-                    .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
-                    .sizeIn(220.dp, 80.dp, 220.dp, 80.dp)
-                    .clip(shape)
-                    //.padding(3.dp)
-                    .background(
-                        Brush.linearGradient(
-                            0.4f to Color(0xFF627eea),
-                            1f to Color.White,
-                            start = Offset(0f, 0f),
-                            end = Offset(650f, 0f),
-                        )
+        Box(
+            modifier = Modifier
+                .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
+                .sizeIn(220.dp, 80.dp, 220.dp, 80.dp)
+                .clip(shape)
+                .background(
+                    Brush.linearGradient(
+                        0.4f to Color(0xFF627eea),
+                        1f to Color.White,
+                        start = Offset(0f, 0f),
+                        end = Offset(650f, 0f),
                     )
-            ) {
-                Text(
-                    "O.6 ETH",
-                    modifier = Modifier
-                        .align(Alignment.Center),
-                    //fontSize = 10.dp,
-                    // TODO fix fontsize does not work, Why?
                 )
-            }
-
+        ) {
+            Text(
+                "O.6 ETH",
+                modifier = Modifier
+                    .align(Alignment.Center),
+            )
         }
+    }
 }
 
 @Composable
-private fun CircleButton25(imageVector: ImageVector, border: Dp,string: String, dpx: Dp, dpy :Dp,
-                           onClickGo:() -> Unit)//TODO  size of button
+private fun CircleButton25(
+    imageVector: ImageVector, border: Dp, string: String, dpx: Dp, dpy: Dp,
+    onClickGo: () -> Unit
+)//TODO  size of button
 {
     Surface(
         modifier = Modifier
             .sizeIn(25.dp, 25.dp, 25.dp, 25.dp)
             .aspectRatio(1f)
-            //.padding(horizontal = 1.dp),
             .offset(x = dpx, y = dpy),
 
         color = MaterialTheme.colors.surface,
         shape = CircleShape,
-        //elevation = 20.dp,
-        border = BorderStroke(border,
-            //Color.Transparent)
+        border = BorderStroke(
+            border,
             if (MaterialTheme.colors.isLight) Color.White
-            else Color.Black),
+            else Color.Black
+        ),
 
-    ) {
+        ) {
         IconButton(
             onClick = onClickGo,
-            ) {
-            MaterialIcon(imageVector = imageVector, contentDescription = string,)
+        ) {
+            MaterialIcon(imageVector = imageVector, contentDescription = string)
         }
     }
 }
 
 @Composable
-private fun CircleButtonCurrencies(paintDrawable: Painter, string: String, dpx: Dp, dpy:Dp,
-                                  onClickGo:() -> Unit)
-{
+private fun CircleButtonCurrencies(
+    paintDrawable: Painter, string: String, dpx: Dp, dpy: Dp,
+    onClickGo: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .sizeIn(25.dp, 25.dp, 25.dp, 25.dp)
             .aspectRatio(1f)
-            //.padding(horizontal = 1.dp),
             .offset(x = dpx, y = dpy),
-
-        //color = MaterialTheme.colors.surface,
         shape = CircleShape,
-        //contentColor = Color.Transparent
-        //elevation = 20.dp,
     ) {
-        IconButton(//TODO solve onClickGo issue
+        IconButton(
+            //TODO solve onClickGo issue
             onClick = onClickGo,
         ) {
             Image(paintDrawable, string)
@@ -203,44 +186,37 @@ private fun CircleButtonCurrencies(paintDrawable: Painter, string: String, dpx: 
 }
 
 
-
 @Composable
-private fun Destination(shape: Shape){
-     Row{ Spacer(Modifier.height(10.dp)) }// Blank row to adjust
-        Box(
-            modifier = Modifier
-                .shadow(elevation = 15.dp, shape = RectangleShape, clip = false)
-                .sizeIn(220.dp, 80.dp, 220.dp, 80.dp)
-                .clip(shape)
-                .background(
-                    Brush.linearGradient(
-                        0.4f to Color(0xFF627eea),
-                        1.1f to Color.White,
-                        start = Offset(0f, 0f),
-                        end = Offset(650f, 0f),
-                    )
+private fun Destination(shape: Shape) {
+    // Blank row to adjust
+    Row { Spacer(Modifier.height(10.dp)) }
+    Box(
+        modifier = Modifier
+            .shadow(elevation = 15.dp, shape = RectangleShape, clip = false)
+            .sizeIn(220.dp, 80.dp, 220.dp, 80.dp)
+            .clip(shape)
+            .background(
+                Brush.linearGradient(
+                    0.4f to Color(0xFF627eea),
+                    1.1f to Color.White,
+                    start = Offset(0f, 0f),
+                    end = Offset(650f, 0f),
                 )
-        ) {
-            Text(
-                "John Doe",
-                modifier = Modifier
-                    .align(Alignment.Center),
-                //fontSize = 10.dp,
-
-                //color =,
-
-                // TODO fix fontsize does not work, Why?
             )
-        }
-
-        Row{ Spacer(Modifier.height(30.dp)) }// Blank row to adjust
-
+    ) {
+        Text(
+            "John Doe",
+            modifier = Modifier
+                .align(Alignment.Center),
+        )
+    }
+    Row { Spacer(Modifier.height(30.dp)) }
 }
 
 @Composable
-private fun TransactionFee(shape: Shape){
+private fun TransactionFee(shape: Shape) {
 
-    Row{ Spacer(Modifier.height(20.dp)) }// Blank row to adjust
+    Row { Spacer(Modifier.height(20.dp)) }
     Box(
         modifier = Modifier
             .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
@@ -255,53 +231,35 @@ private fun TransactionFee(shape: Shape){
                 )
             )
     ) {
-        Text("0.10 USD", modifier = Modifier
-            .align(Alignment.Center),
-            //fontSize = 10.dp,
-            // TODO fix fontsize does not work, Why?
+        Text(
+            "0.10 USD",
+            modifier = Modifier
+                .align(Alignment.Center),
         )
     }
-
-
-
 }
 
-
-
-@Composable
-private fun FromToCurrenciesMiddlebis(){
-    var fromTextState by remember { mutableStateOf("From") }
-    var toTextState by remember { mutableStateOf("To") }
-    BasicTextField(value = fromTextState, onValueChange = {
-        fromTextState = it
-    })
-    BasicTextField(value = toTextState, onValueChange = {
-        toTextState = it
-    })
-
-    Text("USD")
-}
 
 @Composable
 private fun GoButtonBottom(onClickGo: () -> Unit) {
-
-    Row{ Spacer(Modifier.height(50.dp)) }// Blank row to adjust
+    // Blank row to adjust
+    Row { Spacer(Modifier.height(50.dp)) }
     Surface(
         modifier = Modifier
             .sizeIn(60.dp, 60.dp, 60.dp, 60.dp)
             .aspectRatio(1f),
-        //.padding(horizontal = 1.dp),
         color = MaterialTheme.colors.secondaryVariant,
         shape = CircleShape,
-        //elevation = 20.dp,
     ) {
         IconButton(
             onClick = onClickGo,
         ) {
-            MaterialIcon(Icons.Filled.Check,
-                "check icon",Modifier.size(35.dp))
+            MaterialIcon(
+                Icons.Filled.Check,
+                "check icon", Modifier.size(35.dp)
+            )
         }
     }
-    Row{ Spacer(Modifier.height(10.dp)) }// Blank row to adjust
-
+    // Blank row to adjust
+    Row { Spacer(Modifier.height(10.dp)) }
 }
