@@ -97,7 +97,8 @@ private fun SendButtonTop(shape: Shape) {
 @Composable
 private fun FromToCurrenciesToDestinationMiddle(onClickGo:() -> Unit ){
 
-    //Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+
 
         FromToCurrencies(RoundedCornerShape(20.dp), onClickGo)
         Destination(RoundedCornerShape(20.dp))
@@ -110,14 +111,15 @@ private fun FromToCurrenciesToDestinationMiddle(onClickGo:() -> Unit ){
         CircleButton25(Icons.Filled.Add,0.dp,"add",4.dp, -138.dp,onClickGo)
 
 
-    //}
+
 
 }
 
 @Composable
 private fun FromToCurrencies(shape: Shape, onClickGo:() -> Unit ){
 
-     //Row {
+
+        Row{ Spacer(Modifier.height(40.dp)) }// Blank row to adjust
         Box() {
 
             Box(
@@ -145,13 +147,11 @@ private fun FromToCurrencies(shape: Shape, onClickGo:() -> Unit ){
             }
 
         }
-     //}
-    //Row{ Spacer(Modifier.height(10.dp)) }// Blank row to adjust
 }
 
 @Composable
 private fun CircleButton25(imageVector: ImageVector, border: Dp,string: String, dpx: Dp, dpy :Dp,
-                           onClickGo:() -> Unit)//TODO add border and size of button
+                           onClickGo:() -> Unit)//TODO  size of button
 {
     Surface(
         modifier = Modifier
@@ -162,8 +162,9 @@ private fun CircleButton25(imageVector: ImageVector, border: Dp,string: String, 
 
         color = MaterialTheme.colors.surface,
         shape = CircleShape,
-        elevation = 20.dp,
+        //elevation = 20.dp,
         border = BorderStroke(border,
+            //Color.Transparent)
             if (MaterialTheme.colors.isLight) Color.White
             else Color.Black),
 
