@@ -15,6 +15,8 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,7 +42,7 @@ import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import gg.interstellar.wallet.android.ui.theme.MagentaCustom
 import gg.interstellar.wallet.android.ui.theme.Modernista
-
+import androidx.compose.material.Icon as MaterialIcon
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
 @Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
@@ -67,7 +69,7 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Composable
 fun TxPinpadScreen() {
     InterstellarWalletTheme(
-        darkTheme = true
+        //darkTheme = true
 
     ) {
         //val greeting = Greeting().greeting()
@@ -247,13 +249,12 @@ private fun ConfirmMessageMiddleScreen() {
                             //TODO does it come from elevation/shadow surface? yes
                             //color = Color(0x0080ff) ->0069d2 ???
                         ) {
-                            Icon(
-                                painterResource(R.drawable.ic_check_fill0_wght400_grad0_opsz48),
-                                contentDescription = "check icon",
-                                //tint = if (MaterialTheme.colors.isLight) Color.White
-                                //else Color.Black,
+
+                            MaterialIcon(
+                                Icons.Filled.Check,
                                 modifier = Modifier
-                                    .padding(horizontal=0.dp, vertical = 3.5.dp),
+                                    .padding(3.dp),
+                                contentDescription = "check icon",
                             )
                         }
                     }
@@ -363,6 +364,13 @@ Column()
                         color = if (MaterialTheme.colors.isLight) Color.Black
                         else Color.White,
                     ) {
+                        MaterialIcon(
+                            Icons.Filled.Check,
+                            modifier = Modifier
+                                .padding(horizontal = 0.dp, vertical = 0.0.dp),
+                            contentDescription = "Check icon",
+                        )
+                        /*
                         Icon(
                             painterResource(R.drawable.ic_close_fill0_wght400_grad0_opsz48),
                             contentDescription = "reset/close",
@@ -371,7 +379,7 @@ Column()
                             modifier = Modifier
 
                             //.padding(horizontal=0.dp, vertical = 10.dp),
-                        )
+                        )*/
                     }
 
                 }

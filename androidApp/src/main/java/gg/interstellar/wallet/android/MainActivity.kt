@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WalletApp() {
     InterstellarWalletTheme(
-        darkTheme = true
+        //darkTheme = true
         //To test dark mode
     ) {
         val allScreens = WalletScreen.values().toList()
