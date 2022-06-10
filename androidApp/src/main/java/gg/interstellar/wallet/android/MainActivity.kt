@@ -3,6 +3,7 @@ package gg.interstellar.wallet.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun WalletApp() {
-    InterstellarWalletTheme {
+    InterstellarWalletTheme(darkTheme = isSystemInDarkTheme()) {
         val allScreens = WalletScreen.values().toList()
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()

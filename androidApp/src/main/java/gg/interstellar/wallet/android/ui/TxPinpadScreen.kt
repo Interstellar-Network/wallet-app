@@ -52,10 +52,7 @@ import androidx.compose.material.Icon as MaterialIcon
 @Preview(showBackground = true)
 @Composable
 fun TxPinpadScreen() {
-    InterstellarWalletTheme(
-        //darkTheme = true
-
-    ) {
+    InterstellarWalletTheme {
         Column {
             DisplayInterstellar()
             MessageTopScreen()
