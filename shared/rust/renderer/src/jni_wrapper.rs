@@ -4,7 +4,7 @@
 use android_logger::Config;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject};
-use jni::sys::jlong;
+use jni::sys::{jboolean, jlong};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{info, Level};
@@ -13,7 +13,7 @@ use raw_window_handle::{AndroidNdkHandle, HasRawWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{State, UpdateTextureDataType};
+use crate::{getIndices, getVertices, State, UpdateTextureDataType, Vertex};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -41,6 +41,8 @@ impl State {
         window: &W,
         window_size: [u32; 2],
         update_texture_data: UpdateTextureDataType,
+        vertices: &[Vertex],
+        indices: &[u16],
     ) -> Self
     where
         W: raw_window_handle::HasRawWindowHandle,
@@ -53,7 +55,7 @@ impl State {
         // let surface: wgpu::Surface = unsafe { instance.create_surface(window) };
         // log::debug!("successfully initialize surface: {:?}", surface);
 
-        Self::new(window, size, update_texture_data).await
+        Self::new(window, size, update_texture_data, vertices, indices).await
     }
 }
 
@@ -82,7 +84,7 @@ fn update_texture_data(frame_number: usize) -> Vec<u8> {
 /// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
 #[no_mangle]
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
-pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
+pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject, is_message: jboolean) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
     android_logger::init_once(
         Config::default()
@@ -110,6 +112,8 @@ pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
         &awindow,
         [width, height],
         update_texture_data,
+        getVertices(is_message != 0),
+        getIndices(is_message != 0),
     )))
     .unwrap();
     log::debug!("get state!");

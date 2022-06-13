@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -17,19 +16,18 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import gg.interstellar.wallet.WGPUSurfaceView
-import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.WGPUSurfaceViewMessage
+import gg.interstellar.wallet.WGPUSurfaceViewPinpad
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
-import gg.interstellar.wallet.android.ui.theme.Modernista
 import androidx.compose.material.Icon as MaterialIcon
+
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
 @Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
@@ -76,7 +74,7 @@ private fun MessageTopScreen() {
     ) {
         AndroidView(
             factory = { ctx ->
-                WGPUSurfaceView(context = ctx)
+                WGPUSurfaceViewMessage(context = ctx)
             }
         )
     }
@@ -167,38 +165,42 @@ private fun ConfirmMessageMiddleScreen() {
 @Composable
 private fun PinpadBottomScreen() {
     // We MUST set "weight" on each children, that weight each row will have the same height
-    Column()
-    {
-        Row { Spacer(Modifier.height(20.dp)) }
+    Box {
+        // Same level as the Column, so it will be drawn ON TOP of it
+        // TODO? NOTE: order matters! also TODO? setZOrderOnTop?
+        AndroidView(
+            factory = { ctx ->
+                WGPUSurfaceViewPinpad(context = ctx, callbackGetPositions = {
+                    positionsInWindow
+                })
+            }
+        )
 
-        StandardPinpadRow()
-        StandardPinpadRow()
-        StandardPinpadRow()
+        Column()
+        {
+            Row { Spacer(Modifier.height(20.dp)) }
 
-        Row(
-            horizontalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.25f)
-        ) {
-            // In this case we must set the wight b/c we have different children contrary to the
-            // other rows. TODO? is there a better way to do this?
-            Spacer(Modifier.weight(0.400f))
+            StandardPinpadRow(0, 1, 2)
+            StandardPinpadRow(3, 4, 5)
+            StandardPinpadRow(6, 7, 8)
 
-            SetPadCircle()
-
-            BoxWithConstraints(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(0.20f)
-                    .wrapContentSize()
-                    .padding(horizontal = 0.dp, vertical = 0.dp),
+            Row(
+                horizontalArrangement = Arrangement.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.25f)
             ) {
-                Surface(
-                    modifier = Modifier.padding(25.dp, 25.dp),
-                    shape = RoundedCornerShape(25),
-                    elevation = 28.dp,
-                    color = if (MaterialTheme.colors.isLight) Color.Black
-                    else Color.White,
+                // In this case we must set the wight b/c we have different children contrary to the
+                // other rows. TODO? is there a better way to do this?
+                Spacer(Modifier.weight(0.400f))
+
+                SetPadCircle(10)
+
+                BoxWithConstraints(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(0.20f)
+                        .wrapContentSize()
+                        .padding(horizontal = 0.dp, vertical = 0.dp),
                 ) {
                     Surface(
                         modifier = Modifier.padding(25.dp, 25.dp),
@@ -207,21 +209,29 @@ private fun PinpadBottomScreen() {
                         color = if (MaterialTheme.colors.isLight) Color.Black
                         else Color.White,
                     ) {
-                        MaterialIcon(
-                            Icons.Filled.Check,
-                            modifier = Modifier
-                                .padding(horizontal = 0.dp, vertical = 0.0.dp),
-                            contentDescription = "Check icon",
-                        )
+                        Surface(
+                            modifier = Modifier.padding(25.dp, 25.dp),
+                            shape = RoundedCornerShape(25),
+                            elevation = 28.dp,
+                            color = if (MaterialTheme.colors.isLight) Color.Black
+                            else Color.White,
+                        ) {
+                            MaterialIcon(
+                                Icons.Filled.Check,
+                                modifier = Modifier
+                                    .padding(horizontal = 0.dp, vertical = 0.0.dp),
+                                contentDescription = "Check icon",
+                            )
+                        }
+
                     }
 
                 }
-
+                Spacer(Modifier.weight(0.20f))
             }
-            Spacer(Modifier.weight(0.20f))
-        }
 
-        Row { Spacer(Modifier.height(20.dp)) }
+            Row { Spacer(Modifier.height(20.dp)) }
+        }
     }
 }
 
@@ -229,25 +239,44 @@ private fun PinpadBottomScreen() {
  * Standard Pinpad row, with 3 circles
  */
 @Composable
-private fun ColumnScope.StandardPinpadRow() {
+private fun ColumnScope.StandardPinpadRow(id_left: Int, id_middle: Int, id_right: Int) {
     Row(
         horizontalArrangement = Arrangement.Center, modifier = Modifier
             .fillMaxWidth()
             .weight(0.25f)
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
-        SetPadCircle()
-        SetPadCircle()
-        SetPadCircle()
+        SetPadCircle(id_left)
+        SetPadCircle(id_middle)
+        SetPadCircle(id_right)
     }
 }
 
+// TODO? or a State? https://developer.android.com/jetpack/compose/state
+//var sizeTopBar by remember { mutableStateOf(IntSize.Zero) }
+//var positionInRootTopBar by remember { mutableStateOf(Offset.Zero) }
+var positionsInWindow: Array<Offset> = Array(12) { Offset.Zero }
+
 @Composable
-fun SetPadCircle() {
+fun SetPadCircle(id: Int) {
     Box(
         modifier = Modifier
             .shadow(elevation = 35.dp, shape = CircleShape, clip = false)
-
+            // TODO move to nested Surface?
+            .onGloballyPositioned { coordinates ->
+                // "This will be the size of the Column."
+                coordinates.size
+                // "The position of the Column relative to the application window."
+                val offset_window = coordinates.positionInWindow()
+                positionsInWindow[id] = offset_window
+                // TODO? positionInRoot
+                // "The position of the Column relative to the Compose root."
+                //            coordinates.positionInRoot()
+                //            // These will be the alignment lines provided to the layout (empty here for Column).
+                //            coordinates.providedAlignmentLines
+                //            // This will be a LayoutCoordinates instance corresponding to the parent of Column.
+                //            coordinates.parentLayoutCoordinates
+            }
     ) {
         Surface(
             modifier = Modifier
@@ -259,14 +288,13 @@ fun SetPadCircle() {
             color = if (MaterialTheme.colors.isLight) Color.Black
             else Color.White,
         ) {
-
             Surface(
                 modifier = Modifier
                     .fillMaxSize(),
                 shape = CircleShape,
                 color = if (MaterialTheme.colors.isLight) Color.Black
                 else Color.White,
-                ) { }
+            ) { }
         }
     }
 }

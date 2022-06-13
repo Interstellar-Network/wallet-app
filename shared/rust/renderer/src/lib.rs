@@ -19,7 +19,7 @@ mod texture;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex {
+pub struct Vertex {
     position: [f32; 3],
     tex_coords: [f32; 2],
 }
@@ -49,7 +49,7 @@ impl Vertex {
 // screen:
 // A B
 // C D
-const VERTICES: &[Vertex] = &[
+const VERTICES_FULLSCREEN: &[Vertex] = &[
     Vertex {
         position: [-1.0, 1.0, 0.0],
         tex_coords: [0.0, 0.0],
@@ -68,7 +68,35 @@ const VERTICES: &[Vertex] = &[
     }, // D
 ];
 
-const INDICES: &[u16] = &[
+// "full screen" eg for the Message
+// Texture mapped as-is to the screen
+const INDICES_FULLSCREEN: &[u16] = &[
+    1, 0, 2, // top-left triangle: B->A->C
+    1, 2, 3, // bottom-right triangle: B->C->D
+    /* padding */ 0,
+];
+
+// 4 vertices per digit, and 10 digits on a pinpad -> 40 Vertices total
+const VERTICES_PINPAD: &[Vertex] = &[
+    Vertex {
+        position: [-1.0, 1.0, 0.0],
+        tex_coords: [0.0, 0.0],
+    }, // A
+    Vertex {
+        position: [1.0, 1.0, 0.0],
+        tex_coords: [1.0, 0.0],
+    }, // B
+    Vertex {
+        position: [-1.0, -1.0, 0.0],
+        tex_coords: [0.0, 1.0],
+    }, // C
+    Vertex {
+        position: [1.0, -1.0, 0.0],
+        tex_coords: [1.0, 1.0],
+    }, // D
+];
+
+const INDICES_PINPAD: &[u16] = &[
     1, 0, 2, // top-left triangle: B->A->C
     1, 2, 3, // bottom-right triangle: B->C->D
     /* padding */ 0,
@@ -99,6 +127,22 @@ const INDICES: &[u16] = &[
 // ];
 // const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4, /* padding */ 0];
 
+pub fn getVertices(is_message: bool) -> &'static [Vertex] {
+    if is_message {
+        return VERTICES_FULLSCREEN;
+    } else {
+        return VERTICES_PINPAD;
+    }
+}
+
+pub fn getIndices(is_message: bool) -> &'static [u16] {
+    if is_message {
+        return INDICES_FULLSCREEN;
+    } else {
+        return INDICES_PINPAD;
+    }
+}
+
 pub type UpdateTextureDataType = fn(frame_counter: usize) -> Vec<u8>;
 
 struct State {
@@ -124,6 +168,8 @@ impl State {
         window: &W,
         size: winit::dpi::PhysicalSize<u32>,
         update_texture_data: UpdateTextureDataType,
+        vertices: &[Vertex],
+        indices: &[u16],
     ) -> Self
     where
         W: raw_window_handle::HasRawWindowHandle,
@@ -298,15 +344,15 @@ impl State {
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
+            contents: bytemuck::cast_slice(vertices),
             usage: wgpu::BufferUsages::VERTEX,
         });
         let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
+            contents: bytemuck::cast_slice(indices),
             usage: wgpu::BufferUsages::INDEX,
         });
-        let num_indices = INDICES.len() as u32;
+        let num_indices = indices.len() as u32;
         let frame_number = 0 as usize;
 
         Self {
@@ -392,8 +438,13 @@ impl State {
     }
 }
 
+/**
+ * Only used for desktop
+ * Android will directly call State::new etc on the native window via JNI
+ * NOTE: Android WILL NOT use an Event loop; everything goes through the View callbacks instead
+ */
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run(update_texture_data: UpdateTextureDataType) {
+pub async fn run(update_texture_data: UpdateTextureDataType, is_message: bool) {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -427,7 +478,14 @@ pub async fn run(update_texture_data: UpdateTextureDataType) {
 
     // State::new uses async code, so we're going to wait for it to finish
     let size = window.inner_size();
-    let mut state = State::new(&window, size, update_texture_data).await;
+    let mut state = State::new(
+        &window,
+        size,
+        update_texture_data,
+        getVertices(is_message),
+        getIndices(is_message),
+    )
+    .await;
 
     event_loop.run(move |event, _, control_flow| {
         match event {

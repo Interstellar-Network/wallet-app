@@ -8,7 +8,7 @@ import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
-class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
+open class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var rustBrige = RustWrapper()
     private var rustPtr: Long = Long.MAX_VALUE
 
@@ -29,17 +29,12 @@ class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
         holder.addCallback(this)
         println("fda init")
         // else invisible b/c behind the WGPUSurfaceView itself
-        // TODO what is the proper way to do this?
-//        setZOrderOnTop(true)
+        // TODO? what is the proper way to do this?
+        // TODO? hasOverlappingRendering?
+        this.setZOrderOnTop(true)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-////        libEGL  : eglCreateWindowSurface: native_window_api_connect (win=0xc166b808) failed (0xffffffed) (already connected to another API?)
-////        libEGL  : eglCreateWindowSurface:679 error 3003 (EGL_BAD_ALLOC)
-//        holder.let { h ->
-//            rustPtr = rustBrige.initSurface(h.surface)
-//            setWillNotDraw(false)
-//        }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -73,4 +68,37 @@ class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
         invalidate()
     }
 
+}
+
+class WGPUSurfaceViewMessage(context: Context) : WGPUSurfaceView(context) {
+
+}
+
+class WGPUSurfaceViewPinpad(
+    context: Context,
+    var callbackGetPositions: () -> Any
+): WGPUSurfaceView(context) {
+    init {
+        // Too soon! this is null!
+        var parent = getParent()
+        println(parent)
+    }
+
+    override fun surfaceCreated(holder: SurfaceHolder) {
+//        getParent(): androidx.compose.ui.viewinterop.ViewFactoryHolder{4e0c4fc V.E...... ......ID 0,799-1080,1731}
+//        getParent().getParent(): androidx.compose.ui.platform.AndroidViewsHandler{34fbd8d V.E...... ......ID 0,0-1080,1731}
+//        getParent().getParent().getParent(): androidx.compose.ui.platform.AndroidComposeView{2f585e4 VFED..... ......ID 0,0-1080,1731}
+//        getParent().getParent().getParent().getParent(): androidx.compose.ui.platform.ComposeView{c403e84 V.E...... ......ID 0,0-1080,1731}
+//        getParent().getParent().getParent().getParent().getParent(): android.widget.FrameLayout{74ac6ee V.E...... ......ID 0,63-1080,1794 #1020002 android:id/content}
+//        getParent().getParent().getParent().getParent().getParent().getParent(): android.widget.LinearLayout{75922a2 V.E...... ......ID 0,0-1080,1794}
+//        getParent().getParent().getParent().getParent().getParent().getParent().getParent(): DecorView@7929c69[MainActivity]
+//        getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent(): ViewRootImpl
+        var parent = getParent()
+        println(parent)
+
+        // TODO pass to rust initPinpad
+        val positions = callbackGetPositions()
+
+        super.surfaceCreated(holder)
+    }
 }
