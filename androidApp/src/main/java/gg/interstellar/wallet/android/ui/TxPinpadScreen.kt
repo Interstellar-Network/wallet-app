@@ -14,10 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.*
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,11 +73,14 @@ private fun MessageTopScreen() {
             .fillMaxWidth()
             .fillMaxHeight(0.25f)
     ) {
-        AndroidView(
-            factory = { ctx ->
-                WGPUSurfaceViewMessage(context = ctx)
-            }
-        )
+        // Only load the Rust wrapper if NOT in Preview
+        // else: java.lang.UnsatisfiedLinkError: no shared_substrate_client in java.library.path
+        if (!LocalInspectionMode.current) {
+            AndroidView(
+                factory = { ctx ->
+                    WGPUSurfaceViewMessage(context = ctx)
+                })
+        }
     }
 }
 
@@ -162,19 +166,29 @@ private fun ConfirmMessageMiddleScreen() {
     }
 }
 
+var wgpu_sv_pinpad_coordinates: LayoutCoordinates? = null
+
 @Composable
 private fun PinpadBottomScreen() {
     // We MUST set "weight" on each children, that weight each row will have the same height
     Box {
         // Same level as the Column, so it will be drawn ON TOP of it
         // TODO? NOTE: order matters! also TODO? setZOrderOnTop?
-        AndroidView(
-            factory = { ctx ->
-                WGPUSurfaceViewPinpad(context = ctx, callbackGetPositions = {
-                    positionsInWindow
-                })
-            }
-        )
+
+        // Only load the Rust wrapper if NOT in Preview
+        // else: java.lang.UnsatisfiedLinkError: no shared_substrate_client in java.library.path
+        if (!LocalInspectionMode.current) {
+            AndroidView(
+                factory = { ctx ->
+                    WGPUSurfaceViewPinpad(context = ctx, callbackGetPositions = {
+                        rectRelativeToWGPUSurfaceViewPinpad
+                    })
+                },
+                modifier = Modifier.onGloballyPositioned { coordinates ->
+                    wgpu_sv_pinpad_coordinates = coordinates
+                }
+            )
+        }
 
         Column()
         {
@@ -255,7 +269,7 @@ private fun ColumnScope.StandardPinpadRow(id_left: Int, id_middle: Int, id_right
 // TODO? or a State? https://developer.android.com/jetpack/compose/state
 //var sizeTopBar by remember { mutableStateOf(IntSize.Zero) }
 //var positionInRootTopBar by remember { mutableStateOf(Offset.Zero) }
-var positionsInWindow: Array<Offset> = Array(12) { Offset.Zero }
+var rectRelativeToWGPUSurfaceViewPinpad: Array<Rect> = Array(12) { Rect.Zero }
 
 @Composable
 fun SetPadCircle(id: Int) {
@@ -264,18 +278,8 @@ fun SetPadCircle(id: Int) {
             .shadow(elevation = 35.dp, shape = CircleShape, clip = false)
             // TODO move to nested Surface?
             .onGloballyPositioned { coordinates ->
-                // "This will be the size of the Column."
-                coordinates.size
-                // "The position of the Column relative to the application window."
-                val offset_window = coordinates.positionInWindow()
-                positionsInWindow[id] = offset_window
-                // TODO? positionInRoot
-                // "The position of the Column relative to the Compose root."
-                //            coordinates.positionInRoot()
-                //            // These will be the alignment lines provided to the layout (empty here for Column).
-                //            coordinates.providedAlignmentLines
-                //            // This will be a LayoutCoordinates instance corresponding to the parent of Column.
-                //            coordinates.parentLayoutCoordinates
+                // TODO? positionInWindow,boundsInParent,boundsInWindow,boundsInRoot,size?
+                rectRelativeToWGPUSurfaceViewPinpad[id] = wgpu_sv_pinpad_coordinates!!.localBoundingBoxOf(coordinates)
             }
     ) {
         Surface(

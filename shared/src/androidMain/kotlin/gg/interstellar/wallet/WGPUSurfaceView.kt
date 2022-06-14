@@ -4,26 +4,13 @@ package gg.interstellar.wallet
 
 import android.content.Context
 import android.graphics.Canvas
-import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
-open class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
+open class WGPUSurfaceView(context: Context, val is_message: Boolean) : SurfaceView(context),
+    SurfaceHolder.Callback2 {
     private var rustBrige = RustWrapper()
-    private var rustPtr: Long = Long.MAX_VALUE
-
-    constructor(context: Context) : super(context) {
-    }
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-    }
-
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(
-        context,
-        attrs,
-        defStyle
-    ) {
-    }
+    private var rustPtr: Long? = null
 
     init {
         holder.addCallback(this)
@@ -35,18 +22,19 @@ open class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        // TODO?("rustBrige.resize(rustPtr,format,width,height)")
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        if (rustPtr != Long.MAX_VALUE) {
-            // TODO
-//            rustBrige.drop(rustPtr)
+        rustPtr?.let {
+            rustBrige.cleanup(it)
+            rustPtr = null
         }
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         holder.let { h ->
-            rustPtr = rustBrige.initSurface(h.surface)
+            rustPtr = rustBrige.initSurface(h.surface, is_message)
             setWillNotDraw(false)
         }
     }
@@ -54,48 +42,25 @@ open class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     override fun surfaceRedrawNeeded(holder: SurfaceHolder) {
     }
 
-    // API Level 26+
-//    override fun surfaceRedrawNeededAsync(holder: SurfaceHolder, drawingFinished: Runnable) {
-//        super.surfaceRedrawNeededAsync(holder, drawingFinished)
-//    }
-
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
-        if (rustPtr != Long.MAX_VALUE) {
-            rustBrige.update(rustPtr)
-            rustBrige.render(rustPtr)
+        rustPtr?.let {
+            rustBrige.update(it)
+            rustBrige.render(it)
         }
         invalidate()
     }
-
 }
 
-class WGPUSurfaceViewMessage(context: Context) : WGPUSurfaceView(context) {
+class WGPUSurfaceViewMessage(context: Context) : WGPUSurfaceView(context, true) {
 
 }
 
 class WGPUSurfaceViewPinpad(
     context: Context,
     var callbackGetPositions: () -> Any
-): WGPUSurfaceView(context) {
-    init {
-        // Too soon! this is null!
-        var parent = getParent()
-        println(parent)
-    }
-
+) : WGPUSurfaceView(context, false) {
     override fun surfaceCreated(holder: SurfaceHolder) {
-//        getParent(): androidx.compose.ui.viewinterop.ViewFactoryHolder{4e0c4fc V.E...... ......ID 0,799-1080,1731}
-//        getParent().getParent(): androidx.compose.ui.platform.AndroidViewsHandler{34fbd8d V.E...... ......ID 0,0-1080,1731}
-//        getParent().getParent().getParent(): androidx.compose.ui.platform.AndroidComposeView{2f585e4 VFED..... ......ID 0,0-1080,1731}
-//        getParent().getParent().getParent().getParent(): androidx.compose.ui.platform.ComposeView{c403e84 V.E...... ......ID 0,0-1080,1731}
-//        getParent().getParent().getParent().getParent().getParent(): android.widget.FrameLayout{74ac6ee V.E...... ......ID 0,63-1080,1794 #1020002 android:id/content}
-//        getParent().getParent().getParent().getParent().getParent().getParent(): android.widget.LinearLayout{75922a2 V.E...... ......ID 0,0-1080,1794}
-//        getParent().getParent().getParent().getParent().getParent().getParent().getParent(): DecorView@7929c69[MainActivity]
-//        getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent(): ViewRootImpl
-        var parent = getParent()
-        println(parent)
-
         // TODO pass to rust initPinpad
         val positions = callbackGetPositions()
 

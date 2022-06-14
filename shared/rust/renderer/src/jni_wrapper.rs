@@ -69,10 +69,19 @@ unsafe impl HasRawWindowHandle for AWindow {
     }
 }
 
-fn update_texture_data(frame_number: usize) -> Vec<u8> {
-    log::debug!("update_texture_data: frame_number = {}", frame_number,);
+fn update_texture_data_message(frame_number: usize) -> Vec<u8> {
     let img = image::load_from_memory_with_format(
         include_bytes!("../examples/data/output_eval_frame0.png"),
+        image::ImageFormat::Png,
+    )
+    .unwrap();
+    let rgba = img.to_rgba8();
+    rgba.into_vec()
+}
+
+fn update_texture_data_pinpad(frame_number: usize) -> Vec<u8> {
+    let img = image::load_from_memory_with_format(
+        include_bytes!("../examples/data/output_pinpad.png"),
         image::ImageFormat::Png,
     )
     .unwrap();
@@ -111,7 +120,11 @@ pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject, is_message: 
     let mut state = Some(futures::executor::block_on(State::new_native(
         &awindow,
         [width, height],
-        update_texture_data,
+        if is_message != 0 {
+            update_texture_data_message
+        } else {
+            update_texture_data_pinpad
+        },
         getVertices(is_message != 0),
         getIndices(is_message != 0),
     )))
@@ -158,6 +171,12 @@ pub unsafe fn update(_env: *mut JNIEnv, _: JClass, obj: jlong) {
     state.update();
 }
 
+#[no_mangle]
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub unsafe fn cleanup(_env: *mut JNIEnv, _: JClass, obj: jlong) {
+    let _obj: Box<State> = Box::from_raw(obj as *mut _);
+}
+
 // #[no_mangle]
 // #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 // pub unsafe fn createWgpuCanvas(env: *mut JNIEnv, _: JClass, surface: jobject, idx: jint) -> jlong {
@@ -188,9 +207,3 @@ pub unsafe fn update(_env: *mut JNIEnv, _: JClass, obj: jlong) {
 // //     let obj = &mut *(obj as *mut WgpuCanvas);
 // //     obj.change_example(idx as i32);
 // // }
-
-// #[no_mangle]
-// #[jni_fn("gg.interstellar.wallet.RustWrapper")]
-// pub unsafe fn dropWgpuCanvas(_env: *mut JNIEnv, _: JClass, obj: jlong) {
-//     let _obj: Box<WgpuCanvas> = Box::from_raw(obj as *mut _);
-// }
