@@ -8,8 +8,8 @@ pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
-    texture_size: wgpu::Extent3d, // SHOULD be a POT=Power-Of-Two
-    data_size: wgpu::Extent3d,
+    pub texture_size: wgpu::Extent3d, // SHOULD be a POT=Power-Of-Two
+    pub data_size: wgpu::Extent3d,
 }
 
 impl Texture {
@@ -17,9 +17,11 @@ impl Texture {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         label: Option<&str>,
-        texture_dimensions: (u32, u32),
         data_dimensions: (u32, u32),
     ) -> Result<Self> {
+        // TODO compute "Next Power of Two" from data_dimensions
+        let texture_dimensions = (1024, 1024);
+
         let texture_size = wgpu::Extent3d {
             width: texture_dimensions.0,
             height: texture_dimensions.1,

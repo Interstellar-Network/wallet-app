@@ -209,7 +209,7 @@ private fun PinpadBottomScreen() {
 
                 SetPadCircle(10)
 
-                BoxWithConstraints(
+                Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .weight(0.20f)

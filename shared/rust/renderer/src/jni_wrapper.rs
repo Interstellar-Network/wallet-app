@@ -4,7 +4,7 @@
 use android_logger::Config;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject};
-use jni::sys::{jboolean, jlong};
+use jni::sys::{jint, jlong};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{info, Level};
@@ -13,7 +13,7 @@ use raw_window_handle::{AndroidNdkHandle, HasRawWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{getIndices, getVertices, State, UpdateTextureDataType, Vertex};
+use crate::{State, UpdateTextureDataType, Vertex};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -41,8 +41,9 @@ impl State {
         window: &W,
         window_size: [u32; 2],
         update_texture_data: UpdateTextureDataType,
-        vertices: &[Vertex],
-        indices: &[u16],
+        vertices: Option<Vec<Vertex>>,
+        indices: Option<Vec<u16>>,
+        data_dimensions: (u32, u32),
     ) -> Self
     where
         W: raw_window_handle::HasRawWindowHandle,
@@ -55,7 +56,15 @@ impl State {
         // let surface: wgpu::Surface = unsafe { instance.create_surface(window) };
         // log::debug!("successfully initialize surface: {:?}", surface);
 
-        Self::new(window, size, update_texture_data, vertices, indices).await
+        Self::new(
+            window,
+            size,
+            update_texture_data,
+            vertices,
+            indices,
+            data_dimensions,
+        )
+        .await
     }
 }
 
@@ -89,11 +98,12 @@ fn update_texture_data_pinpad(frame_number: usize) -> Vec<u8> {
     rgba.into_vec()
 }
 
-///
-/// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
-#[no_mangle]
-#[jni_fn("gg.interstellar.wallet.RustWrapper")]
-pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject, is_message: jboolean) -> jlong {
+fn initSurface(
+    env: JNIEnv,
+    surface: JObject,
+    update_texture_data: UpdateTextureDataType,
+    data_dimensions: (u32, u32),
+) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
     android_logger::init_once(
         Config::default()
@@ -120,13 +130,10 @@ pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject, is_message: 
     let mut state = Some(futures::executor::block_on(State::new_native(
         &awindow,
         [width, height],
-        if is_message != 0 {
-            update_texture_data_message
-        } else {
-            update_texture_data_pinpad
-        },
-        getVertices(is_message != 0),
-        getIndices(is_message != 0),
+        update_texture_data,
+        None,
+        None,
+        data_dimensions,
     )))
     .unwrap();
     log::debug!("get state!");
@@ -137,9 +144,26 @@ pub unsafe fn initSurface(env: JNIEnv, _: JClass, surface: JObject, is_message: 
     // state.resize(winit::dpi::PhysicalSize::<u32>::new(width, height));
 
     Box::into_raw(Box::new(state)) as jlong
-
     // TODO static state?
     // 0
+}
+
+///
+/// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
+#[no_mangle]
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub unsafe fn initSurfaceMessage(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
+    // TODO get from png/circuit
+    initSurface(env, surface, update_texture_data_message, (224, 96))
+}
+
+///
+/// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
+#[no_mangle]
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub unsafe fn initSurfacePinpad(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
+    // TODO get from png/circuit
+    initSurface(env, surface, update_texture_data_pinpad, (590, 50))
 }
 
 #[no_mangle]

@@ -34,7 +34,11 @@ open class WGPUSurfaceView(context: Context, val is_message: Boolean) : SurfaceV
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         holder.let { h ->
-            rustPtr = rustBrige.initSurface(h.surface, is_message)
+            rustPtr = if (is_message) {
+                rustBrige.initSurfaceMessage(h.surface)
+            } else {
+                rustBrige.initSurfacePinpad(h.surface)
+            }
             setWillNotDraw(false)
         }
     }
