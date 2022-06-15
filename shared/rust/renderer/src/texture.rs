@@ -4,22 +4,23 @@ use std::num::NonZeroU32;
 
 use anyhow::*;
 
-pub struct Texture {
-    pub texture: wgpu::Texture,
-    pub view: wgpu::TextureView,
-    pub sampler: wgpu::Sampler,
-    pub texture_size: wgpu::Extent3d, // SHOULD be a POT=Power-Of-Two
+pub struct TextureBase {
+    // texture_size: SHOULD be a POT=Power-Of-Two
+    // it CAN work with non-POT; but:
+    // - it spams logcat with warning "CPU path taken..."
+    // - it is slower
+    // - bad practice
+    pub texture_size: wgpu::Extent3d,
     pub data_size: wgpu::Extent3d,
 }
 
-impl Texture {
-    pub fn new(
-        device: &wgpu::Device,
-        label: Option<&str>,
-        data_dimensions: (u32, u32),
-    ) -> Result<Self> {
-        // TODO compute "Next Power of Two" from data_dimensions
-        let texture_dimensions = (1024, 1024);
+impl TextureBase {
+    pub fn new(data_dimensions: (u32, u32)) -> Self {
+        // compute "Next Power of Two" from data_dimensions
+        let texture_dimensions = (
+            data_dimensions.0.next_power_of_two(),
+            data_dimensions.1.next_power_of_two(),
+        );
 
         let texture_size = wgpu::Extent3d {
             width: texture_dimensions.0,
@@ -31,9 +32,34 @@ impl Texture {
             height: data_dimensions.1,
             depth_or_array_layers: 1,
         };
+
+        Self {
+            texture_size: texture_size,
+            data_size: data_size,
+        }
+    }
+}
+
+pub struct Texture {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+    pub base: TextureBase,
+}
+
+/**
+ * Texture: essentially a two-step init:
+ * - really early: set the "data size"; this is called just after parsing the PGC(ie an image-like with width/height)
+ *   and at this time we just set the dimensions
+ * - later from State::new: TextureBase is passed to Texture::new and this is when "device.create_texture" etc are called
+ *
+ * This is done to avoid exposing wgpu::Device publicly
+ */
+impl Texture {
+    pub fn new(device: &wgpu::Device, label: Option<&str>, base: TextureBase) -> Result<Self> {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label,
-            size: texture_size,
+            size: base.texture_size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -56,8 +82,7 @@ impl Texture {
             texture,
             view,
             sampler,
-            texture_size,
-            data_size,
+            base,
         })
     }
 
@@ -143,10 +168,10 @@ impl Texture {
             &data,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(4 * self.data_size.width),
-                rows_per_image: NonZeroU32::new(self.data_size.height),
+                bytes_per_row: NonZeroU32::new(4 * self.base.data_size.width),
+                rows_per_image: NonZeroU32::new(self.base.data_size.height),
             },
-            self.data_size,
+            self.base.data_size,
         );
     }
 }

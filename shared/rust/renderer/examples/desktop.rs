@@ -15,10 +15,6 @@ extern crate renderer;
  */
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run(
-    update_texture_data: renderer::UpdateTextureDataType,
-    vertices: Option<Vec<renderer::vertex::Vertex>>,
-    indices: Option<Vec<u16>>,
-    data_dimensions: (u32, u32),
     mut state: renderer::State,
     event_loop: event_loop::EventLoop<()>,
     window: Window,
@@ -116,64 +112,34 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    // TODO this is a PLACEHOLDER
+    // In prod we should open the protobuf PGC, and get width/height from it
+    let texture_data_dimensions = if args.is_message {
+        (224, 96)
+    } else {
+        (590, 50)
+    };
+
+    let (texture_base, vertices, indices) =
+        renderer::prepare_texture_vertices_indices(args.is_message, texture_data_dimensions);
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     // State::new uses async code, so we're going to wait for it to finish
     let size = window.inner_size();
-    let mut state = pollster::block_on(renderer::State::new(
+    let state = pollster::block_on(renderer::State::new(
         &window,
         size,
-        update_texture_data,
+        if args.is_message {
+            renderer::update_texture_placeholder::update_texture_data_message
+        } else {
+            renderer::update_texture_placeholder::update_texture_data_pinpad
+        },
         vertices,
         indices,
-        data_dimensions,
+        texture_base,
     ));
 
-    let vertices: Option<Vec<renderer::vertex::Vertex>> = if args.is_message {
-        None
-    } else {
-        let mut vertices = vec![];
-        let rect = renderer::vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
-        renderer::vertices_utils::get_vertices_pinpad_quad(rect, texture, &mut vertices);
-
-        Some(vertices)
-    };
-
-    let indices = if args.is_message {
-        None
-    } else {
-        // "full screen" eg for the Message
-        // Texture mapped as-is to the screen
-        let indices_pinpad = vec![
-            1, 0, 2, // top-left triangle: B->A->C
-            1, 2, 3, // bottom-right triangle: B->C->D
-            /* padding */ 0,
-        ];
-        Some(indices_pinpad)
-    };
-
-    if args.is_message {
-        pollster::block_on(run(
-            renderer::update_texture_placeholder::update_texture_data_message,
-            vertices,
-            indices,
-            // TODO get from png
-            (224, 96),
-            state,
-            event_loop,
-            window,
-        ));
-    } else {
-        pollster::block_on(run(
-            renderer::update_texture_placeholder::update_texture_data_pinpad,
-            vertices,
-            indices,
-            // TODO get from png
-            (590, 50),
-            state,
-            event_loop,
-            window,
-        ));
-    }
+    pollster::block_on(run(state, event_loop, window));
 }

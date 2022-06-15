@@ -1,4 +1,4 @@
-use crate::texture::Texture;
+use crate::texture::TextureBase;
 use crate::vertex::Vertex;
 
 // NOTE: for consistency we define our Rect(=bounding box) the same way than Android
@@ -35,9 +35,15 @@ impl Rect {
  *
  * Append in-place into "vertices"
  */
-pub fn get_vertices_pinpad_quad(rect: Rect, texture: &Texture, vertices: &mut Vec<Vertex>) {
-    let texture_height_ratio = texture.data_size.height as f32 / texture.texture_size.height as f32;
-    let texture_width_ratio = texture.data_size.width as f32 / texture.texture_size.width as f32;
+pub fn get_vertices_pinpad_quad(
+    rect: Rect,
+    texture_base: &TextureBase,
+    vertices: &mut Vec<Vertex>,
+) {
+    let texture_height_ratio =
+        texture_base.data_size.height as f32 / texture_base.texture_size.height as f32;
+    let texture_width_ratio =
+        texture_base.data_size.width as f32 / texture_base.texture_size.width as f32;
 
     // screen:
     // A B
@@ -72,9 +78,11 @@ pub fn get_vertices_pinpad_quad(rect: Rect, texture: &Texture, vertices: &mut Ve
  * A B
  * C D
  */
-pub fn get_vertices_fullscreen_from_texture_pot(texture: &Texture) -> Vec<Vertex> {
-    let texture_height_ratio = texture.data_size.height as f32 / texture.texture_size.height as f32;
-    let texture_width_ratio = texture.data_size.width as f32 / texture.texture_size.width as f32;
+pub fn get_vertices_fullscreen_from_texture_pot(texture_base: &TextureBase) -> Vec<Vertex> {
+    let texture_height_ratio =
+        texture_base.data_size.height as f32 / texture_base.texture_size.height as f32;
+    let texture_width_ratio =
+        texture_base.data_size.width as f32 / texture_base.texture_size.width as f32;
 
     vec![
         Vertex {

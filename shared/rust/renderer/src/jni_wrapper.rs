@@ -13,7 +13,7 @@ use raw_window_handle::{AndroidNdkHandle, HasRawWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{update_texture_placeholder, vertex::Vertex, State, UpdateTextureDataType};
+use crate::{update_texture_placeholder, State, UpdateTextureDataType};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -34,39 +34,7 @@ pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle,
 }
 
 // TODO static state? or return Box<State> in initSurface and store as "long" in Kotlin?
-// static mut state: Option<State> = None;
-
-impl State {
-    async fn new_native<W>(
-        window: &W,
-        window_size: [u32; 2],
-        update_texture_data: UpdateTextureDataType,
-        vertices: Option<Vec<Vertex>>,
-        indices: Option<Vec<u16>>,
-        data_dimensions: (u32, u32),
-    ) -> Self
-    where
-        W: raw_window_handle::HasRawWindowHandle,
-    {
-        // TODO?
-        let size = winit::dpi::PhysicalSize::new(window_size[0], window_size[1]);
-        // let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
-        // let instance = wgpu::Instance::new(backend);
-        // log::debug!("initializing surface");
-        // let surface: wgpu::Surface = unsafe { instance.create_surface(window) };
-        // log::debug!("successfully initialize surface: {:?}", surface);
-
-        Self::new(
-            window,
-            size,
-            update_texture_data,
-            vertices,
-            indices,
-            data_dimensions,
-        )
-        .await
-    }
-}
+// static mut state: Option<State> = None;size
 
 struct AWindow {
     handle: RawWindowHandle,
@@ -82,7 +50,8 @@ fn init_surface(
     env: JNIEnv,
     surface: JObject,
     update_texture_data: UpdateTextureDataType,
-    data_dimensions: (u32, u32),
+    texture_data_dimensions: (u32, u32),
+    is_message: bool,
 ) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
     android_logger::init_once(
@@ -96,6 +65,9 @@ fn init_surface(
             ),
     );
 
+    let (texture_base, vertices, indices) =
+        crate::prepare_texture_vertices_indices(is_message, texture_data_dimensions);
+
     let (handle, width, height) = get_raw_window_handle(env, surface);
     log::debug!(
         "initSurface: got handle! width = {}, height = {}",
@@ -104,16 +76,17 @@ fn init_surface(
     );
     // AWindow is a wrapper for the handle, which implements HasRawWindowHandle(by directy return the handle)
     let awindow = AWindow { handle };
+    let size = winit::dpi::PhysicalSize::new(width, height);
 
     info!("initSurface before new_native");
 
-    let state = Some(futures::executor::block_on(State::new_native(
+    let state = Some(futures::executor::block_on(State::new(
         &awindow,
-        [width, height],
+        size,
         update_texture_data,
-        None,
-        None,
-        data_dimensions,
+        vertices,
+        indices,
+        texture_base,
     )))
     .unwrap();
     log::debug!("get state!");
@@ -139,6 +112,7 @@ pub unsafe fn initSurfaceMessage(env: JNIEnv, _: JClass, surface: JObject) -> jl
         surface,
         update_texture_placeholder::update_texture_data_message,
         (224, 96),
+        true,
     )
 }
 
@@ -153,6 +127,7 @@ pub unsafe fn initSurfacePinpad(env: JNIEnv, _: JClass, surface: JObject) -> jlo
         surface,
         update_texture_placeholder::update_texture_data_pinpad,
         (590, 50),
+        false,
     )
 }
 

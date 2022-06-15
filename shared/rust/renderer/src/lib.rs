@@ -2,6 +2,7 @@
 
 use std::iter;
 
+use vertices_utils::get_indices_fullscreen;
 use wgpu::util::DeviceExt;
 use winit::event::WindowEvent;
 
@@ -31,7 +32,7 @@ pub struct State {
     num_indices: u32,
     // NEW!
     #[allow(dead_code)]
-    diffuse_texture: texture::Texture,
+    texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
     frame_number: usize,
     update_texture_data: UpdateTextureDataType,
@@ -42,9 +43,9 @@ impl State {
         window: &W,
         size: winit::dpi::PhysicalSize<u32>,
         update_texture_data: UpdateTextureDataType,
-        vertices: Option<Vec<vertex::Vertex>>,
-        indices: Option<Vec<u16>>,
-        data_dimensions: (u32, u32),
+        vertices: Vec<vertex::Vertex>,
+        indices: Vec<u16>,
+        texture_base: texture::TextureBase,
     ) -> Self
     where
         W: raw_window_handle::HasRawWindowHandle,
@@ -120,15 +121,7 @@ impl State {
         };
         surface.configure(&device, &config);
 
-        let diffuse_texture = texture::Texture::new(&device, None, data_dimensions).unwrap();
-
-        // NOTE: we NEED the texture dimension to generate the proper texcoords
-        // That is b/c we WANT texture with PoT dimensions(256,512,etc) but usually
-        // the texture data is image-like with dimensions like 224x96
-        let vertices = vertices.unwrap_or_else(|| {
-            vertices_utils::get_vertices_fullscreen_from_texture_pot(&diffuse_texture)
-        });
-        let indices = indices.unwrap_or_else(|| vertices_utils::get_indices_fullscreen());
+        let texture = texture::Texture::new(&device, None, texture_base).unwrap();
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -158,11 +151,11 @@ impl State {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                    resource: wgpu::BindingResource::TextureView(&texture.view),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                    resource: wgpu::BindingResource::Sampler(&texture.sampler),
                 },
             ],
             label: Some("diffuse_bind_group"),
@@ -247,7 +240,7 @@ impl State {
             vertex_buffer,
             index_buffer,
             num_indices,
-            diffuse_texture,
+            texture,
             diffuse_bind_group,
             frame_number,
             update_texture_data,
@@ -270,7 +263,7 @@ impl State {
 
     pub fn update(&mut self) {
         let rgba = (self.update_texture_data)(self.frame_number);
-        self.diffuse_texture.update_data(&self.queue, &rgba);
+        self.texture.update_data(&self.queue, &rgba);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -318,4 +311,37 @@ impl State {
 
         Ok(())
     }
+}
+
+// NOTE: we NEED the data_dimensions to generate the proper texcoords
+// That is b/c we WANT texture with PoT dimensions(256,512,etc) but usually
+// the texture data is image-like with dimensions like 224x96
+pub fn prepare_texture_vertices_indices(
+    is_message: bool,
+    texture_data_dimensions: (u32, u32),
+) -> (texture::TextureBase, Vec<vertex::Vertex>, Vec<u16>) {
+    let texture_base = texture::TextureBase::new(texture_data_dimensions);
+
+    let vertices = if is_message {
+        vertices_utils::get_vertices_fullscreen_from_texture_pot(&texture_base)
+    } else {
+        let mut vertices = vec![];
+        let rect = vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
+        vertices_utils::get_vertices_pinpad_quad(rect, &texture_base, &mut vertices);
+
+        vertices
+    };
+
+    let indices = if is_message {
+        get_indices_fullscreen()
+    } else {
+        let indices_pinpad = vec![
+            1, 0, 2, // top-left triangle: B->A->C
+            1, 2, 3, // bottom-right triangle: B->C->D
+            /* padding */ 0,
+        ];
+        indices_pinpad
+    };
+
+    (texture_base, vertices, indices)
 }
