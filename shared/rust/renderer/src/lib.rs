@@ -2,7 +2,6 @@
 
 use std::iter;
 
-use vertices_utils::get_indices_fullscreen;
 use wgpu::util::DeviceExt;
 use winit::event::WindowEvent;
 
@@ -112,9 +111,13 @@ impl State {
             .await
             .unwrap();
 
+        let format = surface.get_preferred_format(&adapter).unwrap();
+        // TODO TOREMOVE
+        // let format = wgpu::TextureFormat::Bgra8UnormSrgb;
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_preferred_format(&adapter).unwrap(),
+            format: format,
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -186,10 +189,7 @@ impl State {
                 entry_point: "fs_main",
                 targets: &[wgpu::ColorTargetState {
                     format: config.format,
-                    blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent::REPLACE,
-                        alpha: wgpu::BlendComponent::REPLACE,
-                    }),
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                     write_mask: wgpu::ColorWrites::ALL,
                 }],
             }),
@@ -289,7 +289,9 @@ impl State {
                             r: 0.1,
                             g: 0.2,
                             b: 0.3,
-                            a: 1.0,
+                            // MUST make it transparent b/c are drawing ABOVE the button etc
+                            // that way the buttons are shown unless explicitly matching a Vertex
+                            a: 0.5,
                         }),
                         store: true,
                     },
@@ -327,20 +329,21 @@ pub fn prepare_texture_vertices_indices(
     } else {
         let mut vertices = vec![];
         let rect = vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
-        vertices_utils::get_vertices_pinpad_quad(rect, &texture_base, &mut vertices);
+        vertices_utils::get_vertices_pinpad_quad(0, rect, &texture_base, &mut vertices);
+
+        let rect = vertices_utils::Rect::new(0.70, -0.60, -0.40, 0.90);
+        vertices_utils::get_vertices_pinpad_quad(1, rect, &texture_base, &mut vertices);
+
+        let rect = vertices_utils::Rect::new(0.70, -0.30, -0.10, 0.90);
+        vertices_utils::get_vertices_pinpad_quad(2, rect, &texture_base, &mut vertices);
 
         vertices
     };
 
     let indices = if is_message {
-        get_indices_fullscreen()
+        vertices_utils::get_indices_fullscreen()
     } else {
-        let indices_pinpad = vec![
-            1, 0, 2, // top-left triangle: B->A->C
-            1, 2, 3, // bottom-right triangle: B->C->D
-            /* padding */ 0,
-        ];
-        indices_pinpad
+        vertices_utils::get_indices_pinpad(&vertices)
     };
 
     (texture_base, vertices, indices)

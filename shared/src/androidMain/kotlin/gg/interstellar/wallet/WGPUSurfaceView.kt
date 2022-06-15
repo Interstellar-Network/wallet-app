@@ -4,6 +4,7 @@ package gg.interstellar.wallet
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.PixelFormat
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
@@ -18,7 +19,12 @@ open class WGPUSurfaceView(context: Context, val is_message: Boolean) : SurfaceV
         // else invisible b/c behind the WGPUSurfaceView itself
         // TODO? what is the proper way to do this?
         // TODO? hasOverlappingRendering?
-        this.setZOrderOnTop(true)
+        this.setZOrderOnTop(false)
+//        this.setZOrderMediaOverlay(false)
+    }
+
+    override fun hasOverlappingRendering(): Boolean {
+        return false
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -34,6 +40,11 @@ open class WGPUSurfaceView(context: Context, val is_message: Boolean) : SurfaceV
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         holder.let { h ->
+            // TODO? NOTE: TRANSLUCENT crash on Emulator? same with TRANSPARENT
+//            holder.setFormat(PixelFormat.TRANSLUCENT) // crash EMU + DEVICE
+//            holder.setFormat(PixelFormat.TRANSPARENT) // crash EMU + DEVICE
+//            holder.setFormat(PixelFormat.RGBA_8888) // crash EMU + DEVICE
+
             rustPtr = if (is_message) {
                 rustBrige.initSurfaceMessage(h.surface)
             } else {

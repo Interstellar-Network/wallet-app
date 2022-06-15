@@ -124,7 +124,10 @@ fn main() {
         renderer::prepare_texture_vertices_indices(args.is_message, texture_data_dimensions);
 
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let window = WindowBuilder::new()
+        .with_transparent(true)
+        .build(&event_loop)
+        .unwrap();
 
     // State::new uses async code, so we're going to wait for it to finish
     let size = window.inner_size();
