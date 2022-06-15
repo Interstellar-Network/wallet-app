@@ -2,13 +2,8 @@
 
 use std::iter;
 
-use texture::Texture;
 use wgpu::util::DeviceExt;
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
+use winit::event::WindowEvent;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -18,77 +13,18 @@ mod jni_wrapper;
 
 mod texture;
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Vertex {
-    pub position: [f32; 3],
-    pub tex_coords: [f32; 2],
-}
-
-impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttribute {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float32x3,
-                },
-                wgpu::VertexAttribute {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    format: wgpu::VertexFormat::Float32x2,
-                },
-            ],
-        }
-    }
-}
-
-// screen:
-// A B
-// C D
-fn getVerticesFullscreenFromTexturePOT(texture: &Texture) -> Vec<Vertex> {
-    let height_ratio = texture.data_size.height as f32 / texture.texture_size.height as f32;
-    let width_ratio = texture.data_size.width as f32 / texture.texture_size.width as f32;
-    vec![
-        Vertex {
-            position: [-1.0, 1.0, 0.0],
-            tex_coords: [0.0, 0.0],
-        }, // A
-        Vertex {
-            position: [1.0, 1.0, 0.0],
-            tex_coords: [width_ratio, 0.0],
-        }, // B
-        Vertex {
-            position: [-1.0, -1.0, 0.0],
-            tex_coords: [0.0, height_ratio],
-        }, // C
-        Vertex {
-            position: [1.0, -1.0, 0.0],
-            tex_coords: [width_ratio, height_ratio],
-        }, // D
-    ]
-}
-
-// "full screen" eg for the Message
-// Texture mapped as-is to the screen
-const INDICES_FULLSCREEN: &[u16] = &[
-    1, 0, 2, // top-left triangle: B->A->C
-    1, 2, 3, // bottom-right triangle: B->C->D
-    /* padding */ 0,
-];
+pub mod update_texture_placeholder;
+pub mod vertex;
+pub mod vertices_utils;
 
 pub type UpdateTextureDataType = fn(frame_counter: usize) -> Vec<u8>;
 
-struct State {
+pub struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+    pub size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -102,11 +38,11 @@ struct State {
 }
 
 impl State {
-    async fn new<W>(
+    pub async fn new<W>(
         window: &W,
         size: winit::dpi::PhysicalSize<u32>,
         update_texture_data: UpdateTextureDataType,
-        vertices: Option<Vec<Vertex>>,
+        vertices: Option<Vec<vertex::Vertex>>,
         indices: Option<Vec<u16>>,
         data_dimensions: (u32, u32),
     ) -> Self
@@ -140,7 +76,7 @@ impl State {
                 .await
                 .expect("No suitable GPU adapters found on the system!");
 
-        let mut limits = if cfg!(target_arch = "wasm32") {
+        let limits = if cfg!(target_arch = "wasm32") {
             wgpu::Limits::downlevel_webgl2_defaults()
         } else {
             // TODO? defaults?
@@ -184,15 +120,15 @@ impl State {
         };
         surface.configure(&device, &config);
 
-        let diffuse_texture =
-            texture::Texture::new(&device, &queue, None, data_dimensions).unwrap();
+        let diffuse_texture = texture::Texture::new(&device, None, data_dimensions).unwrap();
 
         // NOTE: we NEED the texture dimension to generate the proper texcoords
         // That is b/c we WANT texture with PoT dimensions(256,512,etc) but usually
         // the texture data is image-like with dimensions like 224x96
-        let vertices =
-            vertices.unwrap_or_else(|| getVerticesFullscreenFromTexturePOT(&diffuse_texture));
-        let indices = indices.unwrap_or_else(|| INDICES_FULLSCREEN.to_vec());
+        let vertices = vertices.unwrap_or_else(|| {
+            vertices_utils::get_vertices_fullscreen_from_texture_pot(&diffuse_texture)
+        });
+        let indices = indices.unwrap_or_else(|| vertices_utils::get_indices_fullscreen());
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -250,7 +186,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[Vertex::desc()],
+                buffers: &[vertex::Vertex::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -328,16 +264,16 @@ impl State {
     }
 
     #[allow(unused_variables)]
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    pub fn input(&mut self, event: &WindowEvent) -> bool {
         false
     }
 
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         let rgba = (self.update_texture_data)(self.frame_number);
         self.diffuse_texture.update_data(&self.queue, &rgba);
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -382,112 +318,4 @@ impl State {
 
         Ok(())
     }
-}
-
-/**
- * Only used for desktop
- * Android will directly call State::new etc on the native window via JNI
- * NOTE: Android WILL NOT use an Event loop; everything goes through the View callbacks instead
- */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run(
-    update_texture_data: UpdateTextureDataType,
-    vertices: Option<Vec<Vertex>>,
-    indices: Option<Vec<u16>>,
-    data_dimensions: (u32, u32),
-) {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
-        } else {
-            env_logger::init();
-        }
-    }
-
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        // Winit prevents sizing with CSS, so we have to set
-        // the size manually when on web.
-        use winit::dpi::PhysicalSize;
-        window.set_inner_size(PhysicalSize::new(450, 400));
-
-        use winit::platform::web::WindowExtWebSys;
-        web_sys::window()
-            .and_then(|win| win.document())
-            .and_then(|doc| {
-                let dst = doc.get_element_by_id("wasm-example")?;
-                let canvas = web_sys::Element::from(window.canvas());
-                dst.append_child(&canvas).ok()?;
-                Some(())
-            })
-            .expect("Couldn't append canvas to document body.");
-    }
-
-    // State::new uses async code, so we're going to wait for it to finish
-    let size = window.inner_size();
-    let mut state = State::new(
-        &window,
-        size,
-        update_texture_data,
-        vertices,
-        indices,
-        data_dimensions,
-    )
-    .await;
-
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == window.id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            // new_inner_size is &mut so w have to dereference it twice
-                            state.resize(**new_inner_size);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.resize(state.size)
-                    }
-                    // The system is out of memory, we should probably quit
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // We're ignoring timeouts
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                }
-            }
-            Event::MainEventsCleared => {
-                // RedrawRequested will only trigger once, unless we manually
-                // request it.
-                window.request_redraw();
-            }
-            _ => {}
-        }
-    });
 }

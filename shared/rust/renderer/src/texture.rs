@@ -15,7 +15,6 @@ pub struct Texture {
 impl Texture {
     pub fn new(
         device: &wgpu::Device,
-        queue: &wgpu::Queue,
         label: Option<&str>,
         data_dimensions: (u32, u32),
     ) -> Result<Self> {

@@ -4,7 +4,7 @@
 use android_logger::Config;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject};
-use jni::sys::{jint, jlong};
+use jni::sys::jlong;
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{info, Level};
@@ -13,7 +13,7 @@ use raw_window_handle::{AndroidNdkHandle, HasRawWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{State, UpdateTextureDataType, Vertex};
+use crate::{update_texture_placeholder, vertex::Vertex, State, UpdateTextureDataType};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -78,27 +78,7 @@ unsafe impl HasRawWindowHandle for AWindow {
     }
 }
 
-fn update_texture_data_message(frame_number: usize) -> Vec<u8> {
-    let img = image::load_from_memory_with_format(
-        include_bytes!("../examples/data/output_eval_frame0.png"),
-        image::ImageFormat::Png,
-    )
-    .unwrap();
-    let rgba = img.to_rgba8();
-    rgba.into_vec()
-}
-
-fn update_texture_data_pinpad(frame_number: usize) -> Vec<u8> {
-    let img = image::load_from_memory_with_format(
-        include_bytes!("../examples/data/output_pinpad.png"),
-        image::ImageFormat::Png,
-    )
-    .unwrap();
-    let rgba = img.to_rgba8();
-    rgba.into_vec()
-}
-
-fn initSurface(
+fn init_surface(
     env: JNIEnv,
     surface: JObject,
     update_texture_data: UpdateTextureDataType,
@@ -127,7 +107,7 @@ fn initSurface(
 
     info!("initSurface before new_native");
 
-    let mut state = Some(futures::executor::block_on(State::new_native(
+    let state = Some(futures::executor::block_on(State::new_native(
         &awindow,
         [width, height],
         update_texture_data,
@@ -154,7 +134,12 @@ fn initSurface(
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn initSurfaceMessage(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
     // TODO get from png/circuit
-    initSurface(env, surface, update_texture_data_message, (224, 96))
+    init_surface(
+        env,
+        surface,
+        update_texture_placeholder::update_texture_data_message,
+        (224, 96),
+    )
 }
 
 ///
@@ -163,7 +148,12 @@ pub unsafe fn initSurfaceMessage(env: JNIEnv, _: JClass, surface: JObject) -> jl
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn initSurfacePinpad(env: JNIEnv, _: JClass, surface: JObject) -> jlong {
     // TODO get from png/circuit
-    initSurface(env, surface, update_texture_data_pinpad, (590, 50))
+    init_surface(
+        env,
+        surface,
+        update_texture_placeholder::update_texture_data_pinpad,
+        (590, 50),
+    )
 }
 
 #[no_mangle]

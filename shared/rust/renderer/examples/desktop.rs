@@ -1,6 +1,108 @@
 use clap::Parser;
+use winit::{
+    event::*,
+    event_loop::{self, ControlFlow, EventLoop},
+    window::Window,
+    window::WindowBuilder,
+};
 
 extern crate renderer;
+
+/**
+ * Only used for desktop
+ * Android will directly call State::new etc on the native window via JNI
+ * NOTE: Android WILL NOT use an Event loop; everything goes through the View callbacks instead
+ */
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
+pub async fn run(
+    update_texture_data: renderer::UpdateTextureDataType,
+    vertices: Option<Vec<renderer::vertex::Vertex>>,
+    indices: Option<Vec<u16>>,
+    data_dimensions: (u32, u32),
+    mut state: renderer::State,
+    event_loop: event_loop::EventLoop<()>,
+    window: Window,
+) {
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+        } else {
+            env_logger::init();
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Winit prevents sizing with CSS, so we have to set
+        // the size manually when on web.
+        use winit::dpi::PhysicalSize;
+        window.set_inner_size(PhysicalSize::new(450, 400));
+
+        use winit::platform::web::WindowExtWebSys;
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| {
+                let dst = doc.get_element_by_id("wasm-example")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
+                Some(())
+            })
+            .expect("Couldn't append canvas to document body.");
+    }
+
+    event_loop.run(move |event, _, control_flow| {
+        match event {
+            Event::WindowEvent {
+                ref event,
+                window_id,
+            } if window_id == window.id() => {
+                if !state.input(event) {
+                    match event {
+                        WindowEvent::CloseRequested
+                        | WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    state: ElementState::Pressed,
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    ..
+                                },
+                            ..
+                        } => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            state.resize(*physical_size);
+                        }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            // new_inner_size is &mut so w have to dereference it twice
+                            state.resize(**new_inner_size);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
+                state.update();
+                match state.render() {
+                    Ok(_) => {}
+                    // Reconfigure the surface if it's lost or outdated
+                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
+                        state.resize(state.size)
+                    }
+                    // The system is out of memory, we should probably quit
+                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // We're ignoring timeouts
+                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                }
+            }
+            Event::MainEventsCleared => {
+                // RedrawRequested will only trigger once, unless we manually
+                // request it.
+                window.request_redraw();
+            }
+            _ => {}
+        }
+    });
+}
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -11,65 +113,31 @@ struct Args {
     is_message: bool,
 }
 
-fn update_texture_data_message(frame_number: usize) -> Vec<u8> {
-    let png_path = format!(
-        "renderer/examples/data/output_eval_frame{}.png",
-        frame_number % 5
-    );
-    let img = image::io::Reader::open(png_path).unwrap().decode().unwrap();
-    let rgba = img.to_rgba8();
-    rgba.into_vec()
-}
-
-fn update_texture_data_pinpad(frame_number: usize) -> Vec<u8> {
-    let png_path = format!("renderer/examples/data/output_pinpad.png");
-    let img = image::io::Reader::open(png_path).unwrap().decode().unwrap();
-    let rgba = img.to_rgba8();
-    rgba.into_vec()
-}
-
 fn main() {
     let args = Args::parse();
 
-    let vertices = if args.is_message {
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
+
+    // State::new uses async code, so we're going to wait for it to finish
+    let size = window.inner_size();
+    let mut state = pollster::block_on(renderer::State::new(
+        &window,
+        size,
+        update_texture_data,
+        vertices,
+        indices,
+        data_dimensions,
+    ));
+
+    let vertices: Option<Vec<renderer::vertex::Vertex>> = if args.is_message {
         None
     } else {
-        // NOTE: for consistency we define our Rect(=bounding box) the same way than Android
-        // https://developer.android.com/reference/android/graphics/Rect#summary
-        // https://developer.android.com/ndk/reference/struct/a-rect
-        let bottom = 0.70;
-        let left = -0.90;
-        let right = -0.70;
-        let top = 0.90;
+        let mut vertices = vec![];
+        let rect = renderer::vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
+        renderer::vertices_utils::get_vertices_pinpad_quad(rect, texture, &mut vertices);
 
-        // TODO
-        // let texture_height_ratio = texture.data_size.height as f32 / texture.texture_size.height as f32;
-        let texture_height_ratio = 59 as f32 / 1024 as f32;
-        // let texture_width_ratio = texture.data_size.width as f32 / texture.texture_size.width as f32;
-        let texture_width_ratio = 590 as f32 / 1024 as f32;
-
-        // screen:
-        // A B
-        // C D
-        let vertices_pinpad = vec![
-            renderer::Vertex {
-                position: [left, top, 0.0],
-                tex_coords: [0.0, 0.0],
-            }, // A
-            renderer::Vertex {
-                position: [right, top, 0.0],
-                tex_coords: [0.1 * texture_width_ratio, 0.0],
-            }, // B
-            renderer::Vertex {
-                position: [left, bottom, 0.0],
-                tex_coords: [0.0, texture_height_ratio],
-            }, // C
-            renderer::Vertex {
-                position: [right, bottom, 0.0],
-                tex_coords: [0.1 * texture_width_ratio, texture_height_ratio],
-            }, // D
-        ];
-        Some(vertices_pinpad)
+        Some(vertices)
     };
 
     let indices = if args.is_message {
@@ -86,20 +154,26 @@ fn main() {
     };
 
     if args.is_message {
-        pollster::block_on(renderer::run(
-            update_texture_data_message,
+        pollster::block_on(run(
+            renderer::update_texture_placeholder::update_texture_data_message,
             vertices,
             indices,
             // TODO get from png
             (224, 96),
+            state,
+            event_loop,
+            window,
         ));
     } else {
-        pollster::block_on(renderer::run(
-            update_texture_data_pinpad,
+        pollster::block_on(run(
+            renderer::update_texture_placeholder::update_texture_data_pinpad,
             vertices,
             indices,
             // TODO get from png
             (590, 50),
+            state,
+            event_loop,
+            window,
         ));
     }
 }
