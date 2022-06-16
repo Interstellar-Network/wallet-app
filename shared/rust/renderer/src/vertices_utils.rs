@@ -101,7 +101,7 @@ pub fn get_indices_pinpad(vertices: &Vec<Vertex>) -> Vec<u16> {
 
     let nb_quads = vertices.len() / 4;
     let mut indices = Vec::<u16>::with_capacity(nb_quads * 6);
-    for i in (0..nb_quads) {
+    for i in 0..nb_quads {
         let mut indices_for_quad: Vec<u16> = vec![
             ((i * 4) + 1).try_into().unwrap(),
             ((i * 4) + 0).try_into().unwrap(),
