@@ -28,6 +28,13 @@ impl Rect {
             top: top,
         }
     }
+
+    pub fn center(&self) -> [f32; 2] {
+        return [
+            (self.right - self.left) / 2.0,
+            (self.top - self.bottom) / 2.0,
+        ];
+    }
 }
 
 /**
@@ -64,25 +71,121 @@ pub fn get_vertices_pinpad_quad(
     // A B
     // C D
     let mut vertices_pinpad = vec![
+        // Vertex {
+        //     position: [rect.left, rect.top, 0.0],
+        //     tex_coords: [-1.0 * texture_height_ratio / texture_width_ratio, 1.0],
+        // }, // A
+        // Vertex {
+        //     position: [rect.right, rect.top, 0.0],
+        //     tex_coords: [1.0 * texture_height_ratio / texture_width_ratio, 1.0],
+        // }, // B
+        // Vertex {
+        //     position: [rect.left, rect.bottom, 0.0],
+        //     tex_coords: [-1.0 * texture_height_ratio / texture_width_ratio, -1.0],
+        // }, // C
+        // Vertex {
+        //     position: [rect.right, rect.bottom, 0.0],
+        //     tex_coords: [1.0 * texture_height_ratio / texture_width_ratio, -1.0],
+        // }, // D
+        // Vertex {
+        //     position: [rect.left, rect.top, 0.0],
+        //     tex_coords: [
+        //         -1.0 * texture_height_ratio / texture_width_ratio,
+        //         1.0 * texture_height_ratio / texture_width_ratio,
+        //     ],
+        // }, // A
+        // Vertex {
+        //     position: [rect.right, rect.top, 0.0],
+        //     tex_coords: [
+        //         1.0 * texture_height_ratio / texture_width_ratio,
+        //         1.0 * texture_height_ratio / texture_width_ratio,
+        //     ],
+        // }, // B
+        // Vertex {
+        //     position: [rect.left, rect.bottom, 0.0],
+        //     tex_coords: [
+        //         -1.0 * texture_height_ratio / texture_width_ratio,
+        //         -1.0 * texture_height_ratio / texture_width_ratio,
+        //     ],
+        // }, // C
+        // Vertex {
+        //     position: [rect.right, rect.bottom, 0.0],
+        //     tex_coords: [
+        //         1.0 * texture_height_ratio / texture_width_ratio,
+        //         -1.0 * texture_height_ratio / texture_width_ratio,
+        //     ],
+        // }, // D
+
+        //
+        // Vertex {
+        //     position: [rect.left, rect.top, 0.0],
+        //     tex_coords: [-1.0, 1.0],
+        // }, // A
+        // Vertex {
+        //     position: [rect.right, rect.top, 0.0],
+        //     tex_coords: [1.0, 1.0],
+        // }, // B
+        // Vertex {
+        //     position: [rect.left, rect.bottom, 0.0],
+        //     tex_coords: [-1.0, -1.0],
+        // }, // C
+        // Vertex {
+        //     position: [rect.right, rect.bottom, 0.0],
+        //     tex_coords: [1.0, -1.0],
+        // }, // D
+
+        //
+        //
         Vertex {
             position: [rect.left, rect.top, 0.0],
-            tex_coords: [tex_coords_min_width, 0.0],
+            tex_coords: [0.0, 0.0],
         }, // A
         Vertex {
             position: [rect.right, rect.top, 0.0],
-            tex_coords: [tex_coords_max_width * texture_width_ratio, 0.0],
+            tex_coords: [1.0, 0.0],
         }, // B
         Vertex {
             position: [rect.left, rect.bottom, 0.0],
-            tex_coords: [tex_coords_min_width, texture_height_ratio],
+            tex_coords: [1.0, 0.0],
         }, // C
         Vertex {
             position: [rect.right, rect.bottom, 0.0],
-            tex_coords: [
-                tex_coords_max_width * texture_width_ratio,
-                texture_height_ratio,
-            ],
+            tex_coords: [1.0, 1.0],
         }, // D
+
+           // Vertex {
+           //     position: [rect.left, rect.top, 0.0],
+           //     tex_coords: [0.5, 0.5],
+           // }, // A
+           // Vertex {
+           //     position: [rect.right, rect.top, 0.0],
+           //     tex_coords: [0.5, 0.5],
+           // }, // B
+           // Vertex {
+           //     position: [rect.left, rect.bottom, 0.0],
+           //     tex_coords: [0.5, 0.5],
+           // }, // C
+           // Vertex {
+           //     position: [rect.right, rect.bottom, 0.0],
+           //     tex_coords: [0.5, 0.5],
+           // }, // D
+           //
+           // Vertex {
+           //     position: [rect.left, rect.top, 0.0],
+           //     tex_coords: rect.center(),
+           // }, // A
+           // Vertex {
+           //     position: [rect.right, rect.top, 0.0],
+           //     tex_coords: rect.center(),
+           // }, // B
+           // Vertex {
+           //     position: [rect.left, rect.bottom, 0.0],
+           //     tex_coords: rect.center(),
+           // }, // C
+           // Vertex {
+           //     position: [rect.right, rect.bottom, 0.0],
+           //     tex_coords: rect.center(),
+           // }, // D
     ];
 
     vertices.append(&mut vertices_pinpad);
@@ -115,6 +218,9 @@ pub fn get_indices_pinpad(vertices: &Vec<Vertex>) -> Vec<u16> {
     }
 
     // TODO? /* padding */ i + 0,
+    let mut padding = vec![0];
+    indices.append(&mut padding);
+
     indices
 }
 
@@ -132,21 +238,39 @@ pub fn get_vertices_fullscreen_from_texture_pot(texture_base: &TextureBase) -> V
     let texture_width_ratio =
         texture_base.data_size.width as f32 / texture_base.texture_size.width as f32;
 
+    // vec![
+    //     Vertex {
+    //         position: [-1.0, 1.0, 0.0],
+    //         tex_coords: [0.0, 0.0],
+    //     }, // A
+    //     Vertex {
+    //         position: [1.0, 1.0, 0.0],
+    //         tex_coords: [texture_width_ratio, 0.0],
+    //     }, // B
+    //     Vertex {
+    //         position: [-1.0, -1.0, 0.0],
+    //         tex_coords: [0.0, texture_height_ratio],
+    //     }, // C
+    //     Vertex {
+    //         position: [1.0, -1.0, 0.0],
+    //         tex_coords: [texture_width_ratio, texture_height_ratio],
+    //     }, // D
+    // ]
     vec![
         Vertex {
-            position: [-1.0, 1.0, 0.0],
+            position: [-0.1, 0.1, 0.0],
             tex_coords: [0.0, 0.0],
         }, // A
         Vertex {
-            position: [1.0, 1.0, 0.0],
+            position: [0.1, 0.1, 0.0],
             tex_coords: [texture_width_ratio, 0.0],
         }, // B
         Vertex {
-            position: [-1.0, -1.0, 0.0],
+            position: [-0.1, -0.1, 0.0],
             tex_coords: [0.0, texture_height_ratio],
         }, // C
         Vertex {
-            position: [1.0, -1.0, 0.0],
+            position: [0.1, -0.1, 0.0],
             tex_coords: [texture_width_ratio, texture_height_ratio],
         }, // D
     ]

@@ -2,6 +2,7 @@
 
 use std::iter;
 
+use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::event::WindowEvent;
 
@@ -11,6 +12,8 @@ use wasm_bindgen::prelude::*;
 #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
 mod jni_wrapper;
 
+mod camera;
+mod instance;
 mod texture;
 
 pub mod update_texture_placeholder;
@@ -32,10 +35,18 @@ pub struct State {
     // NEW!
     #[allow(dead_code)]
     texture: texture::Texture,
-    diffuse_bind_group: wgpu::BindGroup,
+    texture_bind_group: wgpu::BindGroup,
     frame_number: usize,
+    camera: camera::Camera,
+    camera_controller: camera::CameraController,
+    camera_uniform: camera::CameraUniform,
+    camera_buffer: wgpu::Buffer,
+    camera_bind_group: wgpu::BindGroup,
     update_texture_data: UpdateTextureDataType,
-    render_pipeline_circles: wgpu::RenderPipeline,
+    // render_pipeline_circles: wgpu::RenderPipeline,
+    render_pipeline_circle_instances: wgpu::RenderPipeline,
+    instances: Vec<instance::Instance>,
+    instance_buffer: wgpu::Buffer,
 }
 
 impl State {
@@ -150,7 +161,7 @@ impl State {
                 label: Some("texture_bind_group_layout"),
             });
 
-        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let texture_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &texture_bind_group_layout,
             entries: &[
                 wgpu::BindGroupEntry {
@@ -165,10 +176,58 @@ impl State {
             label: Some("diffuse_bind_group"),
         });
 
+        ////////////////////////////////////////////////////////////////////////
+
+        let camera = camera::Camera {
+            eye: (0.0, 5.0, 10.0).into(),
+            target: (0.0, 0.0, 0.0).into(),
+            up: cgmath::Vector3::unit_y(),
+            aspect: config.width as f32 / config.height as f32,
+            fovy: 45.0,
+            znear: 0.1,
+            zfar: 100.0,
+        };
+        let camera_controller = camera::CameraController::new(0.2);
+
+        let mut camera_uniform = camera::CameraUniform::new();
+        camera_uniform.update_view_proj(&camera);
+
+        let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Camera Buffer"),
+            contents: bytemuck::cast_slice(&[camera_uniform]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let camera_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+                label: Some("camera_bind_group_layout"),
+            });
+
+        let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &camera_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: camera_buffer.as_entire_binding(),
+            }],
+            label: Some("camera_bind_group"),
+        });
+
+        ////////////////////////////////////////////////////////////////////////
+
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[&texture_bind_group_layout],
+                bind_group_layouts: &[&texture_bind_group_layout, &camera_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -188,21 +247,21 @@ impl State {
             )
         };
 
-        let render_pipeline_circles = {
-            let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-                label: Some("Shader Circle"),
-                source: wgpu::ShaderSource::Wgsl(include_str!("shader_circle.wgsl").into()),
-            });
+        // let render_pipeline_circles = {
+        //     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+        //         label: Some("Shader Circle"),
+        //         source: wgpu::ShaderSource::Wgsl(include_str!("shader_circle.wgsl").into()),
+        //     });
 
-            create_render_pipeline(
-                &device,
-                &render_pipeline_layout,
-                config.format,
-                None,
-                &[vertex::Vertex::desc()],
-                shader,
-            )
-        };
+        //     create_render_pipeline(
+        //         &device,
+        //         &render_pipeline_layout,
+        //         config.format,
+        //         None,
+        //         &[vertex::Vertex::desc()],
+        //         shader,
+        //     )
+        // };
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
@@ -217,6 +276,70 @@ impl State {
         let num_indices = indices.len() as u32;
         let frame_number = 0 as usize;
 
+        ////////////////////////////////////////////////////////////////////////
+        /// TODO move to instance_utils
+        const NUM_INSTANCES_PER_ROW: u32 = 3;
+        const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
+            NUM_INSTANCES_PER_ROW as f32 * 0.5,
+            0.0,
+            NUM_INSTANCES_PER_ROW as f32 * 0.5,
+        );
+
+        let instances = (0..NUM_INSTANCES_PER_ROW)
+            .flat_map(|z| {
+                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                    let position = cgmath::Vector3 {
+                        x: x as f32,
+                        y: 0.0,
+                        z: z as f32,
+                    } - INSTANCE_DISPLACEMENT;
+
+                    let rotation = if position.is_zero() {
+                        // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                        // as Quaternions can effect scale if they're not created correctly
+                        cgmath::Quaternion::from_axis_angle(
+                            cgmath::Vector3::unit_z(),
+                            cgmath::Deg(0.0),
+                        )
+                    } else {
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                    };
+
+                    instance::Instance { position, rotation }
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let instance_data = instances
+            .iter()
+            .map(instance::Instance::to_raw)
+            .collect::<Vec<_>>();
+        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Instance Buffer"),
+            contents: bytemuck::cast_slice(&instance_data),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let render_pipeline_circle_instances = {
+            let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+                label: Some("Shader Circle Instance"),
+                source: wgpu::ShaderSource::Wgsl(
+                    include_str!("shader_circle_instance.wgsl").into(),
+                ),
+            });
+
+            create_render_pipeline(
+                &device,
+                &render_pipeline_layout,
+                config.format,
+                None,
+                &[vertex::Vertex::desc(), instance::InstanceRaw::desc()],
+                shader,
+            )
+        };
+
+        ////////////////////////////////////////////////////////////////////////
+
         Self {
             surface,
             device,
@@ -228,10 +351,18 @@ impl State {
             index_buffer,
             num_indices,
             texture,
-            diffuse_bind_group,
+            texture_bind_group,
             frame_number,
+            camera,
+            camera_controller,
+            camera_buffer,
+            camera_bind_group,
+            camera_uniform,
             update_texture_data,
-            render_pipeline_circles,
+            // render_pipeline_circles,
+            render_pipeline_circle_instances,
+            instances,
+            instance_buffer,
         }
     }
 
@@ -247,9 +378,19 @@ impl State {
     #[allow(unused_variables)]
     pub fn input(&mut self, event: &WindowEvent) -> bool {
         false
+        // TODO camera?
+        // self.camera_controller.process_events(event)
     }
 
     pub fn update(&mut self) {
+        self.camera_controller.update_camera(&mut self.camera);
+        self.camera_uniform.update_view_proj(&self.camera);
+        self.queue.write_buffer(
+            &self.camera_buffer,
+            0,
+            bytemuck::cast_slice(&[self.camera_uniform]),
+        );
+
         let rgba = (self.update_texture_data)(self.frame_number);
         self.texture.update_data(&self.queue, &rgba);
     }
@@ -266,9 +407,38 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
+        // TODO TOREMOVE
+        // {
+        //     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        //         label: Some("Render Pass Circles"),
+        //         color_attachments: &[wgpu::RenderPassColorAttachment {
+        //             view: &view,
+        //             resolve_target: None,
+        //             ops: wgpu::Operations {
+        //                 load: wgpu::LoadOp::Clear(wgpu::Color {
+        //                     r: 0.1,
+        //                     g: 0.2,
+        //                     b: 0.3,
+        //                     // MUST make it transparent b/c are drawing ABOVE the button etc
+        //                     // that way the buttons are shown unless explicitly matching a Vertex
+        //                     a: 0.5,
+        //                 }),
+        //                 store: true,
+        //             },
+        //         }],
+        //         depth_stencil_attachment: None,
+        //     });
+
+        //     render_pass.set_pipeline(&self.render_pipeline_circles);
+        //     render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
+        //     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        //     render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        //     render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+        // }
+
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass Circles"),
+                label: Some("Render Pass Circle"),
                 color_attachments: &[wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,
@@ -287,11 +457,13 @@ impl State {
                 depth_stencil_attachment: None,
             });
 
-            render_pass.set_pipeline(&self.render_pipeline_circles);
-            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+            render_pass.set_pipeline(&self.render_pipeline_circle_instances);
+            render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
+            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
         }
 
         // {
@@ -316,7 +488,7 @@ impl State {
         //     });
 
         //     render_pass.set_pipeline(&self.render_pipeline);
-        //     render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+        //     render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
         //     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         //     render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         //     render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
@@ -400,14 +572,17 @@ pub fn prepare_texture_vertices_indices(
         vertices_utils::get_vertices_fullscreen_from_texture_pot(&texture_base)
     } else {
         let mut vertices = vec![];
-        let rect = vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
+        // let rect = vertices_utils::Rect::new(0.70, -0.90, -0.70, 0.90);
+        // vertices_utils::get_vertices_pinpad_quad(0, rect, &texture_base, &mut vertices);
+
+        // let rect = vertices_utils::Rect::new(0.70, -0.60, -0.40, 0.90);
+        // vertices_utils::get_vertices_pinpad_quad(1, rect, &texture_base, &mut vertices);
+
+        // let rect = vertices_utils::Rect::new(0.70, -0.30, -0.10, 0.90);
+        // vertices_utils::get_vertices_pinpad_quad(2, rect, &texture_base, &mut vertices);
+
+        let rect = vertices_utils::Rect::new(-1.0, -1.0, 1.0, 1.0);
         vertices_utils::get_vertices_pinpad_quad(0, rect, &texture_base, &mut vertices);
-
-        let rect = vertices_utils::Rect::new(0.70, -0.60, -0.40, 0.90);
-        vertices_utils::get_vertices_pinpad_quad(1, rect, &texture_base, &mut vertices);
-
-        let rect = vertices_utils::Rect::new(0.70, -0.30, -0.10, 0.90);
-        vertices_utils::get_vertices_pinpad_quad(2, rect, &texture_base, &mut vertices);
 
         vertices
     };
