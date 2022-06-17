@@ -238,42 +238,42 @@ pub fn get_vertices_fullscreen_from_texture_pot(texture_base: &TextureBase) -> V
     let texture_width_ratio =
         texture_base.data_size.width as f32 / texture_base.texture_size.width as f32;
 
-    // vec![
-    //     Vertex {
-    //         position: [-1.0, 1.0, 0.0],
-    //         tex_coords: [0.0, 0.0],
-    //     }, // A
-    //     Vertex {
-    //         position: [1.0, 1.0, 0.0],
-    //         tex_coords: [texture_width_ratio, 0.0],
-    //     }, // B
-    //     Vertex {
-    //         position: [-1.0, -1.0, 0.0],
-    //         tex_coords: [0.0, texture_height_ratio],
-    //     }, // C
-    //     Vertex {
-    //         position: [1.0, -1.0, 0.0],
-    //         tex_coords: [texture_width_ratio, texture_height_ratio],
-    //     }, // D
-    // ]
     vec![
         Vertex {
-            position: [-0.1, 0.1, 0.0],
+            position: [-1.0, 1.0, 0.0],
             tex_coords: [0.0, 0.0],
         }, // A
         Vertex {
-            position: [0.1, 0.1, 0.0],
+            position: [1.0, 1.0, 0.0],
             tex_coords: [texture_width_ratio, 0.0],
         }, // B
         Vertex {
-            position: [-0.1, -0.1, 0.0],
+            position: [-1.0, -1.0, 0.0],
             tex_coords: [0.0, texture_height_ratio],
         }, // C
         Vertex {
-            position: [0.1, -0.1, 0.0],
+            position: [1.0, -1.0, 0.0],
             tex_coords: [texture_width_ratio, texture_height_ratio],
         }, // D
     ]
+    // vec![
+    //     Vertex {
+    //         position: [-0.1, 0.1, 0.0],
+    //         tex_coords: [0.0, 0.0],
+    //     }, // A
+    //     Vertex {
+    //         position: [0.1, 0.1, 0.0],
+    //         tex_coords: [texture_width_ratio, 0.0],
+    //     }, // B
+    //     Vertex {
+    //         position: [-0.1, -0.1, 0.0],
+    //         tex_coords: [0.0, texture_height_ratio],
+    //     }, // C
+    //     Vertex {
+    //         position: [0.1, -0.1, 0.0],
+    //         tex_coords: [texture_width_ratio, texture_height_ratio],
+    //     }, // D
+    // ]
 }
 
 // "full screen" eg for the Message

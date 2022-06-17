@@ -36,6 +36,8 @@ pub struct State {
     #[allow(dead_code)]
     texture: texture::Texture,
     texture_bind_group: wgpu::BindGroup,
+    texture_bg: texture::Texture,
+    texture_bg_bind_group: wgpu::BindGroup,
     frame_number: usize,
     camera: camera::Camera,
     camera_controller: camera::CameraController,
@@ -43,10 +45,8 @@ pub struct State {
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
     update_texture_data: UpdateTextureDataType,
-    // render_pipeline_circles: wgpu::RenderPipeline,
-    render_pipeline_circle_instances: wgpu::RenderPipeline,
-    instances: Vec<instance::Instance>,
-    instance_buffer: wgpu::Buffer,
+    instances_bg: Vec<instance::Instance>,
+    instance_bg_buffer: wgpu::Buffer,
 }
 
 impl State {
@@ -137,6 +137,13 @@ impl State {
         surface.configure(&device, &config);
 
         let texture = texture::Texture::new(&device, None, texture_base).unwrap();
+        // The circle .png
+        let circle_img = image::load_from_memory_with_format(
+            include_bytes!("../data/Red_Circle_full.png"),
+            image::ImageFormat::Png,
+        )
+        .unwrap();
+        let texture_bg = texture::Texture::from_image(&device, None, &queue, &circle_img).unwrap();
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -173,13 +180,29 @@ impl State {
                     resource: wgpu::BindingResource::Sampler(&texture.sampler),
                 },
             ],
-            label: Some("diffuse_bind_group"),
+            label: Some("texture_bind_group"),
+        });
+
+        // Re-use the same layout for both texture and texture_bg
+        let texture_bg_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&texture_bg.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&texture_bg.sampler),
+                },
+            ],
+            label: Some("texture_bg_bind_group"),
         });
 
         ////////////////////////////////////////////////////////////////////////
 
         let camera = camera::Camera {
-            eye: (0.0, 5.0, 10.0).into(),
+            eye: (0.0, 0.0, 3.0).into(),
             target: (0.0, 0.0, 0.0).into(),
             up: cgmath::Vector3::unit_y(),
             aspect: config.width as f32 / config.height as f32,
@@ -242,26 +265,10 @@ impl State {
                 &render_pipeline_layout,
                 config.format,
                 None,
-                &[vertex::Vertex::desc()],
+                &[vertex::Vertex::desc(), instance::InstanceRaw::desc()],
                 shader,
             )
         };
-
-        // let render_pipeline_circles = {
-        //     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        //         label: Some("Shader Circle"),
-        //         source: wgpu::ShaderSource::Wgsl(include_str!("shader_circle.wgsl").into()),
-        //     });
-
-        //     create_render_pipeline(
-        //         &device,
-        //         &render_pipeline_layout,
-        //         config.format,
-        //         None,
-        //         &[vertex::Vertex::desc()],
-        //         shader,
-        //     )
-        // };
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
@@ -278,20 +285,20 @@ impl State {
 
         ////////////////////////////////////////////////////////////////////////
         /// TODO move to instance_utils
-        const NUM_INSTANCES_PER_ROW: u32 = 3;
-        const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
+        let NUM_INSTANCES_PER_ROW: u32 = 3;
+        let INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
             NUM_INSTANCES_PER_ROW as f32 * 0.5,
-            0.0,
             NUM_INSTANCES_PER_ROW as f32 * 0.5,
+            0.1,
         );
 
-        let instances = (0..NUM_INSTANCES_PER_ROW)
-            .flat_map(|z| {
+        let instances_bg = (0..NUM_INSTANCES_PER_ROW)
+            .flat_map(|y| {
                 (0..NUM_INSTANCES_PER_ROW).map(move |x| {
                     let position = cgmath::Vector3 {
                         x: x as f32,
-                        y: 0.0,
-                        z: z as f32,
+                        y: y as f32,
+                        z: 0.0,
                     } - INSTANCE_DISPLACEMENT;
 
                     let rotation = if position.is_zero() {
@@ -302,7 +309,7 @@ impl State {
                             cgmath::Deg(0.0),
                         )
                     } else {
-                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(0.0))
                     };
 
                     instance::Instance { position, rotation }
@@ -310,33 +317,15 @@ impl State {
             })
             .collect::<Vec<_>>();
 
-        let instance_data = instances
+        let instance_bg_data = instances_bg
             .iter()
             .map(instance::Instance::to_raw)
             .collect::<Vec<_>>();
-        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let instance_bg_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Instance Buffer"),
-            contents: bytemuck::cast_slice(&instance_data),
+            contents: bytemuck::cast_slice(&instance_bg_data),
             usage: wgpu::BufferUsages::VERTEX,
         });
-
-        let render_pipeline_circle_instances = {
-            let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-                label: Some("Shader Circle Instance"),
-                source: wgpu::ShaderSource::Wgsl(
-                    include_str!("shader_circle_instance.wgsl").into(),
-                ),
-            });
-
-            create_render_pipeline(
-                &device,
-                &render_pipeline_layout,
-                config.format,
-                None,
-                &[vertex::Vertex::desc(), instance::InstanceRaw::desc()],
-                shader,
-            )
-        };
 
         ////////////////////////////////////////////////////////////////////////
 
@@ -352,6 +341,8 @@ impl State {
             num_indices,
             texture,
             texture_bind_group,
+            texture_bg,
+            texture_bg_bind_group,
             frame_number,
             camera,
             camera_controller,
@@ -359,10 +350,8 @@ impl State {
             camera_bind_group,
             camera_uniform,
             update_texture_data,
-            // render_pipeline_circles,
-            render_pipeline_circle_instances,
-            instances,
-            instance_buffer,
+            instances_bg,
+            instance_bg_buffer,
         }
     }
 
@@ -377,9 +366,9 @@ impl State {
 
     #[allow(unused_variables)]
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        false
+        // false
         // TODO camera?
-        // self.camera_controller.process_events(event)
+        self.camera_controller.process_events(event)
     }
 
     pub fn update(&mut self) {
@@ -407,38 +396,9 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
-        // TODO TOREMOVE
-        // {
-        //     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        //         label: Some("Render Pass Circles"),
-        //         color_attachments: &[wgpu::RenderPassColorAttachment {
-        //             view: &view,
-        //             resolve_target: None,
-        //             ops: wgpu::Operations {
-        //                 load: wgpu::LoadOp::Clear(wgpu::Color {
-        //                     r: 0.1,
-        //                     g: 0.2,
-        //                     b: 0.3,
-        //                     // MUST make it transparent b/c are drawing ABOVE the button etc
-        //                     // that way the buttons are shown unless explicitly matching a Vertex
-        //                     a: 0.5,
-        //                 }),
-        //                 store: true,
-        //             },
-        //         }],
-        //         depth_stencil_attachment: None,
-        //     });
-
-        //     render_pass.set_pipeline(&self.render_pipeline_circles);
-        //     render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
-        //     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-        //     render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        //     render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
-        // }
-
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass Circle"),
+                label: Some("Render Pass BACKGROUND"),
                 color_attachments: &[wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,
@@ -457,42 +417,45 @@ impl State {
                 depth_stencil_attachment: None,
             });
 
-            render_pass.set_pipeline(&self.render_pipeline_circle_instances);
+            render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, &self.texture_bg_bind_group, &[]);
+            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
+            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(1, self.instance_bg_buffer.slice(..));
+            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances_bg.len() as _);
+        }
+
+        {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass Texture"),
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.3,
+                            // MUST make it transparent b/c are drawing ABOVE the button etc
+                            // that way the buttons are shown unless explicitly matching a Vertex
+                            a: 0.5,
+                        }),
+                        store: true,
+                    },
+                }],
+                depth_stencil_attachment: None,
+            });
+
+            render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
             render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+            // TODO add instance_buffer (ie NO _bg = background)
+            render_pass.set_vertex_buffer(1, self.instance_bg_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
-
-        // {
-        //     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        //         label: Some("Render Pass Texture"),
-        //         color_attachments: &[wgpu::RenderPassColorAttachment {
-        //             view: &view,
-        //             resolve_target: None,
-        //             ops: wgpu::Operations {
-        //                 load: wgpu::LoadOp::Clear(wgpu::Color {
-        //                     r: 0.1,
-        //                     g: 0.2,
-        //                     b: 0.3,
-        //                     // MUST make it transparent b/c are drawing ABOVE the button etc
-        //                     // that way the buttons are shown unless explicitly matching a Vertex
-        //                     a: 0.5,
-        //                 }),
-        //                 store: true,
-        //             },
-        //         }],
-        //         depth_stencil_attachment: None,
-        //     });
-
-        //     render_pass.set_pipeline(&self.render_pipeline);
-        //     render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
-        //     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-        //     render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        //     render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
-        // }
 
         self.queue.submit(iter::once(encoder.finish()));
         output.present();
