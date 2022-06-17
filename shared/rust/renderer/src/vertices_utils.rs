@@ -1,5 +1,5 @@
+use crate::model::TextureVertex;
 use crate::texture::TextureBase;
-use crate::vertex::Vertex;
 
 // NOTE: for consistency we define our Rect(=bounding box) the same way than Android
 // https://developer.android.com/reference/android/graphics/Rect#summary
@@ -57,7 +57,7 @@ pub fn get_vertices_pinpad_quad(
     digit_id: u8,
     rect: Rect,
     texture_base: &TextureBase,
-    vertices: &mut Vec<Vertex>,
+    vertices: &mut Vec<TextureVertex>,
 ) {
     let texture_height_ratio =
         texture_base.data_size.height as f32 / texture_base.texture_size.height as f32;
@@ -136,19 +136,19 @@ pub fn get_vertices_pinpad_quad(
 
         //
         //
-        Vertex {
+        TextureVertex {
             position: [rect.left, rect.top, 0.0],
             tex_coords: [0.0, 0.0],
         }, // A
-        Vertex {
+        TextureVertex {
             position: [rect.right, rect.top, 0.0],
             tex_coords: [1.0, 0.0],
         }, // B
-        Vertex {
+        TextureVertex {
             position: [rect.left, rect.bottom, 0.0],
             tex_coords: [1.0, 0.0],
         }, // C
-        Vertex {
+        TextureVertex {
             position: [rect.right, rect.bottom, 0.0],
             tex_coords: [1.0, 1.0],
         }, // D
@@ -196,7 +196,7 @@ pub fn get_vertices_pinpad_quad(
  * IMPORANT: there is NO LOGIC here, it is a DUMB function
  * It assumes get_vertices_pinpad_quad() was called in order(id=0,id=1,etc) and from TOP to BOTTOM
  */
-pub fn get_indices_pinpad(vertices: &Vec<Vertex>) -> Vec<u16> {
+pub fn get_indices_pinpad(vertices: &Vec<TextureVertex>) -> Vec<u16> {
     assert!(
         vertices.len() % 4 == 0,
         "get_indices_pinpad: MUST be called with % 4 len param"
@@ -232,44 +232,44 @@ pub fn get_indices_pinpad(vertices: &Vec<Vertex>) -> Vec<u16> {
  * A B
  * C D
  */
-pub fn get_vertices_fullscreen_from_texture_pot(texture_base: &TextureBase) -> Vec<Vertex> {
+pub fn get_vertices_fullscreen_from_texture_pot(texture_base: &TextureBase) -> Vec<TextureVertex> {
     let texture_height_ratio =
         texture_base.data_size.height as f32 / texture_base.texture_size.height as f32;
     let texture_width_ratio =
         texture_base.data_size.width as f32 / texture_base.texture_size.width as f32;
 
     vec![
-        Vertex {
+        TextureVertex {
             position: [-1.0, 1.0, 0.0],
             tex_coords: [0.0, 0.0],
         }, // A
-        Vertex {
+        TextureVertex {
             position: [1.0, 1.0, 0.0],
             tex_coords: [texture_width_ratio, 0.0],
         }, // B
-        Vertex {
+        TextureVertex {
             position: [-1.0, -1.0, 0.0],
             tex_coords: [0.0, texture_height_ratio],
         }, // C
-        Vertex {
+        TextureVertex {
             position: [1.0, -1.0, 0.0],
             tex_coords: [texture_width_ratio, texture_height_ratio],
         }, // D
     ]
     // vec![
-    //     Vertex {
+    //     TextureVertex {
     //         position: [-0.1, 0.1, 0.0],
     //         tex_coords: [0.0, 0.0],
     //     }, // A
-    //     Vertex {
+    //     TextureVertex {
     //         position: [0.1, 0.1, 0.0],
     //         tex_coords: [texture_width_ratio, 0.0],
     //     }, // B
-    //     Vertex {
+    //     TextureVertex {
     //         position: [-0.1, -0.1, 0.0],
     //         tex_coords: [0.0, texture_height_ratio],
     //     }, // C
-    //     Vertex {
+    //     TextureVertex {
     //         position: [0.1, -0.1, 0.0],
     //         tex_coords: [texture_width_ratio, texture_height_ratio],
     //     }, // D

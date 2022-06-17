@@ -26,8 +26,10 @@ log = "0.4"
 pollster = "0.2"
 winit = "0.26" # TODO TOREMOVE? only for desktop examples?
 cgmath = "0.18"
-# TODO dev-dependencies
-image = "0.24"
+instant = "0.1"
+tobj = { version = "3.2", features = ["async"]}
+# TODO dev-dependencies?
+image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
 
 #TODO [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.11"
