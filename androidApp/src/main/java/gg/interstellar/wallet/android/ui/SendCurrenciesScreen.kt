@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,18 +27,21 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
+
+
 import androidx.compose.material.Icon as MaterialIcon
 
 @Preview
 @Composable
-fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
+
+fun SendCurrenciesBody(onClickGo: () -> Unit = {}) {
+//fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
     InterstellarWalletTheme(
         //darkTheme = true
     ) {
@@ -47,7 +51,7 @@ fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
 
             DisplayInterstellar()
 
-            SendButtonTop(RoundedCornerShape(33))
+            ScreenTopBox("Send")
 
             FromToCurrenciesToDestinationMiddle(onClickGo)
 
@@ -57,41 +61,7 @@ fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
 }
 
 
-@Composable
-private fun SendButtonTop(shape: Shape) {
-    Box(
-        modifier = Modifier
-            .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
-    ) {
-        Surface(
-            modifier = Modifier
-                .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
-                .padding(25.dp),
-            shape = CircleShape,
-            elevation = 50.dp,
-        ) {
-            Box(
-                modifier = Modifier
 
-                    .background(
-                        Brush.linearGradient(
-                            0.3f to MaterialTheme.colors.secondary,
-                            1f to MaterialTheme.colors.primary,
-                            start = Offset(0f, 0f),
-                            end = Offset(310f, 310f)
-                        )
-                    )
-            ) {
-                Text(
-                    "Send",
-                    modifier = Modifier
-                        .align(Alignment.Center),
-                    fontSize = 35.sp,
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun FromToCurrenciesToDestinationMiddle(onClickGo: () -> Unit) {
@@ -100,21 +70,14 @@ private fun FromToCurrenciesToDestinationMiddle(onClickGo: () -> Unit) {
     TransactionFee(RoundedCornerShape(20.dp))
 
     CircleButton25(Icons.Filled.ArrowDropDown, 4.dp, "drop down", 4.dp, -230.dp, onClickGo)
-    CircleButtonCurrencies(
-        painterResource(R.drawable.ic_eth),
-        "btc", 110.dp, -300.dp, onClickGo
-    )
-    CircleButtonCurrencies(
-        painterResource(R.drawable.ic_eth),
-        "btc", 110.dp, -230.dp, onClickGo
-    )
+    CircleButtonCurrencies("ETH", 110.dp, -300.dp)
+
+    CircleButtonCurrencies("ETH", 110.dp, -230.dp,)
 
 
-    CircleButtonCurrencies(
-        painterResource(R.drawable.ic_interstellar_black_icon_white_border),
-        "btc", 112.dp, -114.dp, onClickGo
-    )
-    DisplayInFiat("120 USD", 4.dp,-245.dp )
+    CircleButtonCurrencies("interstellar_black_icon_white_border", 112.dp, -114.dp,)
+
+    //DisplayCircleLabel('label'"120 USD", 4.dp,-245.dp, 60.dp,25.dp )
 
     CircleButton25(Icons.Filled.Add, 0.dp, "add", 4.dp, -230.dp, onClickGo)
 }
@@ -146,61 +109,42 @@ private fun FromToCurrencies(shape: Shape) {
 
 }
 
+
+
+
 @Composable
-private fun CircleButton25(
-    imageVector: ImageVector, border: Dp, string: String, dpx: Dp, dpy: Dp,
-    onClickGo: () -> Unit
-)//TODO  size of button
-{
+private fun CircleButtonCurrencies(string: String, dpx: Dp, dpy: Dp
+) {
     Surface(
         modifier = Modifier
             .sizeIn(25.dp, 25.dp, 25.dp, 25.dp)
             .aspectRatio(1f)
             .offset(x = dpx, y = dpy),
-
-        color = MaterialTheme.colors.surface,
         shape = CircleShape,
-        border = BorderStroke(
-            border,
-            if (MaterialTheme.colors.isLight) Color.White
-            else Color.Black
-        ),
-
-        ) {
-        IconButton(
-            onClick = onClickGo,
-        ) {
-            MaterialIcon(imageVector = imageVector, contentDescription = string)
+    ) {
+            val context = LocalContext.current
+            val logoname = "ic_"+ string.lowercase()
+            val drawableId = remember(logoname) {
+                context.resources.getIdentifier(
+                    logoname,
+                    "drawable",
+                    context.packageName
+                )
+            }
+            Image(
+                painterResource(id = drawableId),
+                contentDescription = "..."
+            )
         }
     }
-}
 
-@Composable
-private fun DisplayInFiat(string: String, dpx: Dp, dpy: Dp) {
-    Surface(
-        modifier = Modifier
-            .sizeIn(60.dp, 25.dp, 60.dp, 25.dp)
-            //.aspectRatio(1f)
-            .offset(x = dpx, y = dpy),
-        shape = CircleShape,
-        //color = if (MaterialTheme.colors.isLight) Color.Black
-        //else Color.Black
 
-    ) {
-       Box(modifier = Modifier
-           .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
 
-       ) { Text(string, modifier = Modifier
-                .align(Alignment.Center),
-                fontSize = 10.sp)
-       }
 
-    }
-}
 
 
 @Composable
-private fun CircleButtonCurrencies(
+private fun CircleButtonCurrenciesbis(
     paintDrawable: Painter, string: String, dpx: Dp, dpy: Dp,
     onClickGo: () -> Unit
 ) {
@@ -247,6 +191,41 @@ private fun Destination(shape: Shape) {
     }
     Row { Spacer(Modifier.height(40.dp)) }
 }
+@Composable
+private fun CircleButton25(
+    imageVector: ImageVector, border: Dp, string: String, dpx: Dp, dpy: Dp,
+    onClickGo: () -> Unit
+)//TODO  size of button
+{
+    Surface(
+        modifier = Modifier
+            .sizeIn(25.dp, 25.dp, 25.dp, 25.dp)
+            .aspectRatio(1f)
+            .offset(x = dpx, y = dpy),
+
+        color = MaterialTheme.colors.surface,
+        shape = CircleShape,
+        border = BorderStroke(
+            border,
+            if (MaterialTheme.colors.isLight) Color.White
+            else Color.Black
+        ),
+
+        ) {
+        IconButton(
+            onClick = onClickGo,
+        ) {
+            androidx.compose.material.Icon(imageVector = imageVector, contentDescription = string)
+        }
+    }
+}
+
+
+
+
+
+
+
 
 @Composable
 private fun TransactionFee(shape: Shape) {

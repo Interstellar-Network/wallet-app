@@ -20,6 +20,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -91,6 +92,7 @@ private fun MessageTopScreen() {
 
 @Composable
 private fun ConfirmMessageMiddleScreen() {
+    //TODO Add Animation
     Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth())
     {
         Box(
@@ -141,12 +143,12 @@ private fun ConfirmMessageMiddleScreen() {
                             )
                         }
                         Text(
-                            " ... ",
+                            stringResource(R.string.account_redacted),
                             textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
+                            fontSize = 8.sp,
+                            color =  if (MaterialTheme.colors.isLight) Color.White
+                            else Color.Black,
                             modifier = Modifier
-
-                            //TODO find right alignement use icon?
                         )
 
                         Spacer(Modifier.width(7.dp))
@@ -203,11 +205,16 @@ private fun PinpadBottomScreen() {
                     modifier = Modifier.padding(25.dp, 25.dp),
                     shape = RoundedCornerShape(25),
                     elevation = 28.dp,
+                    color =  if (MaterialTheme.colors.isLight) Color.Black
+                    else Color.White,
+
                 ) {
                         MaterialIcon(
                             Icons.Filled.Close,
                             modifier = Modifier,
                             contentDescription = "close icon",
+                            tint =  if (MaterialTheme.colors.isLight) Color.White
+                            else Color.Black,
                         )
                     }
 
@@ -266,7 +273,6 @@ fun SetPadCircle() {
         }
     }
 }
-
 
 
 
