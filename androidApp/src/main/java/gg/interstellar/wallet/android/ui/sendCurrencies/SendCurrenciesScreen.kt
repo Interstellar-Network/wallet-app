@@ -1,8 +1,7 @@
-package gg.interstellar.wallet.android.ui
+package gg.interstellar.wallet.android.ui.sendCurrencies
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import StatementCard
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,8 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,31 +30,162 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import gg.interstellar.wallet.android.data.Address
+import gg.interstellar.wallet.android.data.Currency
+import gg.interstellar.wallet.android.data.UserData
+import gg.interstellar.wallet.android.ui.AddressRow
+import gg.interstellar.wallet.android.ui.CurrencyRow
+import gg.interstellar.wallet.android.ui.DisplayInterstellar
+import gg.interstellar.wallet.android.ui.ScreenTopBox
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
 
 import androidx.compose.material.Icon as MaterialIcon
 
-@Preview
+//@Preview
 @Composable
+fun SendCurrenciesBody(
+    currencies: List<Currency>,
+    addresses: List<Address>,
+    onClickGo: () -> Unit = {},
+    //onCurrencyClick: (String) -> Unit = {},
+    onCClick: (String) -> Unit = {},
 
-fun SendCurrenciesBody(onClickGo: () -> Unit = {}) {
-//fun SendCurrenciesScreen(onClickGo: () -> Unit = {}) {
-    InterstellarWalletTheme(
-        //darkTheme = true
+) {
+    var currencyName by remember { mutableStateOf("Bitcoin") }
+    var currency =  UserData.getCurrency("Bitcoin")
+    //val currencies = (UserData.currencies)
+    //val currency = UserData.getCurrency("Bitcoin")
+    //val addresses = UserData.addresses
+    var address = UserData.getAddress("alice")
+
+
+
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.verticalScroll(rememberScrollState())
     ) {
+        Spacer(Modifier.height(20.dp))
+        DisplayInterstellar()
+        Spacer(Modifier.height(20.dp))
+        ScreenTopBox("Send")
 
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-            DisplayInterstellar()
-
-            ScreenTopBox("Send")
-
-            FromToCurrenciesToDestinationMiddle(onClickGo)
-
-            GoButtonBottom(onClickGo)
+        var string = currency.name
+        var test: (String) -> Unit = {}
+        Row {
+            Text(
+                text = string,
+                style = MaterialTheme.typography.h2
+            )
         }
+        currency =  UserData.getCurrency(currencyName)
+
+        SingleCurrencyStatement(currency)
+        SingleAddressStatement(address)
+
+        CurrenciesStatement(
+            currencies = currencies,
+            onCurrencyClick ={name-> currencyName = name}
+        )
+        //FromToCurrenciesToDestinationMiddle(onClickGo)
+
+        GoButtonBottom(onClickGo)
+    }
+}
+
+/** Detail statement for currencies
+*/
+@Composable
+fun CurrenciesStatement(
+    //modifier: Modifier,
+    currencies: List<Currency>,
+    onCurrencyClick: (String) -> Unit = {},
+) {
+    StatementCard(
+        //modifier = Modifier.semantics { contentDescription = "Currency Card" },
+        items = currencies,
+        doubleColumn = true,
+    ) // appearance double column or one row
+    { currency ->
+        CurrencyRow(
+            modifier = Modifier.clickable {
+                 onCurrencyClick(currency.name)
+                },
+            name = currency.name,
+            coin = currency.coin,
+            pubkey = currency.pubkey,
+            amount = currency.balance,
+            amountFiat = currency.balanceFiat,
+            change = currency.change,
+            largeRow = false, // appearance of row rounded box or circle
+            fiat = true,
+            color = currency.color
+        )
+    }
+}
+
+/**
+ * Detail statement for a single currency.
+ */
+@Composable
+fun SingleCurrencyStatement(currency: Currency) {
+    StatementCard(
+        items = listOf(currency),
+        doubleColumn = false,
+    ) { row ->
+        CurrencyRow(
+            name = row.name,
+            coin = row.coin,
+            pubkey = row.pubkey,
+            amount = row.balance,
+            amountFiat = row.balanceFiat,
+            change = row.change,
+            largeRow = true,
+            fiat = false,
+            color = row.color
+        )
+    }
+}
+
+@Composable
+fun AddressesStatement(
+    addresses: List<Address>,
+    onAccountClick: (String) -> Unit = {},
+) {
+    StatementCard(
+        //modifier = Modifier.semantics { contentDescription = "Addresses Screen" },
+        items = addresses,
+        doubleColumn = true,
+    ) // appearance double column or one row
+    { address ->
+        AddressRow(
+            modifier = Modifier.clickable {
+                onAccountClick(address.name)
+            },
+            name = address.name,
+            color = address.color,
+            pubkey = address.pubkey,
+            largeRow = false, // appearance of row rounded box or circle
+        )
+    }
+}
+
+/**
+ * Detail screen for a single address
+ */
+@Composable
+fun SingleAddressStatement(address: Address) {
+    StatementCard(
+        items = listOf(address),
+        doubleColumn = false,
+    ) { row ->
+        AddressRow(
+            name = row.name,
+            pubkey = row.pubkey,
+            largeRow = true,
+            color = row.color
+        )
     }
 }
 

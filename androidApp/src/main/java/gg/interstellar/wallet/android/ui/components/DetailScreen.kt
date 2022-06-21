@@ -1,5 +1,6 @@
 package gg.interstellar.wallet.android.ui.components
 
+import StatementCard
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollState
@@ -49,7 +50,7 @@ fun <T> StatementBody(
         //TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
 
         Spacer(Modifier.height(10.dp))
-        BottomCard(items,rows,doubleColumn)
+        StatementCard(items,doubleColumn,rows)
     }
 }
 
@@ -96,53 +97,3 @@ fun <T> TopCircle( items: List<T>,colors: (T) -> Color, amounts: (T) -> Float,
 
 
 
-
-@Composable
-fun <T> BottomCard( items: List<T>,  rows: @Composable (T) -> Unit,doubleColumn: Boolean ) {
-
-    Card(
-        backgroundColor = if (MaterialTheme.colors.isLight)
-            Color.White else MaterialTheme.colors.onSurface
-    ) {
-        Column(
-            //LazyColumn( ///TEST Lazy Column
-            modifier = Modifier.padding(
-                if (doubleColumn) 10.dp else 100.dp,
-                30.dp
-            )
-            //TODO conditional padding to adapt to SingleBody
-            // if SingleBody - 100.30 works well
-        ) {
-            if (doubleColumn) {
-                DoubleColumn(items, rows)
-            } else SingleColumn(items, rows)
-        }
-    }
-}
-
-
-
-
-@Composable
-private fun <T> DoubleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
-    Row {
-        Column {
-            //items(items) { //TEST lazy column
-            val list= items.filterIndexed { index, s-> (index%2==0) }
-            list.forEach { item ->
-                rows(item)  }
-        }
-        Spacer(Modifier.width(40.dp))
-        Column {
-            val list = items.filterIndexed { index, s-> (index%2!=0) }
-            list.forEach { item ->
-                rows(item) }
-        }
-    }
-}
-@Composable
-private fun <T> SingleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
-    items.forEach { item ->
-        rows(item)
-    }
-}

@@ -56,7 +56,7 @@ fun SingleAddressBody(address: Address) {
         AddressRow(
             name = row.name,
             pubkey = row.pubkey,
-            largeRow = false,
+            largeRow = true,
             color = row.color
         )
     }

@@ -173,7 +173,6 @@ fun CurrencyRow(
 
     )
 }
-
 /**
 For test refactoring of sendCurrencies with access to currency list and details
  */
@@ -258,7 +257,7 @@ private fun BaseAddressRow(
 ) {
     Row(
         modifier = modifier
-            .height(68.dp)
+            .height(120.dp)//TO DO
 
             .clearAndSetSemantics {
                 contentDescription =
@@ -270,15 +269,21 @@ private fun BaseAddressRow(
         Box() {// should use box in a box to display text label on border
             if (largeRow) {
                 LargeRow(title, color)
-                CircleImage(title, 180.dp, 20.dp, 25.dp,25.dp)}
-            else // Circle Row in columns
-                Box { CircleImage(title, 0.dp, 0.dp, 90.dp,90.dp)}
+                CircleImage(title, 180.dp, 20.dp, 25.dp, 25.dp)
+            } else {// Circle Row in columns
+                Box { CircleImage(title, 0.dp, 0.dp, 90.dp, 90.dp) }
+                RoundedLabel(
+                    title,
+                    if (largeRow) 65.dp else 10.dp,// x position
+                    if (largeRow) 54.dp else 75.dp, // y position
+                    70.dp, 25.dp
+                ) // size does not change
+            }
         }
+        Spacer(Modifier.height(if (largeRow) 25.dp else 80.dp))
+        //StellarDivider()
     }
-    Spacer(Modifier.height(if (largeRow) 25.dp else 80.dp))
-    //StellarDivider()
 }
-
 
 @Composable
 private fun LargeRow(string:String, color: Color) {

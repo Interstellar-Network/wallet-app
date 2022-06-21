@@ -19,12 +19,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.ui.SendCurrenciesBody
+import gg.interstellar.wallet.android.data.UserData.currencies
+import gg.interstellar.wallet.android.ui.sendCurrencies.SendCurrenciesBody
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
 // TEST import gg.interstellar.wallet.android.ui.accounts.AccountsBody
 import gg.interstellar.wallet.android.ui.market.CurrenciesBody
 import gg.interstellar.wallet.android.ui.market.SingleCurrencytBody
+import gg.interstellar.wallet.android.ui.sendCurrencies.SingleCurrencyStatement
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,6 +47,8 @@ fun WalletApp() {
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()
         var currentScreen = WalletScreen.fromRoute(backstackEntry.value?.destination?.route)
+        var currencyName ="BTC"
+        var currency: Currency
 
         Scaffold(
             bottomBar  = {
@@ -67,12 +72,17 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        startDestination = WalletScreen.Market.name,
+        startDestination = WalletScreen.SendCurrencies.name,
         modifier = modifier
     ) {
         composable(WalletScreen.SendCurrencies.name) {
-            SendCurrenciesBody(
-                onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) }
+            SendCurrenciesBody(currencies = UserData.currencies, addresses = UserData.addresses,
+                onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) },
+                //onCurrencyClick = { name-> }
+                    //currency = UserData.getCurrency(currencyName = name)
+                //navController.navigate(WalletScreen.TxPinpad.name)
+
+
             )
         }
 

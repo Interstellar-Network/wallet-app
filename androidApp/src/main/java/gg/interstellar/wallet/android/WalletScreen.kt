@@ -45,7 +45,7 @@ enum class WalletScreen(
                 Market.name -> Market
                 Addresses.name -> Addresses
                 // TODO start screen(=landing page) on null
-                null -> Addresses
+                null -> SendCurrencies
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
     }
