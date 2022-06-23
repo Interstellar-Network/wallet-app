@@ -34,11 +34,13 @@ fun <T> StatementBody(
     circleLabel: String,
     screenLabel: String,
     doubleColumn: Boolean,
+    single: Boolean,
     fiat: Boolean,
     rows: @Composable (T) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
 
@@ -46,11 +48,11 @@ fun <T> StatementBody(
         DisplayInterstellar()
         Spacer(Modifier.height(20.dp))
         ScreenTopBox(screenLabel)
-
+        //Spacer(Modifier.height(10.dp))
         //TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
 
         Spacer(Modifier.height(10.dp))
-        StatementCard(items,doubleColumn,rows)
+        StatementCard(modifier,items,doubleColumn,single,rows)
     }
 }
 

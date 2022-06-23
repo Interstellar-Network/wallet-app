@@ -21,7 +21,8 @@ fun AddressesBody(
         amountsTotal = 0f,
         circleLabel = "",
         screenLabel = "Addresses",
-        doubleColumn = true,
+        doubleColumn = false,
+        single = false,
         fiat = false
     ) // appearance double column or one row
     { address ->
@@ -32,7 +33,7 @@ fun AddressesBody(
             name = address.name,
             color = address.color,
             pubkey = address.pubkey,
-            largeRow = false, // appearance of row rounded box or circle
+            largeRow = true, // appearance of row rounded box or circle
         )
     }
 }
@@ -51,6 +52,7 @@ fun SingleAddressBody(address: Address) {
         circleLabel = address.name,
         screenLabel = address.name,
         doubleColumn = false,
+        single = true,
         fiat = false
     ) { row ->
         AddressRow(

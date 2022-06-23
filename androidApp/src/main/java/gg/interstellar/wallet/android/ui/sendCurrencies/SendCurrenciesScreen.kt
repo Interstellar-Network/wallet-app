@@ -48,19 +48,11 @@ fun SendCurrenciesBody(
     currencies: List<Currency>,
     addresses: List<Address>,
     onClickGo: () -> Unit = {},
-    //onCurrencyClick: (String) -> Unit = {},
-    onCClick: (String) -> Unit = {},
-
 ) {
-    var currencyName by remember { mutableStateOf("Bitcoin") }
-    var currency =  UserData.getCurrency("Bitcoin")
-    //val currencies = (UserData.currencies)
-    //val currency = UserData.getCurrency("Bitcoin")
-    //val addresses = UserData.addresses
-    var address = UserData.getAddress("alice")
-
-
-
+    var currencyName by remember { mutableStateOf("select") }
+    var addressName by remember { mutableStateOf("select") }
+    var address = UserData.getAddress(addressName)
+    var currency =  UserData.getCurrency(currencyName)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -70,17 +62,6 @@ fun SendCurrenciesBody(
         DisplayInterstellar()
         Spacer(Modifier.height(20.dp))
         ScreenTopBox("Send")
-
-        var string = currency.name
-        var test: (String) -> Unit = {}
-        Row {
-            Text(
-                text = string,
-                style = MaterialTheme.typography.h2
-            )
-        }
-        currency =  UserData.getCurrency(currencyName)
-
         SingleCurrencyStatement(currency)
         SingleAddressStatement(address)
 
@@ -98,7 +79,6 @@ fun SendCurrenciesBody(
 */
 @Composable
 fun CurrenciesStatement(
-    //modifier: Modifier,
     currencies: List<Currency>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
@@ -106,6 +86,7 @@ fun CurrenciesStatement(
         //modifier = Modifier.semantics { contentDescription = "Currency Card" },
         items = currencies,
         doubleColumn = true,
+        single = false,
     ) // appearance double column or one row
     { currency ->
         CurrencyRow(
@@ -119,6 +100,7 @@ fun CurrenciesStatement(
             amountFiat = currency.balanceFiat,
             change = currency.change,
             largeRow = false, // appearance of row rounded box or circle
+            single = false,
             fiat = true,
             color = currency.color
         )
@@ -133,6 +115,7 @@ fun SingleCurrencyStatement(currency: Currency) {
     StatementCard(
         items = listOf(currency),
         doubleColumn = false,
+        single = true,
     ) { row ->
         CurrencyRow(
             name = row.name,
@@ -142,6 +125,7 @@ fun SingleCurrencyStatement(currency: Currency) {
             amountFiat = row.balanceFiat,
             change = row.change,
             largeRow = true,
+            single = true,
             fiat = false,
             color = row.color
         )
@@ -151,17 +135,18 @@ fun SingleCurrencyStatement(currency: Currency) {
 @Composable
 fun AddressesStatement(
     addresses: List<Address>,
-    onAccountClick: (String) -> Unit = {},
+    onAddressClick: (String) -> Unit = {},
 ) {
     StatementCard(
         //modifier = Modifier.semantics { contentDescription = "Addresses Screen" },
         items = addresses,
         doubleColumn = true,
+        single = true,
     ) // appearance double column or one row
     { address ->
         AddressRow(
             modifier = Modifier.clickable {
-                onAccountClick(address.name)
+                onAddressClick(address.name)
             },
             name = address.name,
             color = address.color,
@@ -179,6 +164,7 @@ fun SingleAddressStatement(address: Address) {
     StatementCard(
         items = listOf(address),
         doubleColumn = false,
+        single = true,
     ) { row ->
         AddressRow(
             name = row.name,

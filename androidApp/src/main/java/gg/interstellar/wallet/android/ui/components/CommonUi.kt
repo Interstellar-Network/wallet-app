@@ -1,5 +1,6 @@
 package gg.interstellar.wallet.android.ui
 
+import android.graphics.Paint
 import android.icu.text.DecimalFormat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -27,6 +28,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,10 +44,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import kotlin.math.abs
+import kotlin.math.min
+
+
+//val horizontalLine:HorizontalAlignmentLine = remember { HorizontalAlignmentLine(::min) }
+//val horizontalLine:HorizontalAlignmentLine(merger = { old, new -> min(old, new) })
 
 @Preview (showBackground = true )
 @Composable
@@ -156,6 +165,7 @@ fun CurrencyRow(
     amountFiat: Float,
     change:Float,
     largeRow: Boolean,
+    single: Boolean,
     fiat: Boolean,
     color: Color
 ) {
@@ -170,15 +180,11 @@ fun CurrencyRow(
         change = change,
         largeRow  = largeRow,
         fiat = true,
-
     )
 }
-/**
-For test refactoring of sendCurrencies with access to currency list and details
- */
 
 /**
- * A row representing the basic information of an account
+ * A row representing the basic information of a currency
  */
 
 @Composable
@@ -200,36 +206,55 @@ private fun BaseRow(
     val formattedChange = formatChange(change)
     Row(
         modifier = modifier
-            .height(68.dp)
+            .height(98.dp)
 
             .clearAndSetSemantics {
                 contentDescription =
                     "$title account ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
             },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically //TODO check
 
     ) {
-        Box() {// should use box in a box to display text label on border
-            if (largeRow) {
-                LargeRow(formattedAmount +" " +symbol, color)
-                CircleImage(symbol, 180.dp, 20.dp, 25.dp,25.dp)}
-            else // Circle Row in columns
-               Box { CircleImage(symbol, 0.dp, 0.dp, 90.dp,90.dp)}
+        Box(
+            modifier = modifier
+        ){
+            Box(
+                modifier = modifier
+                    .padding(10.dp), // enlarge the box to put image,labels on border
 
-            RoundedLabel(dollarSign+formattedAmountFiat,
-                if (largeRow) 65.dp else 10.dp,// x position
-                if (largeRow) 54.dp else 75.dp, // y position
-                70.dp,25.dp) // size does not change
-            CircleLabelwithIconIn(formattedChange+"%",
-                if (change>0) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+            ) {// should use box in a box to display text label on border
+                if (largeRow) {
+                    LargeRow(
+                        if (symbol == "select") "  Select a currency"
+                            else formattedAmount+ symbol,
+                        color
+                    )
+                }
+                else // Circle Row in columns
+                   Box { CircleImage(modifier =Modifier,symbol,90.dp,90.dp)}
+            }
+            if (largeRow)
+                CircleImage(
+                    modifier.align(Alignment.CenterEnd),
+                    symbol,
+                    25.dp,25.dp
+                )
+            RoundedLabel(
+                modifier.align(Alignment.BottomCenter),
+                dollarSign+formattedAmountFiat,
+                70.dp,25.dp
+            )
+            CircleLabelwithIconIn(
+                modifier.align(Alignment.TopCenter),
+                formattedChange+"%",
+                if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                 if (change>0)  Color(0xffe93943) else Color(0xff12c785),
-                if (largeRow) 65.dp else 10.dp,
-                if (largeRow) -5.dp else -30.dp,
-                70.dp,25.dp)
+                70.dp,25.dp
+            )
+            //}
         }
     }
-    Spacer(Modifier.height(if (largeRow) 25.dp else 80.dp))
-    //StellarDivider()
+    Spacer(Modifier.height(if (largeRow) 0.dp else 15.dp))
 }
 
 @Composable
@@ -257,7 +282,7 @@ private fun BaseAddressRow(
 ) {
     Row(
         modifier = modifier
-            .height(120.dp)//TO DO
+            .height(98.dp)
 
             .clearAndSetSemantics {
                 contentDescription =
@@ -266,24 +291,41 @@ private fun BaseAddressRow(
         verticalAlignment = Alignment.CenterVertically
 
     ) {
-        Box() {// should use box in a box to display text label on border
+        Box {
+            Box(
+                modifier = modifier
+                    .padding(10.dp), // enlarge the box to put image,labels on border
+            ) {// use box in a box to display text label on border
+                if (largeRow) {
+                    LargeRow(
+                        if (title=="select") "Select a destination"
+                        else title.uppercase(),
+                        color
+                    )
+                    //CircleImage(modifier=Modifier,title, 180.dp, 20.dp, 25.dp, 25.dp)
+
+                } else {// Row of Circles in two columns
+                    CircleImage(modifier = Modifier,//.align(Alignment.Center),
+                        title, 90.dp, 90.dp)
+                }
+            }
             if (largeRow) {
-                LargeRow(title, color)
-                CircleImage(title, 180.dp, 20.dp, 25.dp, 25.dp)
-            } else {// Circle Row in columns
-                Box { CircleImage(title, 0.dp, 0.dp, 90.dp, 90.dp) }
+                CircleImage(
+                    modifier = modifier.align(Alignment.CenterEnd),
+                    title, width = 25.dp, height = 25.dp
+                )
+            } else {
                 RoundedLabel(
-                    title,
-                    if (largeRow) 65.dp else 10.dp,// x position
-                    if (largeRow) 54.dp else 75.dp, // y position
+                    modifier = modifier.align(Alignment.BottomCenter),
+                    title.uppercase(),
                     70.dp, 25.dp
                 ) // size does not change
             }
         }
-        Spacer(Modifier.height(if (largeRow) 25.dp else 80.dp))
-        //StellarDivider()
+        //Spacer(Modifier.height(if (largeRow) 25.dp else 150.dp))
     }
 }
+
 
 @Composable
 private fun LargeRow(string:String, color: Color) {
@@ -309,7 +351,6 @@ private fun LargeRow(string:String, color: Color) {
     }
 }
 
-
 /**
  * A vertical colored line that is used in a [BaseRow] to differentiate accounts.
  */
@@ -321,44 +362,43 @@ private fun AccountIndicator(color: Color, modifier: Modifier = Modifier) {
             .background(color = color)
     )
 }
-
 @Composable
-fun CircleImage(string: String,dpx: Dp, dpy: Dp, width:Dp,height:Dp)
+fun CircleImage(
+    modifier:Modifier=Modifier,
+    string: String,
+    width:Dp,height:Dp)
  {
      val context = LocalContext.current
      val logoname = "ic_" + string.lowercase() // crash depend on those val position
 
-    Surface(
-        modifier = Modifier
-            .sizeIn(width, height, width, height)
-            .aspectRatio(1f)
-            .offset(x = dpx, y = dpy),
-        shape = CircleShape,
-    ) {
-        val drawableId = remember(logoname) {
-            context.resources.getIdentifier(
-                logoname,
-                "drawable",
-                context.packageName
-            )
-        }
-        Image(
-            painterResource(id = drawableId),
-            //painterResource(R.drawable.ic_dot),
-            contentDescription = "..."
-        )
-    }
+     Surface(
+         modifier
+             .sizeIn(width, height, width, height)
+             .aspectRatio(1f),
+         shape = CircleShape,
+     ) {
+         val drawableId = remember(logoname) {
+             context.resources.getIdentifier(
+                 logoname,
+                 "drawable",
+                 context.packageName
+             )
+         }
+         Image(
+             painterResource(id = drawableId),
+             contentDescription = "..."
+         )
+     }
 }
 
 @Composable
 fun RoundedLabel(
-    label: String, offset_x: Dp, offset_y:
-                        Dp, size_width: Dp, size_height:Dp ) {
+    modifier: Modifier=Modifier,
+    label: String,
+    size_width: Dp, size_height:Dp ) {
     Surface(
-        modifier = Modifier
-            .sizeIn(size_width, size_height, size_width, size_height)
-            //.aspectRatio(1f)
-            .offset(x = offset_x, y = offset_y),
+        modifier = modifier
+            .sizeIn(size_width, size_height, size_width, size_height),
         shape = CircleShape,
     ) {
         Box(
@@ -371,17 +411,17 @@ fun RoundedLabel(
         }
     }
 }
+
 //TODO reuse previous function with different type management for string
 @Composable
 fun CircleLabelwithIconIn(
-    label:String, imageVector: ImageVector,color: Color, offset_x: Dp, offset_y:
-    Dp, size_width: Dp, size_height:Dp ) {
+    modifier: Modifier=Modifier,
+    label:String, imageVector: ImageVector,color: Color,
+    size_width: Dp, size_height:Dp ) {
 
     Surface(
-        modifier = Modifier
-            .sizeIn(size_width, size_height, size_width, size_height)
-            //.aspectRatio(1f)
-            .offset(x = offset_x, y = offset_y),
+        modifier = modifier
+            .sizeIn(size_width, size_height, size_width, size_height),
         shape = CircleShape,
         color = color,
         contentColor = Color.White
@@ -390,9 +430,6 @@ fun CircleLabelwithIconIn(
             modifier = Modifier
                 .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
         ) {
-
-            //val inlinecontent = TextwithIconr(label, Icons.Filled.ArrowCircleDown)
-
             TextwithIcon(label,imageVector)
         }
     }

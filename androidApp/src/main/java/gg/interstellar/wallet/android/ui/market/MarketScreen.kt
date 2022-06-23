@@ -34,7 +34,8 @@ fun CurrenciesBody(
         amountsTotal = currencies.map { currency -> currency.balanceFiat }.sum(),
         circleLabel = stringResource(R.string.total),
         screenLabel = "Market",
-        doubleColumn = true,
+        doubleColumn = false,
+        single = false,
         fiat = true
     ) // appearance double column or one row
     { currency ->
@@ -48,7 +49,8 @@ fun CurrenciesBody(
             amount = currency.balance,
             amountFiat = currency.balanceFiat,
             change = currency.change,
-            largeRow = false, // appearance of row rounded box or circle
+            largeRow = true, // appearance of row rounded box or circle
+            single = true,
             fiat = true,
             color = currency.color
         )
@@ -69,6 +71,7 @@ fun SingleCurrencytBody(currency: Currency) {
         circleLabel = currency.coin,
         screenLabel = currency.name,
         doubleColumn = false,
+        single = true, // bad trick to use display first statement on single body
         fiat = false,
     ) { row ->
         CurrencyRow(
@@ -79,6 +82,7 @@ fun SingleCurrencytBody(currency: Currency) {
             amountFiat = row.balanceFiat,
             change = row.change,
             largeRow = true,
+            single = true,
             fiat = false,
             color = row.color
         )

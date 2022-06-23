@@ -47,8 +47,6 @@ fun WalletApp() {
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()
         var currentScreen = WalletScreen.fromRoute(backstackEntry.value?.destination?.route)
-        var currencyName ="BTC"
-        var currency: Currency
 
         Scaffold(
             bottomBar  = {
@@ -64,7 +62,6 @@ fun WalletApp() {
             WalletNavHost(navController, modifier = Modifier.padding(innerPadding))
         }
     }
-
 }
 
 @Composable
@@ -78,11 +75,6 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         composable(WalletScreen.SendCurrencies.name) {
             SendCurrenciesBody(currencies = UserData.currencies, addresses = UserData.addresses,
                 onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) },
-                //onCurrencyClick = { name-> }
-                    //currency = UserData.getCurrency(currencyName = name)
-                //navController.navigate(WalletScreen.TxPinpad.name)
-
-
             )
         }
 

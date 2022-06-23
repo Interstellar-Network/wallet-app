@@ -63,6 +63,16 @@ object UserData {
 
     val currencies: List<Currency> = listOf(
         Currency(
+            "select", //trick to define a row for input
+            "select",
+            "0",
+            0f,
+            0f,
+            0f,
+            Color(0xFF637DEA)
+        ),
+
+        Currency(
             "Ethereum",
             "ETH",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
@@ -102,6 +112,11 @@ object UserData {
     )
 
     val addresses: List<Address> = listOf(
+        Address(
+            "select",//trick to define a row for input
+            "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
+        ),
+
         Address(
             "alice",
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
