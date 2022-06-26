@@ -1,5 +1,6 @@
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -10,7 +11,8 @@ import gg.interstellar.wallet.android.ui.components.StatementBody
 @Composable
 fun AddressesBody(
     addresses: List<Address>,
-    onAccountClick: (String) -> Unit = {},
+    inputTextView: MutableState<String>,
+    onAddressClick: (String) -> Unit = {},
 ) {
     StatementBody(
         modifier = Modifier.semantics { contentDescription = "Addresses Screen" },
@@ -23,17 +25,18 @@ fun AddressesBody(
         screenLabel = "Addresses",
         doubleColumn = false,
         single = false,
-        fiat = false
     ) // appearance double column or one row
     { address ->
         AddressRow(
             modifier = Modifier.clickable {
-                onAccountClick(address.name)
+                onAddressClick(address.name)
             },
             name = address.name,
             color = address.color,
             pubkey = address.pubkey,
             largeRow = true, // appearance of row rounded box or circle
+            inputTextView = inputTextView,
+
         )
     }
 }
@@ -42,7 +45,7 @@ fun AddressesBody(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressBody(address: Address) {
+fun SingleAddressBody(address: Address, inputTextView: MutableState<String>) {
     StatementBody(
         items = listOf(address),
         colors = { address.color},
@@ -53,12 +56,14 @@ fun SingleAddressBody(address: Address) {
         screenLabel = address.name,
         doubleColumn = false,
         single = true,
-        fiat = false
+        //useInput = false,
+       // fiat = false
     ) { row ->
         AddressRow(
             name = row.name,
             pubkey = row.pubkey,
             largeRow = true,
+            inputTextView = inputTextView,
             color = row.color
         )
     }

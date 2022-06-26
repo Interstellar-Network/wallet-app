@@ -35,7 +35,8 @@ fun <T> StatementBody(
     screenLabel: String,
     doubleColumn: Boolean,
     single: Boolean,
-    fiat: Boolean,
+    //useInput:Boolean,
+    //fiat: Boolean,
     rows: @Composable (T) -> Unit
 ) {
     Column(
@@ -64,7 +65,6 @@ fun <T> TopCircle( items: List<T>,colors: (T) -> Color, amounts: (T) -> Float,
     Box(Modifier.padding(16.dp)) {
         // Extract proportion for amouuntsFiat not amounts in currency
         val accountsProportion = items.extractProportions { amountsFiat(it)}
-        //TODO//amountsFiat(it) solve issue
         val circleColors = items.map { colors(it) }
         AnimatedCircle(
             accountsProportion,

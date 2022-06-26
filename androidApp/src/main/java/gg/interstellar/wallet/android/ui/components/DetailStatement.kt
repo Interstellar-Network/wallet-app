@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T> StatementCard(
+fun <T> StatementCard( //TODO card or box
     modifier: Modifier=Modifier,
     items: List<T>,
     doubleColumn: Boolean,
@@ -17,9 +17,7 @@ fun <T> StatementCard(
     rows: @Composable (T) -> Unit,
 ) {
 
-    Card(
-        backgroundColor = if (MaterialTheme.colors.isLight)
-            Color.White else MaterialTheme.colors.onSurface
+    Box(
     ) {
         Column(
             //LazyColumn( ///TEST Lazy Column
@@ -55,7 +53,8 @@ private fun <T> DoubleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
 }
 
 @Composable
-private fun <T> SingleColumn( items: List<T>,  rows: @Composable (T) -> Unit,single: Boolean ){
+private fun <T> SingleColumn( items: List<T>,  rows: @Composable (T) -> Unit,
+                              single: Boolean ){//TODO check
     val list = if (single) items else items.filterIndexed { index, _ -> (index !=0)}
     list.forEach { item ->
         rows(item)

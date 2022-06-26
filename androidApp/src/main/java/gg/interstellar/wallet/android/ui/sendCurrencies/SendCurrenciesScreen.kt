@@ -1,5 +1,6 @@
 package gg.interstellar.wallet.android.ui.sendCurrencies
 
+
 import StatementCard
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -27,17 +28,14 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import gg.interstellar.wallet.android.data.Address
 import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.ui.AddressRow
-import gg.interstellar.wallet.android.ui.CurrencyRow
-import gg.interstellar.wallet.android.ui.DisplayInterstellar
-import gg.interstellar.wallet.android.ui.ScreenTopBox
-import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
+import gg.interstellar.wallet.android.ui.*
+import gg.interstellar.wallet.android.ui.components.Keypad
+import gg.interstellar.wallet.android.ui.components.handlebuttonClick
 
 
 import androidx.compose.material.Icon as MaterialIcon
@@ -54,24 +52,51 @@ fun SendCurrenciesBody(
     var address = UserData.getAddress(addressName)
     var currency =  UserData.getCurrency(currencyName)
 
+    val inputKP = remember { mutableStateOf("_") }//init state
+    val noInput = remember { mutableStateOf("notUsed") }
+    val firstTime = remember { mutableStateOf(true)}
+    val keypadOn= remember { mutableStateOf(false)}
+
+
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.verticalScroll(rememberScrollState())
+        horizontalAlignment = Alignment.CenterHorizontally, modifier =
+        if (keypadOn.value) Modifier else { Modifier.verticalScroll(rememberScrollState())}
     ) {
         Spacer(Modifier.height(20.dp))
         DisplayInterstellar()
         Spacer(Modifier.height(20.dp))
         ScreenTopBox("Send")
-        SingleCurrencyStatement(currency)
-        SingleAddressStatement(address)
-
-        CurrenciesStatement(
-            currencies = currencies,
-            onCurrencyClick ={name-> currencyName = name}
+        SingleCurrencyStatement(
+            currency,
+            inputKP,
+            keypadOn,
+        ) { keypadOn.value = true }
+        if (keypadOn.value)
+            Keypad(modifier = Modifier,
+            onClickKP = { text: String ->
+                handlebuttonClick(text, inputKP, firstTime)
+            }
         )
+
+        SingleAddressStatement(address,noInput)
+       //Row() { Text(inputKP.value, color = Color.Black)}
+        if (keypadOn.value == false) CurrenciesStatement(
+            currencies = currencies,noInput,
+            onCurrencyClick = {name-> currencyName = name}
+        )
+        /*
+        AddressesStatement(
+            addresses = addresses,
+            onAddressClick = {name-> addressName = name}
+        )*/
+
+        //Keypad(modifier = Modifier, onClickKP = { text:String->
+            //handlebuttonClick(text,inputKP, firstTime ) })
+
+
         //FromToCurrenciesToDestinationMiddle(onClickGo)
 
-        GoButtonBottom(onClickGo)
+        //GoButtonBottom(onClickGo)
     }
 }
 
@@ -80,6 +105,7 @@ fun SendCurrenciesBody(
 @Composable
 fun CurrenciesStatement(
     currencies: List<Currency>,
+    inputTextView: MutableState<String>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementCard(
@@ -100,6 +126,8 @@ fun CurrenciesStatement(
             amountFiat = currency.balanceFiat,
             change = currency.change,
             largeRow = false, // appearance of row rounded box or circle
+            inputTextView = inputTextView,
+            useInput = true,
             single = false,
             fiat = true,
             color = currency.color
@@ -111,13 +139,21 @@ fun CurrenciesStatement(
  * Detail statement for a single currency.
  */
 @Composable
-fun SingleCurrencyStatement(currency: Currency) {
+fun SingleCurrencyStatement(
+    currency: Currency,
+    inputTextView: MutableState<String>,
+    keypadOn:MutableState<Boolean>,
+    onClickKeypad:()->Unit
+) {
     StatementCard(
         items = listOf(currency),
         doubleColumn = false,
         single = true,
     ) { row ->
         CurrencyRow(
+            modifier = Modifier.clickable {
+                onClickKeypad()
+            },
             name = row.name,
             coin = row.coin,
             pubkey = row.pubkey,
@@ -125,6 +161,8 @@ fun SingleCurrencyStatement(currency: Currency) {
             amountFiat = row.balanceFiat,
             change = row.change,
             largeRow = true,
+            inputTextView = inputTextView,
+            useInput = keypadOn.value, // enable activation of input when keypad is on
             single = true,
             fiat = false,
             color = row.color
@@ -132,9 +170,13 @@ fun SingleCurrencyStatement(currency: Currency) {
     }
 }
 
+
+
+
 @Composable
 fun AddressesStatement(
     addresses: List<Address>,
+    inputTextView: MutableState<String>,
     onAddressClick: (String) -> Unit = {},
 ) {
     StatementCard(
@@ -152,6 +194,7 @@ fun AddressesStatement(
             color = address.color,
             pubkey = address.pubkey,
             largeRow = false, // appearance of row rounded box or circle
+            inputTextView = inputTextView
         )
     }
 }
@@ -160,7 +203,7 @@ fun AddressesStatement(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressStatement(address: Address) {
+fun SingleAddressStatement(address: Address, inputTextView: MutableState<String>) {
     StatementCard(
         items = listOf(address),
         doubleColumn = false,
@@ -170,6 +213,7 @@ fun SingleAddressStatement(address: Address) {
             name = row.name,
             pubkey = row.pubkey,
             largeRow = true,
+            inputTextView = inputTextView,
             color = row.color
         )
     }

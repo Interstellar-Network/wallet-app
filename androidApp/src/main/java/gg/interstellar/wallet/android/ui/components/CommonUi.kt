@@ -1,6 +1,5 @@
 package gg.interstellar.wallet.android.ui
 
-import android.graphics.Paint
 import android.icu.text.DecimalFormat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -8,16 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,28 +27,24 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.android.ui.components.handlebuttonClick
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import kotlin.math.abs
-import kotlin.math.min
 
 
 //val horizontalLine:HorizontalAlignmentLine = remember { HorizontalAlignmentLine(::min) }
@@ -165,6 +160,8 @@ fun CurrencyRow(
     amountFiat: Float,
     change:Float,
     largeRow: Boolean,
+    inputTextView: MutableState<String>,
+    useInput: Boolean,
     single: Boolean,
     fiat: Boolean,
     color: Color
@@ -179,6 +176,8 @@ fun CurrencyRow(
         amountFiat = amountFiat,
         change = change,
         largeRow  = largeRow,
+        inputTextView = inputTextView,
+        useInput = useInput,
         fiat = true,
     )
 }
@@ -198,6 +197,8 @@ private fun BaseRow(
     amountFiat: Float,
     change: Float,
     largeRow: Boolean,
+    inputTextView: MutableState<String>,
+    useInput:Boolean,
     fiat: Boolean
 ) {
     val dollarSign = if (fiat) "$ " else ""
@@ -207,13 +208,11 @@ private fun BaseRow(
     Row(
         modifier = modifier
             .height(98.dp)
-
             .clearAndSetSemantics {
                 contentDescription =
                     "$title account ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
             },
-        verticalAlignment = Alignment.CenterVertically //TODO check
-
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = modifier
@@ -225,9 +224,12 @@ private fun BaseRow(
             ) {// should use box in a box to display text label on border
                 if (largeRow) {
                     LargeRow(
-                        if (symbol == "select") "  Select a currency"
-                            else formattedAmount+ symbol,
-                        color
+                        if (symbol == "select") " Select a currency"
+                            else formattedAmount,
+                        if (symbol == "select") "" else symbol,
+                        color,
+                        inputTextView,
+                        useInput//
                     )
                 }
                 else // Circle Row in columns
@@ -263,12 +265,15 @@ fun AddressRow(
     name: String,
     pubkey: String,
     largeRow: Boolean,
+    inputTextView: MutableState<String>,
     color:Color
 ) {
     BaseAddressRow(
         modifier = modifier,
         title = name,
         largeRow  = largeRow,
+        inputTextView = inputTextView,
+        useInput = false,
         color = color
     )
 }
@@ -279,6 +284,8 @@ private fun BaseAddressRow(
     color: Color,
     title: String,
     largeRow: Boolean,
+    inputTextView: MutableState<String>,
+    useInput: Boolean
 ) {
     Row(
         modifier = modifier
@@ -300,7 +307,10 @@ private fun BaseAddressRow(
                     LargeRow(
                         if (title=="select") "Select a destination"
                         else title.uppercase(),
-                        color
+                        "", //no symbol
+                        color,
+                        inputTextView, // no textview to update
+                        false
                     )
                     //CircleImage(modifier=Modifier,title, 180.dp, 20.dp, 25.dp, 25.dp)
 
@@ -326,9 +336,13 @@ private fun BaseAddressRow(
     }
 }
 
-
 @Composable
-private fun LargeRow(string:String, color: Color) {
+fun BoxScope.LargeRow(
+                        string:String, symbol:String,color: Color,
+                        inputTextView: MutableState<String>,
+                        useInput:Boolean
+ ) {
+    if (inputTextView.value =="_"&& string != "select") inputTextView.value = string
     Box(
         modifier = Modifier
             .shadow(elevation = 10.dp, shape = RectangleShape, clip = false)
@@ -343,13 +357,19 @@ private fun LargeRow(string:String, color: Color) {
                 )
             )
     ) {
-        Text(
-            string,
-            modifier = Modifier
-                .align(Alignment.Center),
+        if (useInput) { // trigger usage of inputTextView for keyppad
+            Text(
+                inputTextView.value + " " + symbol,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else Text(
+            string + " " + symbol,
+            modifier = Modifier.align(Alignment.Center)
         )
     }
 }
+
+
 
 /**
  * A vertical colored line that is used in a [BaseRow] to differentiate accounts.

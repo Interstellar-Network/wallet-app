@@ -3,7 +3,8 @@
         <string name="app_name">Rally</string>
         <string name="total">Total</string>
         <string name="due">Due</string>
-        <string name="account_redacted">• • • </string>
+        <string name="three_point_redacted">• • • </string>
+        <string name="one_point_redacted">•</string>
         <string name="accounts">Accounts</string>
         <string name="bills">Bills</string>
         <string name="sort">Sort</string>

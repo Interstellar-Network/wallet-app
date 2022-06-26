@@ -143,7 +143,7 @@ private fun ConfirmMessageMiddleScreen() {
                             )
                         }
                         Text(
-                            stringResource(R.string.account_redacted),
+                            stringResource(R.string.three_point_redacted),
                             textAlign = TextAlign.Center,
                             fontSize = 8.sp,
                             color =  if (MaterialTheme.colors.isLight) Color.White
@@ -174,7 +174,7 @@ private fun ConfirmMessageMiddleScreen() {
 }
 
 @Composable
-private fun PinpadBottomScreen() {
+fun PinpadBottomScreen() {
     // We MUST set "weight" on each children, that weight each row will have the same height
     Column()
     {
@@ -219,8 +219,6 @@ private fun PinpadBottomScreen() {
                     }
 
                 }
-
-
             Spacer(Modifier.weight(0.20f))
         }
 
@@ -246,7 +244,7 @@ private fun ColumnScope.StandardPinpadRow() {
 }
 
 @Composable
-fun SetPadCircle() {
+private fun SetPadCircle() {
     Box(
         modifier = Modifier
             .shadow(elevation = 35.dp, shape = CircleShape, clip = false)
