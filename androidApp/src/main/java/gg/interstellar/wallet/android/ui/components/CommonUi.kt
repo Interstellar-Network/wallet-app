@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +32,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +40,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
-import gg.interstellar.wallet.android.ui.components.handlebuttonClick
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import kotlin.math.abs
 
@@ -113,43 +110,110 @@ fun DisplayInterstellar() {
 }
 
 @Composable
-fun ScreenTopBox(tittle:String) {
-    Box(
-        modifier = Modifier
-            .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
-    ) {
-        Surface(
+fun ScreenTopButton( onClickGo: ()->Unit,
+                 tittle:String
+) {
+    Row {
+        Box(
             modifier = Modifier
-                .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
-                .padding(25.dp),
-            shape = CircleShape,
-            elevation = 50.dp,
+                .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
         ) {
-            Box(
+            Surface(
                 modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            0.3f to MaterialTheme.colors.secondary,
-                            1f to MaterialTheme.colors.primary,
-                            start = Offset(0f, 0f),
-                            end = Offset(310f, 310f)
-                        )
-                    )
+                    .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
+                    .padding(25.dp),
+                shape = CircleShape,
+                elevation = 50.dp,
             ) {
-                Text(
-                    tittle,
+                Box(
                     modifier = Modifier
-                        .align(Alignment.Center),
-                    fontSize = 35.sp,
-                )
+                        .background(
+                            Brush.linearGradient(
+                                0.3f to MaterialTheme.colors.secondary,
+                                1f to MaterialTheme.colors.primary,
+                                start = Offset(0f, 0f),
+                                end = Offset(310f, 310f)
+                            )
+                        )
+                ) {
+                    Button(onClick =onClickGo,
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color.Transparent
+                        ),
+                        border = BorderStroke(0.dp,Color.Transparent),
+                        elevation = ButtonDefaults.elevation(0.dp,15.dp,0.dp)
+                    ){
+                        Text(
+                            tittle,
+                            color=if (MaterialTheme.colors.isLight) Color.White
+                            else Color.Black,
+                            fontSize = 35.sp,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+//TODO make it cleaner
+@Composable
+fun ScreenTopBox(
+                     tittle:String
+) {
+
+    Row {
+        Box(
+            modifier = Modifier
+                .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
+                    .padding(25.dp),
+                shape = CircleShape,
+                elevation = 50.dp,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Brush.linearGradient(
+                                0.3f to MaterialTheme.colors.secondary,
+                                1f to MaterialTheme.colors.primary,
+                                start = Offset(0f, 0f),
+                                end = Offset(310f, 310f)
+                            )
+                        )
+                ) {
+                        Text(
+                            tittle,
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                            fontSize = 35.sp,
+                        )
+                    }
+
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
 /**
- * A row representing the basic information of an Currency for Market and sendCurrencies screens
+ * A row representing the basic information of an Currency for Overview Market
+ * and sendCurrencies screens
  */
+
 @Composable
 fun CurrencyRow(
     modifier: Modifier = Modifier,
@@ -159,7 +223,10 @@ fun CurrencyRow(
     amount: Float,
     amountFiat: Float,
     change:Float,
-    largeRow: Boolean,
+    changeOn:Boolean,
+    destinationOn:Boolean,
+    onClickDest: () -> Unit,
+    largeRow: Boolean, // doubleColumn
     inputTextView: MutableState<String>,
     useInput: Boolean,
     single: Boolean,
@@ -175,12 +242,18 @@ fun CurrencyRow(
         amount = amount,
         amountFiat = amountFiat,
         change = change,
+        changeOn=changeOn,
+        destinationOn=destinationOn,
         largeRow  = largeRow,
+        onClickDest = onClickDest,
         inputTextView = inputTextView,
         useInput = useInput,
         fiat = true,
     )
 }
+
+
+
 
 /**
  * A row representing the basic information of a currency
@@ -196,6 +269,9 @@ private fun BaseRow(
     amount: Float,
     amountFiat: Float,
     change: Float,
+    changeOn: Boolean,
+    destinationOn:Boolean,
+    onClickDest: () -> Unit,
     largeRow: Boolean,
     inputTextView: MutableState<String>,
     useInput:Boolean,
@@ -209,7 +285,7 @@ private fun BaseRow(
         modifier = modifier
             .height(98.dp)
             .clearAndSetSemantics {
-                contentDescription =
+                contentDescription = // TODO update
                     "$title account ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
             },
         verticalAlignment = Alignment.CenterVertically
@@ -242,18 +318,23 @@ private fun BaseRow(
                     25.dp,25.dp
                 )
             RoundedLabel(
-                modifier.align(Alignment.BottomCenter),
+                modifier.align(Alignment.TopCenter),
                 dollarSign+formattedAmountFiat,
                 70.dp,25.dp
             )
-            CircleLabelwithIconIn(
-                modifier.align(Alignment.TopCenter),
+            if (changeOn) CircleLabelwithIconIn(
+                modifier.align(Alignment.BottomCenter),
                 formattedChange+"%",
                 if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                 if (change>0)  Color(0xffe93943) else Color(0xff12c785),
                 70.dp,25.dp
             )
-            //}
+            if (destinationOn) CircleButtonDest(
+                modifier
+                    //.align(Alignment.BottomCenter),
+                    .offset(104.dp,80.dp), //TODO better way
+                    6.dp,onClickDest)
+           // choose between the two previous - both are BottomCenter
         }
     }
     Spacer(Modifier.height(if (largeRow) 0.dp else 15.dp))
@@ -266,6 +347,7 @@ fun AddressRow(
     pubkey: String,
     largeRow: Boolean,
     inputTextView: MutableState<String>,
+    useInput: Boolean,
     color:Color
 ) {
     BaseAddressRow(
@@ -273,7 +355,7 @@ fun AddressRow(
         title = name,
         largeRow  = largeRow,
         inputTextView = inputTextView,
-        useInput = false,
+        useInput = useInput,
         color = color
     )
 }
@@ -312,7 +394,7 @@ private fun BaseAddressRow(
                         inputTextView, // no textview to update
                         false
                     )
-                    //CircleImage(modifier=Modifier,title, 180.dp, 20.dp, 25.dp, 25.dp)
+
 
                 } else {// Row of Circles in two columns
                     CircleImage(modifier = Modifier,//.align(Alignment.Center),
@@ -324,15 +406,19 @@ private fun BaseAddressRow(
                     modifier = modifier.align(Alignment.CenterEnd),
                     title, width = 25.dp, height = 25.dp
                 )
+                if (useInput) RoundedLabel(modifier.align(Alignment.BottomCenter),
+                    label = inputTextView.value +" USD",
+                    size_width = 80.dp, size_height = 30.dp)
+
             } else {
                 RoundedLabel(
                     modifier = modifier.align(Alignment.BottomCenter),
                     title.uppercase(),
                     70.dp, 25.dp
-                ) // size does not change
+                )
             }
         }
-        //Spacer(Modifier.height(if (largeRow) 25.dp else 150.dp))
+        Spacer(Modifier.height(if (largeRow) 25.dp else 150.dp))
     }
 }
 
@@ -342,7 +428,8 @@ fun BoxScope.LargeRow(
                         inputTextView: MutableState<String>,
                         useInput:Boolean
  ) {
-    if (inputTextView.value =="_"&& string != "select") inputTextView.value = string
+    if ((inputTextView.value =="_") && (string != "select") &&(useInput))
+        inputTextView.value = string
     Box(
         modifier = Modifier
             .shadow(elevation = 10.dp, shape = RectangleShape, clip = false)
@@ -360,11 +447,15 @@ fun BoxScope.LargeRow(
         if (useInput) { // trigger usage of inputTextView for keyppad
             Text(
                 inputTextView.value + " " + symbol,
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center),
+                color = if(MaterialTheme.colors.isLight) Color.White
+                else Color.Black
             )
         } else Text(
-            string + " " + symbol,
-            modifier = Modifier.align(Alignment.Center)
+                string + " " + symbol,
+                modifier = Modifier.align(Alignment.Center),
+                color = if(MaterialTheme.colors.isLight) Color.White
+                else Color.Black
         )
     }
 }
@@ -496,15 +587,54 @@ fun TextwithIcon(string:String,imageVector: ImageVector) {
 }
 
 @Composable
+fun CircleButtonDest( /// For sendCurrencies screen
+    modifier:Modifier=Modifier,
+    border:Dp,
+    onClickDest: () -> Unit
+)
+{
+    Surface(
+        modifier = modifier
+            .sizeIn(39.dp, 35.dp, 40.dp, 40.dp)
+            .aspectRatio(1f),
+            //.offset(x = dpx, y = dpy),
+
+        //color = MaterialTheme.colors.surface,
+        shape = CircleShape,
+        border = BorderStroke(
+            border,
+            if (MaterialTheme.colors.isLight) Color.White
+            else Color.Black
+        ),
+
+        ) {
+        IconButton(
+            onClick = onClickDest,
+            //modifier =Modifier.background(  if (MaterialTheme.colors.isLight) Color.White
+            //else Color.Black   )
+
+        ) {
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = "arrow down",
+
+                tint= if (MaterialTheme.colors.isLight) Color.White
+                else Color.Black
+            )
+        }
+    }
+}
+
+
+@Composable
 fun CircleIcon(
+    modifier:Modifier=Modifier,
     imageVector: ImageVector, border: Dp, string: String,
-    dpx: Dp, dpy: Dp,size_height: Dp, size_width: Dp) {
+    size_height: Dp, size_width: Dp) {
 
     Surface(
         modifier = Modifier
             .sizeIn(size_width, size_height, size_width, size_height)
-            .aspectRatio(1f)
-            .offset(x = dpx, y = dpy),
+            .aspectRatio(1f),
+            //.offset(x = dpx, y = dpy),
 
         color = MaterialTheme.colors.surface,
         shape = CircleShape,
@@ -513,7 +643,6 @@ fun CircleIcon(
             if (MaterialTheme.colors.isLight) Color.White
             else Color.Black
         )
-
         ) {
         Icon(imageVector = imageVector, contentDescription = string)
     }

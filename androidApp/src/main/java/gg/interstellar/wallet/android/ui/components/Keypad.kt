@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -22,12 +23,13 @@ import gg.interstellar.wallet.android.ui.theme.Modernista
 @Composable
 fun Keypad(
     modifier:Modifier=Modifier,
-    onClickKP:(String) -> Unit
+    onKeyClick:(String) -> Unit,
+    onCheckClick:()->Unit,
 ) {
 
     //val input = remember { mutableStateOf("test") }
 
-    //val onClickKP = { text:String-> handlebuttonClick(text,input) }
+    //val onKeyClick = { text:String-> handlebuttonClick(text,input) }
     Column(
         modifier = modifier
             .fillMaxHeight(),
@@ -39,9 +41,9 @@ fun Keypad(
         }
         Row { Spacer(Modifier.height(5.dp)) }
 
-        StandardPinpadRow("7", "8", "9", onClickKP)
-        StandardPinpadRow("4", "5", "6", onClickKP)
-        StandardPinpadRow("1", "2", "3", onClickKP)
+        StandardPinpadRow("7", "8", "9", onKeyClick)
+        StandardPinpadRow("4", "5", "6", onKeyClick)
+        StandardPinpadRow("1", "2", "3", onKeyClick)
 
         Row(
             horizontalArrangement = Arrangement.Center, modifier = modifier
@@ -50,7 +52,9 @@ fun Keypad(
         ) {
             // In this case we must set the wight b/c we have different children contrary to the
             // other rows. TODO? is there a better way to do this?
-            Spacer(Modifier.weight(0.20f))
+            Spacer(Modifier.weight(0.080f))
+
+            CheckButton( onCheckClick)
             BoxWithConstraints(
                 contentAlignment = Alignment.Center,
                 modifier = modifier
@@ -58,7 +62,7 @@ fun Keypad(
                     .wrapContentSize()
             ) {
                 Surface(
-                    modifier = modifier.padding(25.dp, 25.dp),
+                    modifier = modifier.padding(10.dp, 10.dp),
                     shape = RoundedCornerShape(25),
                     elevation = 28.dp,
                     color = if (MaterialTheme.colors.isLight) Color.Black
@@ -66,7 +70,7 @@ fun Keypad(
 
                     ) {
 
-                    IconButton(onClick = { onClickKP("CE") }) {
+                    IconButton(onClick = { onKeyClick("CE") }) {
                         Icon(
                             Icons.Filled.Close,
                             modifier = Modifier,
@@ -77,9 +81,10 @@ fun Keypad(
                     }
                 }
             }
-            SetPadCircle("0", onClickKP)
+
+            SetPadCircle("0", onKeyClick)
             //SetPadCircle( stringResource(R.string.one_point_redacted))
-            SetPadCircle(".", onClickKP)
+            SetPadCircle(".", onKeyClick)
             Spacer(Modifier.weight(0.20f))
 
             Row { Spacer(Modifier.height(30.dp)) }
@@ -96,7 +101,7 @@ fun Keypad(
 @Composable
 fun ColumnScope.StandardPinpadRow(
     string0: String, string1: String,string2: String,
-    onClickKP: (String) -> Unit
+    onKeyClick: (String) -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.Center, modifier = Modifier
@@ -104,16 +109,16 @@ fun ColumnScope.StandardPinpadRow(
             .weight(0.25f)
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
-        SetPadCircle(string0,onClickKP)
-        SetPadCircle(string1,onClickKP)
-        SetPadCircle(string2,onClickKP)
+        SetPadCircle(string0,onKeyClick)
+        SetPadCircle(string1,onKeyClick)
+        SetPadCircle(string2,onKeyClick)
     }
 }
 
 @Composable
 fun SetPadCircle(
     string:String,
-    onClickKP: (String) -> Unit
+    onKeyClick: (String) -> Unit
 ) {
 
     Box(
@@ -139,7 +144,7 @@ fun SetPadCircle(
                 color = if (MaterialTheme.colors.isLight) Color.Black
                 else Color.White,
             ) {
-                Button(onClick = { onClickKP(string) },
+                Button(onClick = { onKeyClick(string) },
                     modifier = Modifier,
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor =
@@ -150,7 +155,7 @@ fun SetPadCircle(
                     Text(
                         text=string,
                         fontFamily = Modernista,
-                        fontSize = 20.sp,
+                        fontSize = 29.sp,
                         modifier = Modifier
                             .fillMaxHeight()
                             .wrapContentHeight(Alignment.CenterVertically),
@@ -163,8 +168,35 @@ fun SetPadCircle(
     }
 }
 
+@Composable
+private fun CheckButton(onClickGo: () -> Unit) {
+    // Blank row to adjust
+    //Row { Spacer(Modifier.height(20.dp)) }
+    Surface(
+        modifier = Modifier
+            .sizeIn(60.dp, 60.dp, 60.dp, 60.dp)
+            .aspectRatio(1f),
+        color = MaterialTheme.colors.secondaryVariant,
+        shape = CircleShape,
+    ) {
+        IconButton(
+            onClick = onClickGo,
+        ) {
+            Icon(
+                Icons.Filled.Check,
+                "check icon", Modifier.size(35.dp)
+            )
+        }
+    }
+}
 
-fun handlebuttonClick(
+
+
+
+
+
+
+fun handleKeyButtonClick(
     txt:String,
     inputTextView: MutableState<String>,
     firstTime: MutableState<Boolean>

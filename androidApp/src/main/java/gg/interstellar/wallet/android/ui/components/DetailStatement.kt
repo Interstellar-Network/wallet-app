@@ -16,13 +16,11 @@ fun <T> StatementCard( //TODO card or box
     single:Boolean,
     rows: @Composable (T) -> Unit,
 ) {
-
     Box(
     ) {
         Column(
             //LazyColumn( ///TEST Lazy Column
-            modifier = Modifier.padding(
-            )
+            modifier = Modifier.padding(0.dp)
         ) {
             if (doubleColumn) {
                 DoubleColumn(items, rows)

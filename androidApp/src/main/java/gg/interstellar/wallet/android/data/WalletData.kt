@@ -145,10 +145,7 @@ object UserData {
             "oneinch",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
         ),
-        Address(
-            "li",
-            "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
-        ),
+
         Address(
             "tim",
             "0x54d78737eac5007103e729e9ab7ce64a6850a310",

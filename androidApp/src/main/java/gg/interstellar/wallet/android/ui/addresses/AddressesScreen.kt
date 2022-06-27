@@ -36,6 +36,7 @@ fun AddressesBody(
             pubkey = address.pubkey,
             largeRow = true, // appearance of row rounded box or circle
             inputTextView = inputTextView,
+            useInput = false
 
         )
     }
@@ -64,6 +65,7 @@ fun SingleAddressBody(address: Address, inputTextView: MutableState<String>) {
             pubkey = row.pubkey,
             largeRow = true,
             inputTextView = inputTextView,
+            useInput = false,
             color = row.color
         )
     }
