@@ -36,7 +36,7 @@ fun <T> StatementBody(
     doubleColumn: Boolean,
     single: Boolean,
     //useInput:Boolean,
-    //fiat: Boolean,
+    fiat: Boolean,
     rows: @Composable (T) -> Unit
 ) {
     Column(
@@ -50,7 +50,7 @@ fun <T> StatementBody(
         Spacer(Modifier.height(20.dp))
         ScreenTopBox(screenLabel)
         //Spacer(Modifier.height(10.dp))
-        //TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
+        TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
 
         Spacer(Modifier.height(10.dp))
         StatementCard(modifier,items,doubleColumn,single,rows)

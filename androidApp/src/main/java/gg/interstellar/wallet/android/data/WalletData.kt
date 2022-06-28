@@ -35,6 +35,7 @@ data class Currency(
     val balance: Float,
     val balanceFiat: Float,
     val change: Float,
+    val usd: Float,
     val color: Color
 )
 
@@ -69,7 +70,8 @@ object UserData {
             0f,
             0f,
             0f,
-            Color(0xFF637DEA)
+            0f,
+            Color(0xFF637DEA),
         ),
 
         Currency(
@@ -77,8 +79,9 @@ object UserData {
             "ETH",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
             2.13f,
-            2181.06f,
+            2.13f*1208f,
             1.2f,
+            1208.93f,
             Color(0xFF637DEA)
         ),
         Currency(
@@ -86,8 +89,9 @@ object UserData {
             "BTC",
             "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
             0.1343f,
-            3627.84f,
+            0.1343f*20912.09f,
             -1.7f,
+            20912.09f,
             Color(0xFFFF9500)
         ),
         Currency(
@@ -95,8 +99,9 @@ object UserData {
             "DOT",
             "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
             221.13f,
-            1019.27f,
+            221.13f*7.74f,
             4.5f,
+            7.73f,
             Color(0xFFe60079)
         ),
 
@@ -104,9 +109,10 @@ object UserData {
             "Solana",
             "SOL",
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
-            221.13f,
-            900.15f,
+            104.13f,
+            104.13f*38.61f,
             -2.3f,
+            38.61f,
             Color(0xFF47b7c1)
         )
     )

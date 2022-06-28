@@ -25,6 +25,7 @@ import gg.interstellar.wallet.android.ui.components.StatementBody
 fun CurrenciesBody(
     currencies: List<Currency>,
     inputTextView: MutableState<String>,
+    currencyInFiat:MutableState<String>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementBody(
@@ -38,6 +39,7 @@ fun CurrenciesBody(
         screenLabel = "Market",
         doubleColumn = false,
         single = false,
+        fiat = true
     ) // appearance double column or one row
     { currency ->
         CurrencyRow(
@@ -50,11 +52,11 @@ fun CurrenciesBody(
             amount = currency.balance,
             amountFiat = currency.balanceFiat,
             change = currency.change,
+            usd =currency.usd,
             changeOn = true,
-            destinationOn = false,
-            onClickDest = {},
             largeRow = true, // appearance of row rounded box or circle
             inputTextView = inputTextView,
+            currencyInFiat= currencyInFiat,
             useInput = false,
             single = true,
             fiat = true,
@@ -67,7 +69,11 @@ fun CurrenciesBody(
  * Detail screen for a single currency.
  */
 @Composable
-fun SingleCurrencyBody(currency: Currency, inputTextView: MutableState<String>) {
+fun SingleCurrencyBody(
+    currency: Currency,
+    inputTextView: MutableState<String>,
+    currencyInFiat:MutableState<String>,
+){
     StatementBody(
         items = listOf(currency),
         colors = { currency.color },
@@ -78,6 +84,7 @@ fun SingleCurrencyBody(currency: Currency, inputTextView: MutableState<String>) 
         screenLabel = currency.name,
         doubleColumn = false,
         single = true, // bad trick to use display first statement on single body
+        fiat = false
     ) { row ->
         CurrencyRow(
             name = row.name,
@@ -86,11 +93,11 @@ fun SingleCurrencyBody(currency: Currency, inputTextView: MutableState<String>) 
             amount = row.balance,
             amountFiat = row.balanceFiat,
             change = row.change,
+            usd = row.usd,
             changeOn = true,
-            destinationOn = false,
-            onClickDest = {},
             largeRow = true,
             inputTextView = inputTextView,
+            currencyInFiat =  currencyInFiat,
             useInput = false,
             single = true,
             fiat = false,

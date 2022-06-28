@@ -69,8 +69,8 @@ fun WalletApp() {
 @Composable
 fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
 
-    val inputCurrency = remember { mutableStateOf("notUsed") }//TODO makecleaner
-    val inputAddress = remember { mutableStateOf("notUsed") }//TODO makecleaner
+    val notUsed = remember { mutableStateOf("notUsed") }//TODO makecleaner
+
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
@@ -84,13 +84,13 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         }
 
         composable(WalletScreen.Market.name) {
-            CurrenciesBody(currencies = UserData.currencies,inputCurrency) { name ->
+            CurrenciesBody(currencies = UserData.currencies,notUsed,notUsed) { name ->
                 navigateToSingleCurrency(navController = navController, currencyName = name)
             }
         }
 
         composable(WalletScreen.Addresses.name) {
-            AddressesBody(addresses = UserData.addresses,inputAddress) { name ->
+            AddressesBody(addresses = UserData.addresses,notUsed) { name ->
                 navigateToSingleAddress(navController = navController, addressName = name)
             }
         }
@@ -120,7 +120,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         ) { entry ->
             val currenciesName = entry.arguments?.getString("name")
             val currency = UserData.getCurrency(currenciesName)
-            SingleCurrencyBody(currency = currency,inputCurrency)
+            SingleCurrencyBody(currency = currency,notUsed,notUsed)
         }
 
         val  addressesName = WalletScreen.Addresses.name
@@ -139,7 +139,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         ) { entry ->
             val addressesName = entry.arguments?.getString("name")
             val address = UserData.getAddress(addressesName)
-            SingleAddressBody(address = address,inputAddress)
+            SingleAddressBody(address = address,notUsed)
         }
 
     }

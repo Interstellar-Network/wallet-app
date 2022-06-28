@@ -223,11 +223,11 @@ fun CurrencyRow(
     amount: Float,
     amountFiat: Float,
     change:Float,
+    usd:Float,
     changeOn:Boolean,
-    destinationOn:Boolean,
-    onClickDest: () -> Unit,
     largeRow: Boolean, // doubleColumn
     inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     useInput: Boolean,
     single: Boolean,
     fiat: Boolean,
@@ -242,17 +242,15 @@ fun CurrencyRow(
         amount = amount,
         amountFiat = amountFiat,
         change = change,
+        usd =usd,
         changeOn=changeOn,
-        destinationOn=destinationOn,
         largeRow  = largeRow,
-        onClickDest = onClickDest,
         inputTextView = inputTextView,
+        currencyInFiat =currencyInFiat,
         useInput = useInput,
         fiat = true,
     )
 }
-
-
 
 
 /**
@@ -269,18 +267,22 @@ private fun BaseRow(
     amount: Float,
     amountFiat: Float,
     change: Float,
+    usd:Float,
     changeOn: Boolean,
-    destinationOn:Boolean,
-    onClickDest: () -> Unit,
     largeRow: Boolean,
     inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     useInput:Boolean,
     fiat: Boolean
 ) {
     val dollarSign = if (fiat) "$ " else ""
     val formattedAmount = formatAmount(amount)
-    val formattedAmountFiat = formatAmount(amountFiat)
+    val formattedAmountFiat = formatAmount(amount*usd)
     val formattedChange = formatChange(change)
+
+    if (useInput && inputTextView.value != "_" && symbol != "select") {
+        currencyInFiat.value = formatAmount(inputTextView.value.toFloat() * usd)
+    }
     Row(
         modifier = modifier
             .height(98.dp)
@@ -319,7 +321,8 @@ private fun BaseRow(
                 )
             RoundedLabel(
                 modifier.align(Alignment.TopCenter),
-                dollarSign+formattedAmountFiat,
+                if (useInput) dollarSign + currencyInFiat.value
+                else dollarSign+formattedAmountFiat,
                 70.dp,25.dp
             )
             if (changeOn) CircleLabelwithIconIn(
@@ -329,12 +332,6 @@ private fun BaseRow(
                 if (change>0)  Color(0xffe93943) else Color(0xff12c785),
                 70.dp,25.dp
             )
-            if (destinationOn) CircleButtonDest(
-                modifier
-                    //.align(Alignment.BottomCenter),
-                    .offset(104.dp,80.dp), //TODO better way
-                    6.dp,onClickDest)
-           // choose between the two previous - both are BottomCenter
         }
     }
     Spacer(Modifier.height(if (largeRow) 0.dp else 15.dp))
@@ -346,7 +343,7 @@ fun AddressRow(
     name: String,
     pubkey: String,
     largeRow: Boolean,
-    inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     useInput: Boolean,
     color:Color
 ) {
@@ -354,7 +351,7 @@ fun AddressRow(
         modifier = modifier,
         title = name,
         largeRow  = largeRow,
-        inputTextView = inputTextView,
+        currencyInFiat = currencyInFiat,
         useInput = useInput,
         color = color
     )
@@ -366,7 +363,7 @@ private fun BaseAddressRow(
     color: Color,
     title: String,
     largeRow: Boolean,
-    inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     useInput: Boolean
 ) {
     Row(
@@ -391,7 +388,7 @@ private fun BaseAddressRow(
                         else title.uppercase(),
                         "", //no symbol
                         color,
-                        inputTextView, // no textview to update
+                        currencyInFiat, // no textview to update
                         false
                     )
 
@@ -407,8 +404,8 @@ private fun BaseAddressRow(
                     title, width = 25.dp, height = 25.dp
                 )
                 if (useInput) RoundedLabel(modifier.align(Alignment.BottomCenter),
-                    label = inputTextView.value +" USD",
-                    size_width = 80.dp, size_height = 30.dp)
+                    label = currencyInFiat.value +" USD",
+                    size_width = 85.dp, size_height = 35.dp)
 
             } else {
                 RoundedLabel(

@@ -11,7 +11,7 @@ import gg.interstellar.wallet.android.ui.components.StatementBody
 @Composable
 fun AddressesBody(
     addresses: List<Address>,
-    inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     onAddressClick: (String) -> Unit = {},
 ) {
     StatementBody(
@@ -25,6 +25,7 @@ fun AddressesBody(
         screenLabel = "Addresses",
         doubleColumn = false,
         single = false,
+        fiat = true
     ) // appearance double column or one row
     { address ->
         AddressRow(
@@ -35,7 +36,7 @@ fun AddressesBody(
             color = address.color,
             pubkey = address.pubkey,
             largeRow = true, // appearance of row rounded box or circle
-            inputTextView = inputTextView,
+            currencyInFiat = currencyInFiat,
             useInput = false
 
         )
@@ -46,7 +47,7 @@ fun AddressesBody(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressBody(address: Address, inputTextView: MutableState<String>) {
+fun SingleAddressBody(address: Address, currencyInFiat: MutableState<String>) {
     StatementBody(
         items = listOf(address),
         colors = { address.color},
@@ -58,13 +59,13 @@ fun SingleAddressBody(address: Address, inputTextView: MutableState<String>) {
         doubleColumn = false,
         single = true,
         //useInput = false,
-       // fiat = false
+       fiat = false
     ) { row ->
         AddressRow(
             name = row.name,
             pubkey = row.pubkey,
             largeRow = true,
-            inputTextView = inputTextView,
+            currencyInFiat =currencyInFiat,
             useInput = false,
             color = row.color
         )

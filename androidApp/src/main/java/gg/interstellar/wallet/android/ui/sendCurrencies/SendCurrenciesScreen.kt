@@ -39,13 +39,12 @@ fun SendCurrenciesBody(
     var currency =  UserData.getCurrency(currencyName)
 
     val inputtedCurrency = remember { mutableStateOf("_") }//init state
+    val currencyInFiat = remember { mutableStateOf("+") }
     val currencyOn = remember { mutableStateOf(false)}// match inputtedCurrency state
     val destinationOn = remember { mutableStateOf(false)}
     val noInput = remember { mutableStateOf("notUsed") }// to keep it generic
     val firstTime = remember { mutableStateOf(true)}
     val keypadOn= remember { mutableStateOf(false)}
-
-
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier =
@@ -62,23 +61,37 @@ fun SendCurrenciesBody(
         }
 
         SingleCurrencyStatement(
+            modifier = Modifier,
             currency,
             inputtedCurrency,
+            currencyInFiat,
             currencyOn,
         ) { keypadOn.value = true;currencyOn.value = true }
         if (keypadOn.value)
-            Keypad(modifier = Modifier,
+            Keypad(
+                modifier = Modifier,
                 onKeyClick = { text: String ->
-                    handleKeyButtonClick(text,inputtedCurrency,firstTime)
+                    handleKeyButtonClick(text, inputtedCurrency, firstTime)
                 },
-                onCheckClick = {keypadOn.value = false},
-        )
+                onCheckClick = { keypadOn.value = false },
+            )
 
-        if (currencyOn.value) SingleAddressStatement(address =address,inputtedCurrency)
-   
+        if (currencyOn.value) Box {
+            SingleAddressStatement(
+                modifier = Modifier,
+                address = address, currencyInFiat
+            )
+            CircleButtonDest(
+                modifier = Modifier
+                    //.align(Alignment.TopCenter),
+                    .offset(100.dp,-20.dp), //TODO better way
+                6.dp, onClickDest = {})
+        }
+
+
         Spacer(modifier = Modifier.height(30.dp))
         if (!keypadOn.value && !currencyOn.value) CurrenciesStatement(
-            currencies = currencies,noInput,
+            currencies = currencies,noInput,noInput,
             onCurrencyClick = {name-> currencyName = name}
         )
 
@@ -95,7 +108,6 @@ fun SendCurrenciesBody(
 
         if (currencyOn.value && !keypadOn.value && destinationOn.value)  TransactionFee()
 
-
     }
 }
 
@@ -105,6 +117,7 @@ fun SendCurrenciesBody(
 fun CurrenciesStatement(
     currencies: List<Currency>,
     inputTextView: MutableState<String>,
+    currencyInFiat:MutableState<String>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementCard(
@@ -124,12 +137,12 @@ fun CurrenciesStatement(
             amount = currency.balance,
             amountFiat = currency.balanceFiat,
             change = currency.change,
+            usd = currency.usd,
             changeOn = true,
-            destinationOn = false,
-            onClickDest = {},
             largeRow = false, // appearance of row rounded box or circle
             inputTextView = inputTextView,
-            useInput = true,
+            currencyInFiat = currencyInFiat,
+            useInput = false,
             single = false,
             fiat = true,
             color = currency.color
@@ -142,8 +155,10 @@ fun CurrenciesStatement(
  */
 @Composable
 fun SingleCurrencyStatement(
+    modifier:Modifier=Modifier,
     currency: Currency,
     inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     currencyOn:MutableState<Boolean>,
     onClickKeypad:()->Unit
 ) {
@@ -162,11 +177,11 @@ fun SingleCurrencyStatement(
             amount = row.balance,
             amountFiat = row.balanceFiat,
             change = row.change,
+            usd = row.usd,
             changeOn = false,
-            destinationOn = true,
-            onClickDest = {},
             largeRow = true,
             inputTextView = inputTextView,
+            currencyInFiat =currencyInFiat,
             useInput = currencyOn.value, // enable activation of input when keypad is on
             single = true,
             fiat = false,
@@ -179,7 +194,7 @@ fun SingleCurrencyStatement(
 @Composable
 fun AddressesStatement(
     addresses: List<Address>,
-    inputTextView: MutableState<String>,
+    currencyInFiat: MutableState<String>,
     onAddressClick: (String) -> Unit = {},
 ) {
     StatementCard(
@@ -197,7 +212,7 @@ fun AddressesStatement(
             color = address.color,
             pubkey = address.pubkey,
             largeRow = false, // appearance of row rounded box or circle
-            inputTextView = inputTextView,
+            currencyInFiat = currencyInFiat,
             useInput = true
         )
     }
@@ -207,7 +222,11 @@ fun AddressesStatement(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressStatement(address: Address, inputTextView: MutableState<String>) {
+fun SingleAddressStatement(
+    modifier: Modifier=Modifier,
+    address: Address,
+    currencyInFiat: MutableState<String>
+) {
     StatementCard(
         items = listOf(address),
         doubleColumn = false,
@@ -217,7 +236,7 @@ fun SingleAddressStatement(address: Address, inputTextView: MutableState<String>
             name = row.name,
             pubkey = row.pubkey,
             largeRow = true,
-            inputTextView = inputTextView,
+            currencyInFiat = currencyInFiat,
             useInput = true,
             color = row.color
         )
