@@ -23,10 +23,10 @@ fun AddressesBody(
         amountsTotal = 0f,
         circleLabel = "",
         screenLabel = "Addresses",
-        doubleColumn = false,
+        doubleColumn = true, // appearance double column or one column
         single = false,
         fiat = true
-    ) // appearance double column or one row
+    )
     { address ->
         AddressRow(
             modifier = Modifier.clickable {
@@ -35,9 +35,9 @@ fun AddressesBody(
             name = address.name,
             color = address.color,
             pubkey = address.pubkey,
-            largeRow = true, // appearance of row rounded box or circle
+            largeRow = false, // appearance of row rounded box or circle box
             currencyInFiat = currencyInFiat,
-            useInput = false
+            useInput = false,
 
         )
     }
@@ -47,7 +47,9 @@ fun AddressesBody(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressBody(address: Address, currencyInFiat: MutableState<String>) {
+fun SingleAddressBody(address: Address,
+                      currencyInFiat: MutableState<String>,
+) {
     StatementBody(
         items = listOf(address),
         colors = { address.color},
@@ -57,8 +59,7 @@ fun SingleAddressBody(address: Address, currencyInFiat: MutableState<String>) {
         circleLabel = address.name,
         screenLabel = address.name,
         doubleColumn = false,
-        single = true,
-        //useInput = false,
+        single = true, // to handle one row in singleBody or statement
        fiat = false
     ) { row ->
         AddressRow(

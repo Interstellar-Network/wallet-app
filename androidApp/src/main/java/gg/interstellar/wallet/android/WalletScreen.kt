@@ -2,12 +2,8 @@ package gg.interstellar.wallet.android
 
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ImportContacts
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import gg.interstellar.wallet.android.data.Address
 
 
 /**
@@ -16,11 +12,10 @@ import gg.interstellar.wallet.android.data.Address
 enum class WalletScreen(
     val icon: ImageVector,
 ) {
-    /**
-    Accounts(// For test purpose
-        icon = Icons.Filled.Send,
+    Star(
+        icon = Icons.Filled.Star,
     ),
-    */
+
     Market(
         icon = Icons.Filled.PieChart,
     ),
@@ -40,12 +35,13 @@ enum class WalletScreen(
     companion object {
         fun fromRoute(route: String?): WalletScreen =
             when (route?.substringBefore("/")) {
+                Star.name->Star
                 SendCurrencies.name -> SendCurrencies
                 TxPinpad.name -> TxPinpad
                 Market.name -> Market
                 Addresses.name -> Addresses
                 // TODO start screen(=landing page) on null
-                null -> SendCurrencies
+                null -> Star
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
     }

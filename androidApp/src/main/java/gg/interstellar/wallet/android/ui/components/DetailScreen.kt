@@ -85,7 +85,6 @@ fun <T> TopCircle( items: List<T>,colors: (T) -> Color, amounts: (T) -> Float,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Text(
-                //TODo manage circle label with coin name for single screen
                 text = if ( amountsTotal != 0f  ) add + formatAmount(amountsTotal)
                 else "",
                 style = MaterialTheme.typography.h2,

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +27,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -34,11 +39,14 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import kotlin.math.abs
@@ -79,8 +87,7 @@ fun DisplayInterstellar() {
                 Icon(
                     painterResource(R.drawable.ic_interstellar_black_logo),
                     contentDescription = "logo",
-                    tint = if (MaterialTheme.colors.isLight) Color.Black
-                    else Color.White,
+                    tint = MaterialTheme.colors.surface,
                     modifier = Modifier
                         .padding(1.5.dp)
                 )
@@ -96,8 +103,7 @@ fun DisplayInterstellar() {
             textAlign = TextAlign.Center,
             fontFamily = Modernista, fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
-            color = if (MaterialTheme.colors.isLight) Color.Black
-            else Color.White,
+            color = MaterialTheme.colors.surface,
 
             modifier = Modifier
                 .fillMaxHeight()
@@ -140,15 +146,14 @@ fun ScreenTopButton( onClickGo: ()->Unit,
                         modifier = Modifier
                             .align(Alignment.Center),
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.Transparent
+                        backgroundColor = Color.Transparent
                         ),
                         border = BorderStroke(0.dp,Color.Transparent),
                         elevation = ButtonDefaults.elevation(0.dp,15.dp,0.dp)
                     ){
                         Text(
                             tittle,
-                            color=if (MaterialTheme.colors.isLight) Color.White
-                            else Color.Black,
+                            color= MaterialTheme.colors.onSurface,
                             fontSize = 35.sp,
                         )
                     }
@@ -161,7 +166,7 @@ fun ScreenTopButton( onClickGo: ()->Unit,
 //TODO make it cleaner
 @Composable
 fun ScreenTopBox(
-                     tittle:String
+        tittle:String
 ) {
 
     Row {
@@ -194,7 +199,6 @@ fun ScreenTopBox(
                             fontSize = 35.sp,
                         )
                     }
-
             }
         }
     }
@@ -229,6 +233,7 @@ fun CurrencyRow(
     inputTextView: MutableState<String>,
     currencyInFiat: MutableState<String>,
     useInput: Boolean,
+    inputDone:MutableState<Boolean>,
     single: Boolean,
     fiat: Boolean,
     color: Color
@@ -245,10 +250,12 @@ fun CurrencyRow(
         usd =usd,
         changeOn=changeOn,
         largeRow  = largeRow,
+        single =single,
         inputTextView = inputTextView,
         currencyInFiat =currencyInFiat,
         useInput = useInput,
-        fiat = true,
+        inputDone = inputDone,
+        fiat = fiat,
     )
 }
 
@@ -270,9 +277,11 @@ private fun BaseRow(
     usd:Float,
     changeOn: Boolean,
     largeRow: Boolean,
+    single:Boolean,
     inputTextView: MutableState<String>,
     currencyInFiat: MutableState<String>,
     useInput:Boolean,
+    inputDone:MutableState<Boolean>,
     fiat: Boolean
 ) {
     val dollarSign = if (fiat) "$ " else ""
@@ -280,7 +289,14 @@ private fun BaseRow(
     val formattedAmountFiat = formatAmount(amount*usd)
     val formattedChange = formatChange(change)
 
-    if (useInput && inputTextView.value != "_" && symbol != "select") {
+    if (
+        useInput &&
+        inputTextView.value != "_" &&
+        inputTextView.value.isNotEmpty() &&
+        !inputTextView.value.isNullOrBlank() &&
+        symbol != "select" &&
+        !inputDone.value
+    ) {// otherwise it crash
         currencyInFiat.value = formatAmount(inputTextView.value.toFloat() * usd)
     }
     Row(
@@ -307,26 +323,27 @@ private fun BaseRow(
                         if (symbol == "select") "" else symbol,
                         color,
                         inputTextView,
-                        useInput//
+                        useInput,
+                        inputDone
                     )
                 }
                 else // Circle Row in columns
                    Box { CircleImage(modifier =Modifier,symbol,90.dp,90.dp)}
             }
             if (largeRow)
-                CircleImage(
+                if (title!="select") CircleImage(
                     modifier.align(Alignment.CenterEnd),
                     symbol,
                     25.dp,25.dp
                 )
-            RoundedLabel(
-                modifier.align(Alignment.TopCenter),
+            if (fiat) RoundedLabel(
+                modifier.align(Alignment.BottomCenter),
                 if (useInput) dollarSign + currencyInFiat.value
                 else dollarSign+formattedAmountFiat,
                 70.dp,25.dp
             )
             if (changeOn) CircleLabelwithIconIn(
-                modifier.align(Alignment.BottomCenter),
+                modifier.align(Alignment.TopCenter),
                 formattedChange+"%",
                 if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                 if (change>0)  Color(0xffe93943) else Color(0xff12c785),
@@ -334,7 +351,7 @@ private fun BaseRow(
             )
         }
     }
-    Spacer(Modifier.height(if (largeRow) 0.dp else 15.dp))
+    Spacer(Modifier.height(if (single) 0.dp else if (largeRow) 15.dp else 25.dp))
 }
 
 @Composable
@@ -347,7 +364,7 @@ fun AddressRow(
     useInput: Boolean,
     color:Color
 ) {
-    BaseAddressRow(
+    SimpleBaseRow(
         modifier = modifier,
         title = name,
         largeRow  = largeRow,
@@ -358,7 +375,7 @@ fun AddressRow(
 }
 
 @Composable
-private fun BaseAddressRow(
+private fun SimpleBaseRow(
     modifier: Modifier = Modifier,
     color: Color,
     title: String,
@@ -366,6 +383,7 @@ private fun BaseAddressRow(
     currencyInFiat: MutableState<String>,
     useInput: Boolean
 ) {
+    val noinput = remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .height(98.dp)
@@ -380,7 +398,7 @@ private fun BaseAddressRow(
         Box {
             Box(
                 modifier = modifier
-                    .padding(10.dp), // enlarge the box to put image,labels on border
+                    .padding(12.dp), // enlarge the box to put image,labels on border
             ) {// use box in a box to display text label on border
                 if (largeRow) {
                     LargeRow(
@@ -389,7 +407,8 @@ private fun BaseAddressRow(
                         "", //no symbol
                         color,
                         currencyInFiat, // no textview to update
-                        false
+                        false,
+                        noinput,
                     )
 
 
@@ -399,9 +418,9 @@ private fun BaseAddressRow(
                 }
             }
             if (largeRow) {
-                CircleImage(
-                    modifier = modifier.align(Alignment.CenterEnd),
-                    title, width = 25.dp, height = 25.dp
+                if (title!="select") CircleImage(
+                    modifier = modifier.align(Alignment.CenterEnd), title,
+                    width = 25.dp, height = 25.dp
                 )
                 if (useInput) RoundedLabel(modifier.align(Alignment.BottomCenter),
                     label = currencyInFiat.value +" USD",
@@ -415,15 +434,16 @@ private fun BaseAddressRow(
                 )
             }
         }
-        Spacer(Modifier.height(if (largeRow) 25.dp else 150.dp))
+        Spacer(Modifier.height( if (largeRow) 25.dp else 100.dp))
     }
 }
 
 @Composable
-fun BoxScope.LargeRow(
-                        string:String, symbol:String,color: Color,
-                        inputTextView: MutableState<String>,
-                        useInput:Boolean
+fun LargeRow(
+        string:String, symbol:String,color: Color,
+        inputTextView: MutableState<String>,
+        useInput:Boolean,
+        inputDone:MutableState<Boolean>
  ) {
     if ((inputTextView.value =="_") && (string != "select") &&(useInput))
         inputTextView.value = string
@@ -442,20 +462,72 @@ fun BoxScope.LargeRow(
             )
     ) {
         if (useInput) { // trigger usage of inputTextView for keyppad
-            Text(
+            /**Text(
                 inputTextView.value + " " + symbol,
                 modifier = Modifier.align(Alignment.Center),
-                color = if(MaterialTheme.colors.isLight) Color.White
+                color = if (MaterialTheme.colors.isLight) Color.White
                 else Color.Black
-            )
-        } else Text(
-                string + " " + symbol,
-                modifier = Modifier.align(Alignment.Center),
-                color = if(MaterialTheme.colors.isLight) Color.White
-                else Color.Black
-        )
+            )*/
+            // with android keypad
+            InputTextNumber( modifier = Modifier.align(Alignment.Center)
+                ,inputTextView = inputTextView, inputDone =inputDone,string = symbol )
+
+        } else
+            Text(
+            string + " " + symbol,
+            modifier = Modifier.align(Alignment.Center),
+            color = MaterialTheme.colors.onSurface)
     }
 }
+
+@Composable
+fun InputTextNumber(
+        modifier:Modifier,
+        inputTextView: MutableState<String>,
+        inputDone:MutableState<Boolean>,
+        string:String,
+
+) {
+    val change: (String)->Unit= {it->inputTextView.value = it}
+    val focusManager = LocalFocusManager.current
+
+    OutlinedTextField(
+        value = inputTextView.value,
+        singleLine = true,
+        enabled = !inputDone.value,
+        modifier = modifier,
+        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            textColor= MaterialTheme.colors.onPrimary,
+            disabledTextColor = MaterialTheme.colors.onSurface,
+            backgroundColor = Color.Transparent,
+            disabledBorderColor = Color.Transparent,
+            focusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = Color.Transparent,
+            cursorColor = MaterialTheme.colors.onPrimary,
+            trailingIconColor = MaterialTheme.colors.onPrimary,
+
+        ),
+        //label= { Text("amount in $string") },
+        placeholder ={ Text(text = "amount in $string")},
+
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done
+        ),
+        onValueChange = change,
+
+        keyboardActions = KeyboardActions(onDone = {
+            inputTextView.value += " $string"
+            inputDone.value = true
+            focusManager.clearFocus()
+        }),
+
+    )
+
+}
+
+
 
 
 
@@ -596,25 +668,20 @@ fun CircleButtonDest( /// For sendCurrencies screen
             .aspectRatio(1f),
             //.offset(x = dpx, y = dpy),
 
-        //color = MaterialTheme.colors.surface,
+        color = MaterialTheme.colors.surface,
         shape = CircleShape,
         border = BorderStroke(
             border,
-            if (MaterialTheme.colors.isLight) Color.White
-            else Color.Black
+            MaterialTheme.colors.onSurface
         ),
 
         ) {
         IconButton(
             onClick = onClickDest,
-            //modifier =Modifier.background(  if (MaterialTheme.colors.isLight) Color.White
-            //else Color.Black   )
-
         ) {
             Icon(Icons.Filled.ArrowDropDown, contentDescription = "arrow down",
 
-                tint= if (MaterialTheme.colors.isLight) Color.White
-                else Color.Black
+                tint= MaterialTheme.colors.onSurface
             )
         }
     }
@@ -637,8 +704,7 @@ fun CircleIcon(
         shape = CircleShape,
         border = BorderStroke(
             border,
-            if (MaterialTheme.colors.isLight) Color.White
-            else Color.Black
+            MaterialTheme.colors.onSurface
         )
         ) {
         Icon(imageVector = imageVector, contentDescription = string)

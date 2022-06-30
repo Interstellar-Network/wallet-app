@@ -4,10 +4,12 @@ package gg.interstellar.wallet.android.ui.sendCurrencies
 import StatementCard
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,52 +37,50 @@ fun SendCurrenciesBody(
 ) {
     var currencyName by remember { mutableStateOf("select") }
     var addressName by remember { mutableStateOf("select") }
-    var address = UserData.getAddress(addressName)
-    var currency =  UserData.getCurrency(currencyName)
+    val address = UserData.getAddress(addressName)
+    val currency =  UserData.getCurrency(currencyName)
 
     val inputtedCurrency = remember { mutableStateOf("_") }//init state
-    val currencyInFiat = remember { mutableStateOf("+") }
+    val currencyInFiat = remember { mutableStateOf("+") } // to display in addressrow
     val currencyOn = remember { mutableStateOf(false)}// match inputtedCurrency state
     val destinationOn = remember { mutableStateOf(false)}
     val noInput = remember { mutableStateOf("notUsed") }// to keep it generic
-    val firstTime = remember { mutableStateOf(true)}
-    val keypadOn= remember { mutableStateOf(false)}
+    val keypadOn= remember { mutableStateOf(false)} //custom keypad not used
+    val currencyChoice = remember { mutableStateOf(false)}
+    val addressChoice =  remember { mutableStateOf(false)}
+    val inputDone = remember { mutableStateOf(false)}
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier =
-        if (keypadOn.value) Modifier else { Modifier.verticalScroll(rememberScrollState())}
+        /**if (keypadOn.value) Modifier else*{*/ Modifier.verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(20.dp))
         DisplayInterstellar()
         Spacer(Modifier.height(30.dp))
-        if (!keypadOn.value) {
             ScreenTopButton (onClickGo,
                 //modifier= Modifier.clickable (onClickGo) /// Too bad
                 "Send"
             )
-        }
 
         SingleCurrencyStatement(
             modifier = Modifier,
             currency,
             inputtedCurrency,
             currencyInFiat,
-            currencyOn,
-        ) { keypadOn.value = true;currencyOn.value = true }
-        if (keypadOn.value)
-            Keypad(
-                modifier = Modifier,
-                onKeyClick = { text: String ->
-                    handleKeyButtonClick(text, inputtedCurrency, firstTime)
-                },
-                onCheckClick = { keypadOn.value = false },
-            )
+            currencyOn, // useInput boolean
+            inputDone   // Mutable Boolean to be changed
+        ) {
+            currencyChoice.value = true
+        }
 
-        if (currencyOn.value) Box {
+            Box {
             SingleAddressStatement(
                 modifier = Modifier,
-                address = address, currencyInFiat
-            )
+                address = address,
+                currencyInFiat,
+            ) {
+                addressChoice.value = true
+            }
             CircleButtonDest(
                 modifier = Modifier
                     //.align(Alignment.TopCenter),
@@ -88,25 +88,34 @@ fun SendCurrenciesBody(
                 6.dp, onClickDest = {})
         }
 
-
         Spacer(modifier = Modifier.height(30.dp))
-        if (!keypadOn.value && !currencyOn.value) CurrenciesStatement(
-            currencies = currencies,noInput,noInput,
-            onCurrencyClick = {name-> currencyName = name}
+        if ( currencyChoice.value && !inputDone.value) CurrenciesStatement(
+            currencies = currencies,noInput,noInput,inputDone,
+            onCurrencyClick = {
+                    name-> currencyName = name
+                    currencyOn.value = true
+                    currencyChoice.value = false
+
+            }
         )
 
-        if (currencyOn.value && !keypadOn.value && !destinationOn.value)
+        if (addressChoice.value)
             AddressesStatement(
             addresses = addresses,noInput,
-            onAddressClick = {name-> addressName = name; destinationOn.value = true}
+            onAddressClick = {
+                    name-> addressName = name
+                    destinationOn.value = true
+                    addressChoice.value = false
+                    //currencyOn.value = false
+            }
         )
 
-        if (currencyOn.value && !keypadOn.value && destinationOn.value)
+        if (currencyOn.value && destinationOn.value) {
             CircleIcon(imageVector = Icons.Filled.Add , border = 0.dp, string ="add" ,
                 size_height = 25.dp, size_width = 25.dp )
-
-
-        if (currencyOn.value && !keypadOn.value && destinationOn.value)  TransactionFee()
+            TransactionFee()
+            CheckButton(onClickGo)
+        }
 
     }
 }
@@ -118,6 +127,7 @@ fun CurrenciesStatement(
     currencies: List<Currency>,
     inputTextView: MutableState<String>,
     currencyInFiat:MutableState<String>,
+    inputDone: MutableState<Boolean>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementCard(
@@ -143,6 +153,7 @@ fun CurrenciesStatement(
             inputTextView = inputTextView,
             currencyInFiat = currencyInFiat,
             useInput = false,
+            inputDone =inputDone,
             single = false,
             fiat = true,
             color = currency.color
@@ -160,7 +171,8 @@ fun SingleCurrencyStatement(
     inputTextView: MutableState<String>,
     currencyInFiat: MutableState<String>,
     currencyOn:MutableState<Boolean>,
-    onClickKeypad:()->Unit
+    inputDone: MutableState<Boolean>, // just to add safely currency symbol
+    onClickRow:()->Unit
 ) {
     StatementCard(
         items = listOf(currency),
@@ -169,7 +181,7 @@ fun SingleCurrencyStatement(
     ) { row ->
         CurrencyRow(
             modifier = Modifier.clickable {
-                onClickKeypad()
+                onClickRow()
             },
             name = row.name,
             coin = row.coin,
@@ -183,6 +195,7 @@ fun SingleCurrencyStatement(
             inputTextView = inputTextView,
             currencyInFiat =currencyInFiat,
             useInput = currencyOn.value, // enable activation of input when keypad is on
+            inputDone =inputDone,
             single = true,
             fiat = false,
             color = row.color
@@ -213,7 +226,8 @@ fun AddressesStatement(
             pubkey = address.pubkey,
             largeRow = false, // appearance of row rounded box or circle
             currencyInFiat = currencyInFiat,
-            useInput = true
+            useInput = true,
+
         )
     }
 }
@@ -225,7 +239,8 @@ fun AddressesStatement(
 fun SingleAddressStatement(
     modifier: Modifier=Modifier,
     address: Address,
-    currencyInFiat: MutableState<String>
+    currencyInFiat: MutableState<String>,
+    onClickRow:()->Unit,
 ) {
     StatementCard(
         items = listOf(address),
@@ -233,6 +248,9 @@ fun SingleAddressStatement(
         single = true,
     ) { row ->
         AddressRow(
+            modifier = Modifier.clickable {
+                onClickRow()
+            },
             name = row.name,
             pubkey = row.pubkey,
             largeRow = true,
@@ -282,3 +300,24 @@ private fun TransactionFee() {
 }
 
 
+@Composable
+private fun CheckButton(onClickGo: () -> Unit) {
+    // Blank row to adjust
+    //Row { Spacer(Modifier.height(20.dp)) }
+    Surface(
+        modifier = Modifier
+            .sizeIn(60.dp, 60.dp, 60.dp, 60.dp)
+            .aspectRatio(1f),
+        color = MaterialTheme.colors.secondaryVariant,
+        shape = CircleShape,
+    ) {
+        IconButton(
+            onClick = onClickGo,
+        ) {
+            Icon(
+                Icons.Filled.Check,
+                "check icon", Modifier.size(35.dp)
+            )
+        }
+    }
+}

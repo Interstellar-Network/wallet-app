@@ -21,15 +21,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.data.UserData.currencies
-import gg.interstellar.wallet.android.ui.sendCurrencies.SendCurrenciesBody
+import gg.interstellar.wallet.android.ui.star.StarScreen
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
-// TEST import gg.interstellar.wallet.android.ui.accounts.AccountsBody
 import gg.interstellar.wallet.android.ui.market.CurrenciesBody
 import gg.interstellar.wallet.android.ui.market.SingleCurrencyBody
-import gg.interstellar.wallet.android.ui.sendCurrencies.SingleCurrencyStatement
+import gg.interstellar.wallet.android.ui.sendCurrencies.SendCurrenciesBody
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
 class MainActivity : ComponentActivity() {
@@ -48,7 +45,7 @@ fun WalletApp() {
         val allScreens = WalletScreen.values().toList()
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()
-        var currentScreen = WalletScreen.fromRoute(backstackEntry.value?.destination?.route)
+        val currentScreen = WalletScreen.fromRoute(backstackEntry.value?.destination?.route)
 
         Scaffold(
             bottomBar  = {
@@ -69,14 +66,23 @@ fun WalletApp() {
 @Composable
 fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
 
-    val notUsed = remember { mutableStateOf("notUsed") }//TODO makecleaner
-
+    val notUsed = remember { mutableStateOf("notUsed") }//TODO makecleaner to keep it generic?
+    val noBool = remember { mutableStateOf(false) }
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        startDestination = WalletScreen.SendCurrencies.name,
+        startDestination = WalletScreen.Star.name,
         modifier = modifier
     ) {
+        composable(WalletScreen.Star.name) {
+            StarScreen(
+                onSendClick = { navController.navigate(WalletScreen.SendCurrencies.name) },
+                onMarketClick = { navController.navigate(WalletScreen.Market.name) },
+                onPortfolioClick = {},
+                onNullClick = {}
+            )
+        }
+
         composable(WalletScreen.SendCurrencies.name) {
             SendCurrenciesBody(currencies = UserData.currencies, addresses = UserData.addresses,
                 onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) },
@@ -84,7 +90,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         }
 
         composable(WalletScreen.Market.name) {
-            CurrenciesBody(currencies = UserData.currencies,notUsed,notUsed) { name ->
+            CurrenciesBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
                 navigateToSingleCurrency(navController = navController, currencyName = name)
             }
         }
@@ -120,7 +126,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         ) { entry ->
             val currenciesName = entry.arguments?.getString("name")
             val currency = UserData.getCurrency(currenciesName)
-            SingleCurrencyBody(currency = currency,notUsed,notUsed)
+            SingleCurrencyBody(currency = currency,notUsed,notUsed,noBool)
         }
 
         val  addressesName = WalletScreen.Addresses.name

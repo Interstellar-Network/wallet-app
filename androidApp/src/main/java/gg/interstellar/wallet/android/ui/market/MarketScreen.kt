@@ -26,6 +26,7 @@ fun CurrenciesBody(
     currencies: List<Currency>,
     inputTextView: MutableState<String>,
     currencyInFiat:MutableState<String>,
+    inputDone: MutableState<Boolean>,
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementBody(
@@ -58,7 +59,8 @@ fun CurrenciesBody(
             inputTextView = inputTextView,
             currencyInFiat= currencyInFiat,
             useInput = false,
-            single = true,
+            inputDone=inputDone,
+            single = false,
             fiat = true,
             color = currency.color
         )
@@ -73,6 +75,7 @@ fun SingleCurrencyBody(
     currency: Currency,
     inputTextView: MutableState<String>,
     currencyInFiat:MutableState<String>,
+    inputDone: MutableState<Boolean>,
 ){
     StatementBody(
         items = listOf(currency),
@@ -99,6 +102,7 @@ fun SingleCurrencyBody(
             inputTextView = inputTextView,
             currencyInFiat =  currencyInFiat,
             useInput = false,
+            inputDone = inputDone,
             single = true,
             fiat = false,
             color = row.color
