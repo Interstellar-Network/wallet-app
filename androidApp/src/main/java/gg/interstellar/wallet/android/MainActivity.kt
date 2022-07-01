@@ -71,7 +71,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        startDestination = WalletScreen.Star.name,
+        startDestination = WalletScreen.SendCurrencies.name,
         modifier = modifier
     ) {
         composable(WalletScreen.Star.name) {

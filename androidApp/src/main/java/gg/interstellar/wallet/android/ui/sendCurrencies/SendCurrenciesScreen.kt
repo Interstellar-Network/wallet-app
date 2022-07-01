@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gg.interstellar.wallet.android.data.Address
 import gg.interstellar.wallet.android.data.Currency
@@ -51,31 +53,42 @@ fun SendCurrenciesBody(
     val inputDone = remember { mutableStateOf(false)}
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally, modifier =
-        /**if (keypadOn.value) Modifier else*{*/ Modifier.verticalScroll(rememberScrollState())
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+        if (!currencyChoice.value && !addressChoice.value )
+            Modifier else Modifier.verticalScroll(rememberScrollState())
+        // deactivate scrooling
     ) {
-        Spacer(Modifier.height(20.dp))
+        //Spacer(Modifier.height(0.dp))
         DisplayInterstellar()
+
+        ScreenTopBox("Send")
+
+       /**Box {
+           Box(
+               modifier=Modifier
+                    //.fillMaxWidth()
+                    .sizeIn(200.dp,249.dp,220.dp, 500.dp)
+                   //.height()
+                    //.width()
+           )*/
         Spacer(Modifier.height(30.dp))
-            ScreenTopButton (onClickGo,
-                //modifier= Modifier.clickable (onClickGo) /// Too bad
-                "Send"
-            )
-
-        SingleCurrencyStatement(
-            modifier = Modifier,
-            currency,
-            inputtedCurrency,
-            currencyInFiat,
-            currencyOn, // useInput boolean
-            inputDone   // Mutable Boolean to be changed
-        ) {
-            currencyChoice.value = true
-        }
-
-            Box {
+            SingleCurrencyStatement(
+                modifier = Modifier.padding(150.dp,150.dp),
+                currency,
+                inputtedCurrency,
+                currencyInFiat,
+                currencyOn, // useInput boolean
+                inputDone   // Mutable Boolean to be changed
+            ) {
+                currencyChoice.value = true
+            }
+           Spacer(modifier = Modifier.height(0.dp)
+                   .align(Alignment.CenterHorizontally)
+           )
             SingleAddressStatement(
-                modifier = Modifier,
+                modifier = Modifier, //.align(Alignment.BottomCenter),
+                           // .sizeIn(200.dp,249.dp,220.dp, 500.dp),
                 address = address,
                 currencyInFiat,
             ) {
@@ -83,41 +96,45 @@ fun SendCurrenciesBody(
             }
             CircleButtonDest(
                 modifier = Modifier
-                    //.align(Alignment.TopCenter),
-                    .offset(100.dp,-20.dp), //TODO better way
-                6.dp, onClickDest = {})
-        }
+                    //.align(Alignment.CenterHorizontally),
+                    .offset(0.dp, (-145).dp), //TODO better way
+                    6.dp, onClickDest = {})
 
-        Spacer(modifier = Modifier.height(30.dp))
-        if ( currencyChoice.value && !inputDone.value) CurrenciesStatement(
-            currencies = currencies,noInput,noInput,inputDone,
-            onCurrencyClick = {
-                    name-> currencyName = name
+
+            //Spacer(modifier = Modifier.height(30.dp))
+            if ( currencyChoice.value && !inputDone.value) CurrenciesStatement(
+                currencies = currencies,noInput,noInput,inputDone,
+                onCurrencyClick = {
+                        name-> currencyName = name
                     currencyOn.value = true
                     currencyChoice.value = false
 
-            }
-        )
+                }
+            )
 
-        if (addressChoice.value)
-            AddressesStatement(
-            addresses = addresses,noInput,
-            onAddressClick = {
-                    name-> addressName = name
-                    destinationOn.value = true
-                    addressChoice.value = false
-                    //currencyOn.value = false
-            }
-        )
+            if (addressChoice.value)
+                AddressesStatement(
+                    addresses = addresses,noInput,
+                    onAddressClick = {
+                            name-> addressName = name
+                        destinationOn.value = true
+                        addressChoice.value = false
+                        //currencyOn.value = false
+                    }
+                )
 
-        if (currencyOn.value && destinationOn.value) {
-            CircleIcon(imageVector = Icons.Filled.Add , border = 0.dp, string ="add" ,
-                size_height = 25.dp, size_width = 25.dp )
-            TransactionFee()
-            CheckButton(onClickGo)
+            if (currencyOn.value && destinationOn.value) {
+                CircleIcon(imageVector = Icons.Filled.Add , border = 0.dp, string ="add" ,
+                    size_height = 25.dp, size_width = 25.dp )
+                TransactionFee()
+                CheckButton(onClickGo)
+            }
         }
 
-    }
+}
+@Composable
+private fun TEST(modifier: Modifier)
+{Row(modifier) {Text("TEST")}
 }
 
 /** Detail statement for currencies
@@ -131,7 +148,7 @@ fun CurrenciesStatement(
     onCurrencyClick: (String) -> Unit = {},
 ) {
     StatementCard(
-        //modifier = Modifier.semantics { contentDescription = "Currency Card" },
+        modifier = Modifier.semantics { contentDescription = "Currency Card" },
         items = currencies,
         doubleColumn = true,
         single = false,
@@ -175,12 +192,15 @@ fun SingleCurrencyStatement(
     onClickRow:()->Unit
 ) {
     StatementCard(
+        modifier =modifier,
         items = listOf(currency),
         doubleColumn = false,
         single = true,
     ) { row ->
         CurrencyRow(
-            modifier = Modifier.clickable {
+            modifier = Modifier
+                .padding(12.dp,0.dp) //adjust padding to
+                .clickable {
                 onClickRow()
             },
             name = row.name,
@@ -211,7 +231,7 @@ fun AddressesStatement(
     onAddressClick: (String) -> Unit = {},
 ) {
     StatementCard(
-        //modifier = Modifier.semantics { contentDescription = "Addresses Screen" },
+        modifier = Modifier.semantics { contentDescription = "Addresses Statement" },
         items = addresses,
         doubleColumn = true,
         single = true,
@@ -237,12 +257,13 @@ fun AddressesStatement(
  */
 @Composable
 fun SingleAddressStatement(
-    modifier: Modifier=Modifier,
+    modifier: Modifier= Modifier,
     address: Address,
     currencyInFiat: MutableState<String>,
     onClickRow:()->Unit,
 ) {
     StatementCard(
+        modifier =modifier,
         items = listOf(address),
         doubleColumn = false,
         single = true,
@@ -265,7 +286,6 @@ fun SingleAddressStatement(
 @Composable
 private fun TransactionFee() {
 
-    Row { Spacer(Modifier.height(40.dp)) }
     Box(
     )
     {
@@ -296,14 +316,11 @@ private fun TransactionFee() {
         )
 
     }
-    Row { Spacer(Modifier.height(40.dp)) }
 }
 
 
 @Composable
 private fun CheckButton(onClickGo: () -> Unit) {
-    // Blank row to adjust
-    //Row { Spacer(Modifier.height(20.dp)) }
     Surface(
         modifier = Modifier
             .sizeIn(60.dp, 60.dp, 60.dp, 60.dp)

@@ -32,12 +32,14 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.fontResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -176,7 +178,7 @@ fun ScreenTopBox(
         ) {
             Surface(
                 modifier = Modifier
-                    .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
+                    .sizeIn(280.dp, 140.dp, 280.dp, 140.dp)
                     .padding(25.dp),
                 shape = CircleShape,
                 elevation = 50.dp,
@@ -263,7 +265,8 @@ fun CurrencyRow(
 /**
  * A row representing the basic information of a currency
  */
-
+val HEIGHT_BASE_SIMPLE_ROW = 130.dp
+val PADDING_ROW = 12.dp
 @Composable
 private fun BaseRow(
     modifier: Modifier = Modifier,
@@ -299,9 +302,16 @@ private fun BaseRow(
     ) {// otherwise it crash
         currencyInFiat.value = formatAmount(inputTextView.value.toFloat() * usd)
     }
+
     Row(
+
         modifier = modifier
-            .height(98.dp)
+            .height(
+                if (largeRow && single) // adjust row size
+                    HEIGHT_BASE_SIMPLE_ROW - 24.dp else HEIGHT_BASE_SIMPLE_ROW
+            )
+            //.padding(PADDING_ROW)
+
             .clearAndSetSemantics {
                 contentDescription = // TODO update
                     "$title account ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
@@ -311,14 +321,18 @@ private fun BaseRow(
         Box(
             modifier = modifier
         ){
-            Box(
-                modifier = modifier
-                    .padding(10.dp), // enlarge the box to put image,labels on border
+            Box( modifier = // TEST
+
+                if (largeRow && single) modifier else modifier.padding(12.dp)
+                // enlarge the box to put image,labels on border
+                // no padding here for single row
+                // padding modifier is injected in row creation of SingleStatement
 
             ) {// should use box in a box to display text label on border
                 if (largeRow) {
                     LargeRow(
-                        if (symbol == "select") " Select a currency"
+                        //modifier,
+                        if (symbol == "select") " Select \n currency"
                             else formattedAmount,
                         if (symbol == "select") "" else symbol,
                         color,
@@ -332,22 +346,22 @@ private fun BaseRow(
             }
             if (largeRow)
                 if (title!="select") CircleImage(
-                    modifier.align(Alignment.CenterEnd),
+                    modifier =Modifier.align(Alignment.CenterEnd),
                     symbol,
-                    25.dp,25.dp
+                    35.dp,35.dp
                 )
             if (fiat) RoundedLabel(
-                modifier.align(Alignment.BottomCenter),
+                modifier =Modifier.align(Alignment.BottomCenter),
                 if (useInput) dollarSign + currencyInFiat.value
                 else dollarSign+formattedAmountFiat,
-                70.dp,25.dp
+
             )
             if (changeOn) CircleLabelwithIconIn(
-                modifier.align(Alignment.TopCenter),
+                modifier = Modifier.align(Alignment.TopCenter),
                 formattedChange+"%",
                 if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                 if (change>0)  Color(0xffe93943) else Color(0xff12c785),
-                70.dp,25.dp
+
             )
         }
     }
@@ -386,8 +400,7 @@ private fun SimpleBaseRow(
     val noinput = remember { mutableStateOf(false) }
     Row(
         modifier = modifier
-            .height(98.dp)
-
+            .height(HEIGHT_BASE_SIMPLE_ROW)
             .clearAndSetSemantics {
                 contentDescription =
                     "$title add other info"
@@ -402,7 +415,8 @@ private fun SimpleBaseRow(
             ) {// use box in a box to display text label on border
                 if (largeRow) {
                     LargeRow(
-                        if (title=="select") "Select a destination"
+                        //modifier,
+                        if (title=="select") "Select \ndestination"
                         else title.uppercase(),
                         "", //no symbol
                         color,
@@ -416,21 +430,21 @@ private fun SimpleBaseRow(
                     CircleImage(modifier = Modifier,//.align(Alignment.Center),
                         title, 90.dp, 90.dp)
                 }
+
+                //Row{Spacer(modifier =Modifier.height(100.dp))} TEST to enlarge
             }
             if (largeRow) {
                 if (title!="select") CircleImage(
-                    modifier = modifier.align(Alignment.CenterEnd), title,
-                    width = 25.dp, height = 25.dp
+                    modifier = Modifier.align(Alignment.CenterEnd), title,
+                    width = 35.dp, height = 35.dp
                 )
-                if (useInput) RoundedLabel(modifier.align(Alignment.BottomCenter),
-                    label = currencyInFiat.value +" USD",
-                    size_width = 85.dp, size_height = 35.dp)
+                if (useInput) RoundedLabel(modifier= Modifier.align(Alignment.BottomCenter),
+                    label = currencyInFiat.value +" USD")
 
             } else {
                 RoundedLabel(
-                    modifier = modifier.align(Alignment.BottomCenter),
-                    title.uppercase(),
-                    70.dp, 25.dp
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    title.uppercase()
                 )
             }
         }
@@ -440,6 +454,7 @@ private fun SimpleBaseRow(
 
 @Composable
 fun LargeRow(
+        //modifier: Modifier=Modifier,
         string:String, symbol:String,color: Color,
         inputTextView: MutableState<String>,
         useInput:Boolean,
@@ -450,7 +465,7 @@ fun LargeRow(
     Box(
         modifier = Modifier
             .shadow(elevation = 10.dp, shape = RectangleShape, clip = false)
-            .sizeIn(220.dp, 80.dp, 220.dp, 80.dp)
+            .sizeIn(220.dp, 120.dp, 220.dp, 140.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(
                 Brush.linearGradient(
@@ -476,7 +491,8 @@ fun LargeRow(
             Text(
             string + " " + symbol,
             modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colors.onSurface)
+            color = MaterialTheme.colors.onSurface,
+            style = typography.h5)
     }
 }
 
@@ -496,7 +512,9 @@ fun InputTextNumber(
         singleLine = true,
         enabled = !inputDone.value,
         modifier = modifier,
-        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center,
+        fontSize = 26.sp, ), //TODO use style = typography.h5
+
         colors = TextFieldDefaults.outlinedTextFieldColors(
             textColor= MaterialTheme.colors.onPrimary,
             disabledTextColor = MaterialTheme.colors.onSurface,
@@ -526,8 +544,6 @@ fun InputTextNumber(
     )
 
 }
-
-
 
 
 
@@ -574,11 +590,9 @@ fun CircleImage(
 @Composable
 fun RoundedLabel(
     modifier: Modifier=Modifier,
-    label: String,
-    size_width: Dp, size_height:Dp ) {
+    label: String) {
     Surface(
-        modifier = modifier
-            .sizeIn(size_width, size_height, size_width, size_height),
+        modifier = modifier,
         shape = CircleShape,
     ) {
         Box(
@@ -587,7 +601,7 @@ fun RoundedLabel(
         ) {
             Text(label, Modifier
                 .align(Alignment.Center),
-                style = typography.caption)
+                style = typography.body1)
         }
     }
 }
@@ -596,12 +610,10 @@ fun RoundedLabel(
 @Composable
 fun CircleLabelwithIconIn(
     modifier: Modifier=Modifier,
-    label:String, imageVector: ImageVector,color: Color,
-    size_width: Dp, size_height:Dp ) {
+    label:String, imageVector: ImageVector,color: Color) {
 
     Surface(
-        modifier = modifier
-            .sizeIn(size_width, size_height, size_width, size_height),
+        modifier = modifier,
         shape = CircleShape,
         color = color,
         contentColor = Color.White
@@ -649,8 +661,7 @@ fun TextwithIcon(string:String,imageVector: ImageVector) {
     Text(text,
         textAlign = TextAlign.Center,
         inlineContent = inlineContent,
-        //fontsize = 10.dp,
-        //Color = Color.White,
+
     )
 
 }

@@ -3,10 +3,8 @@ package gg.interstellar.wallet.android.ui.star
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +13,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import gg.interstellar.wallet.android.ui.CircleImage
 import gg.interstellar.wallet.android.ui.DisplayInterstellar
+import gg.interstellar.wallet.android.ui.RoundedLabel
 
 
 @Composable
@@ -32,9 +32,19 @@ fun StarScreen(
         DisplayInterstellar()
         Spacer(Modifier.height(20.dp))
 
-        //CircleImage(string = "nash", width = 100.dp, height =100.dp )
+        Box {
+            CircleImage(string = "nash", width = 160.dp, height = 160.dp)
+            RoundedLabel(modifier = Modifier
+                .align(Alignment.BottomCenter)
+                , label = "NASH")
+        }
+
+        Spacer(Modifier.height(30.dp))
+
         Column {
+
             Row {
+
                 SendBox(onSendClick)
                 ReceiveBox(onNullClick)
             }
@@ -52,6 +62,22 @@ fun StarScreen(
         }
     }
 }
+@Composable
+private fun GenericRow(modifier: Modifier) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth(),
+
+        
+    ) {
+
+
+    }
+
+}
+
+
 
 @Composable
 private fun GenericBoxButton(
@@ -65,7 +91,7 @@ private fun GenericBoxButton(
         0.4f to colorStart,
         1f to colorEnd,
         start = Offset(0f, 0f),
-        end = Offset(650f, 0f),
+        end = Offset(150f, 0f),
     )
     Box {
         Button(
@@ -82,17 +108,28 @@ private fun GenericBoxButton(
             contentPadding = PaddingValues(),
 
             ) {
+            Surface(
+                modifier =modifier
+                    .sizeIn(80.dp,80.dp, 120.dp,120.dp),
+                    //.padding(5.dp),
+                shape =  RoundedCornerShape(10.dp),
+            ) {
+
             Box(
                 modifier = Modifier
                     .background(gradient)
                     .then(modifier),
                 contentAlignment = Alignment.Center,
+
             ) {
-                Text(
-                    name,
-                    color = MaterialTheme.colors.onSurface,
-                    fontSize = 35.sp,
-                )
+                    Text(
+                        name,
+                        color = MaterialTheme.colors.onSurface,
+                        modifier = modifier
+                            .align(Alignment.Center),
+                        fontSize = 18.sp,
+                    )
+                }
             }
         }
     }
