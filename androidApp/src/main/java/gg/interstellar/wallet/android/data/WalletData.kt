@@ -18,6 +18,11 @@ package gg.interstellar.wallet.android.data
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import gg.interstellar.wallet.android.WalletScreen
+import gg.interstellar.wallet.android.ui.theme.BlueCustom1
+import gg.interstellar.wallet.android.ui.theme.MagentaCustom
+import gg.interstellar.wallet.android.ui.theme.Purple700
+import gg.interstellar.wallet.android.ui.theme.PurpleCustom
 
 /* Hard-coded data for the wallet sample. */
 @Immutable
@@ -25,6 +30,15 @@ data class Appearance(
     // default
     val largeRow:Boolean,
 )
+
+@Immutable
+data class StarButtonBox(
+    val name: String,
+    val weight: Float,
+    val colorStart: Color,
+    val colorEnd: Color,
+)
+
 
 
 @Immutable
@@ -51,9 +65,10 @@ data class Transaction(
 data class Address(
     val name: String,
     val pubkey: String,
+    val color: Color,
     // little trick to use Generic StatementBody with Address screen with no amount
     val no_amount: Float = 0f,
-    val color: Color = Color(0xFF637DEA)
+
 )
 
 
@@ -71,7 +86,7 @@ object UserData {
             0f,
             0f,
             0f,
-            Color(0xFF637DEA),
+            PurpleCustom
         ),
 
         Currency(
@@ -121,42 +136,105 @@ object UserData {
         Address(
             "select",//trick to define a row for input
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
+            PurpleCustom
         ),
 
         Address(
             "alice",
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
+            Color(0xFF17e6b6)
         ),
         Address(
             "bob",
             "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
+            Color(0xFF47b7c1)
         ),
         Address(
             "uniswap",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
+            Color(0xFFe60079)
         ),
         Address(
             "li",
             "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
+            Color(0xFFFF9500)
         ),
         Address(
             "robert",
             "0x54d78737eac5007103e729e9ab7ce64a6850a310",
+            Purple700
         ),
         Address(
             "siegfried",
             "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
+            Color(0xFFe60079)
         ),
         Address(
             "oneinch",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
+            MagentaCustom
         ),
 
         Address(
             "tim",
             "0x54d78737eac5007103e729e9ab7ce64a6850a310",
+            BlueCustom1
         )
 
+    )
+
+    val menu: List<StarButtonBox> = listOf(
+        StarButtonBox(
+            "Send",
+            0.5f,
+            MagentaCustom,
+            Color(0xffcc33ff),
+
+        ),
+        StarButtonBox(
+            "Receive",
+            0.5f,
+            Color(0xffde33ff),
+            Color(0xffae33ff)
+        ),
+        StarButtonBox(
+            "Portfolio",
+            1f,
+            Color(0xffd033ff),
+            Color(0xff8133ff),
+        ),
+        StarButtonBox(
+            "",   //bad trick to manage Portfolio to take all row
+            0.5f,
+            Color(0xffffffff),
+            Color(0xffffffff),
+        ),
+
+        StarButtonBox(
+            "Market",
+            0.5f,
+            Color(0xffa433ff),
+            Color(0xff7133ff),
+        ),
+
+        StarButtonBox(
+            "NFTs",
+            0.5f,
+            Color(0xff8833ff),
+            Color(0xff6633ff),
+        ),
+        StarButtonBox(
+            "Swap",
+            0.5f,
+            Color(0xff7933ff),
+            Color(0xff6633ff),
+        ),
+        StarButtonBox(
+            "Buy",
+            0.5f,
+            Color(0xff6633ff),
+            Color(0xff6633ff),
+        )
     )
 
     fun getAddress(addressName: String?): Address {
@@ -166,5 +244,17 @@ object UserData {
     fun getCurrency(currencyName: String?): Currency {
         return currencies.first { it.name == currencyName }
     }
+    fun getBoxName(boxName: String?): StarButtonBox {
+        return menu.first { it.name == boxName }
+    }
+
 
 }
+
+
+
+
+
+
+
+

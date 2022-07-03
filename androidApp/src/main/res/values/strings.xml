@@ -1,8 +1,8 @@
 <resources>
     <string name="title_activity_main">MainActivity</string>
-        <string name="app_name">Rally</string>
+        <string name="app_name">Interstellar</string>
         <string name="total">Total</string>
-        <string name="due">Due</string>
+
         <string name="three_point_redacted">• • • </string>
         <string name="one_point_redacted">•</string>
         <string name="accounts">Accounts</string>

@@ -98,13 +98,13 @@ fun SingleCurrencyBody(
             change = row.change,
             usd = row.usd,
             changeOn = true,
-            largeRow = true,
+            largeRow = false,
             inputTextView = inputTextView,
             currencyInFiat =  currencyInFiat,
             useInput = false,
             inputDone = inputDone,
             single = true,
-            fiat = false,
+            fiat = true,
             color = row.color
         )
     }

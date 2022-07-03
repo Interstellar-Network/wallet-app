@@ -261,11 +261,10 @@ fun CurrencyRow(
     )
 }
 
-
 /**
  * A row representing the basic information of a currency
  */
-val HEIGHT_BASE_SIMPLE_ROW = 130.dp
+val HEIGHT_BASE_SIMPLE_ROW = 110.dp
 val PADDING_ROW = 12.dp
 @Composable
 private fun BaseRow(
@@ -332,7 +331,7 @@ private fun BaseRow(
                 if (largeRow) {
                     LargeRow(
                         //modifier,
-                        if (symbol == "select") " Select \n currency"
+                        if (symbol == "select") "Tap Currency..."
                             else formattedAmount,
                         if (symbol == "select") "" else symbol,
                         color,
@@ -416,7 +415,7 @@ private fun SimpleBaseRow(
                 if (largeRow) {
                     LargeRow(
                         //modifier,
-                        if (title=="select") "Select \ndestination"
+                        if (title=="select") "Tap Contact...."
                         else title.uppercase(),
                         "", //no symbol
                         color,

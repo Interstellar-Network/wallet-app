@@ -35,7 +35,6 @@ fun <T> StatementBody(
     screenLabel: String,
     doubleColumn: Boolean,
     single: Boolean,
-    //useInput:Boolean,
     fiat: Boolean,
     rows: @Composable (T) -> Unit
 ) {

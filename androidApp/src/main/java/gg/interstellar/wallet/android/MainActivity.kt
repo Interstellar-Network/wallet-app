@@ -71,7 +71,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        startDestination = WalletScreen.SendCurrencies.name,
+        startDestination = WalletScreen.Star.name,
         modifier = modifier
     ) {
         composable(WalletScreen.Star.name) {
@@ -79,7 +79,6 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
                 onSendClick = { navController.navigate(WalletScreen.SendCurrencies.name) },
                 onMarketClick = { navController.navigate(WalletScreen.Market.name) },
                 onPortfolioClick = {},
-                onNullClick = {}
             )
         }
 
@@ -158,3 +157,8 @@ private fun navigateToSingleCurrency(navController: NavHostController, currencyN
 private fun navigateToSingleAddress(navController: NavHostController, addressName: String) {
         navController.navigate("${WalletScreen.Addresses.name}/$addressName")
 }
+
+/*
+private fun navigateToScreen(navController: NavHostController, addressName: String) {
+    navController.navigate("${WalletScreen.Addresses.name}/$addressName")
+}*/

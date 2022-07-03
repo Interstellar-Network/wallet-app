@@ -3,8 +3,12 @@ package gg.interstellar.wallet.android.ui.star
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,9 +17,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import gg.interstellar.wallet.android.data.Currency
+import gg.interstellar.wallet.android.data.StarButtonBox
+import gg.interstellar.wallet.android.data.UserData
+import gg.interstellar.wallet.android.data.UserData.getBoxName
 import gg.interstellar.wallet.android.ui.CircleImage
 import gg.interstellar.wallet.android.ui.DisplayInterstellar
 import gg.interstellar.wallet.android.ui.RoundedLabel
+import gg.interstellar.wallet.android.ui.theme.MagentaCustom
+import gg.interstellar.wallet.android.ui.theme.PurpleCustom
+import kotlinx.coroutines.processNextEventInCurrentThread
 
 
 @Composable
@@ -23,10 +34,9 @@ fun StarScreen(
             onSendClick:()->Unit,
             onMarketClick:()->Unit,
             onPortfolioClick:()->Unit,
-            onNullClick:()->Unit
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(20.dp))
         DisplayInterstellar()
@@ -34,66 +44,91 @@ fun StarScreen(
 
         Box {
             CircleImage(string = "nash", width = 160.dp, height = 160.dp)
-            RoundedLabel(modifier = Modifier
-                .align(Alignment.BottomCenter)
-                , label = "NASH")
+            RoundedLabel(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter), label = "NASH"
+            )
         }
-
         Spacer(Modifier.height(30.dp))
 
         Column {
+            val menu = UserData.menu
+            BoxArrangement(modifier=Modifier,menu,//TODO make it cleaner with (String)->Unit
+                                    onSendClick,
+                                    onMarketClick,
+                                    onPortfolioClick)
+            Spacer(modifier =Modifier.height(20.dp))
+        }
 
-            Row {
+    }
+}
 
-                SendBox(onSendClick)
-                ReceiveBox(onNullClick)
-            }
-            Row {
-                PortfolioBox(onPortfolioClick)
-            }
-            Row {
-                MarketBox(onMarketClick)
-                NFTsBox(onNullClick)
-            }
-            Row {
-                SwapBox(onNullClick)
-                BuyBox(onNullClick)
+@Composable
+private fun  BoxArrangement(
+    modifier:Modifier,
+    buttons: List<StarButtonBox>,
+    onSendClick:()->Unit,
+    onMarketClick:()->Unit,
+    onPortfolioClick:()->Unit,
+) {
+    LazyColumn(modifier = modifier) {
+        //item {Spacer(Modifier.height(16.dp)) }
+        items( buttons.chunked(2),) { rowItems ->
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(90.dp, 5.dp),
+            ) {
+                for (button in rowItems) {
+                    GenericBoxButton(
+                        modifier = modifier.weight(button.weight),
+                        name = button.name,
+                        colorStart = button.colorStart,
+                        colorEnd = button.colorEnd,
+                        onClickButton = ManageOnClick(
+                            button.name,
+                            onSendClick,
+                            onMarketClick,
+                            onPortfolioClick
+                        )
+                    )
+                    Spacer(modifier =Modifier.width(10.dp))
+                    if(button.weight == 1f) break
+                }
             }
         }
     }
 }
-@Composable
-private fun GenericRow(modifier: Modifier) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxWidth(),
 
-        
-    ) {
-
-
+private fun ManageOnClick(
+    name:String,
+    onSendClick:()->Unit,
+    onMarketClick:()->Unit,
+    onPortfolioClick:()->Unit,
+): () -> Unit {
+    when (name) {
+        "Send" -> return onSendClick
+        "Market" -> return onMarketClick
+        "Portfolio" -> return onPortfolioClick
+        else -> return {}
     }
-
 }
-
 
 
 @Composable
 private fun GenericBoxButton(
-    modifier:Modifier =Modifier,
-    name:String,
-    colorStart:Color,
-    colorEnd:Color,
-    onClickButton:()->Unit
+    modifier: Modifier = Modifier,
+    name: String,
+    colorStart: Color,
+    colorEnd: Color,
+    onClickButton: () -> Unit
 ) {
     val gradient = Brush.linearGradient(
-        0.4f to colorStart,
+        0.2f to colorStart,
         1f to colorEnd,
-        start = Offset(0f, 0f),
-        end = Offset(150f, 0f),
+        start = Offset(0f, 00f),
+        end = Offset(310f, 310f),
     )
-    Box {
+    //Box {
         Button(
             onClick = onClickButton,
             modifier,
@@ -109,19 +144,19 @@ private fun GenericBoxButton(
 
             ) {
             Surface(
-                modifier =modifier
-                    .sizeIn(80.dp,80.dp, 120.dp,120.dp),
-                    //.padding(5.dp),
-                shape =  RoundedCornerShape(10.dp),
+                modifier = modifier
+                    .sizeIn(80.dp, 80.dp, 80.dp, 80.dp),
+                //.padding(5.dp),
+                shape = RoundedCornerShape(10.dp),
             ) {
 
-            Box(
-                modifier = Modifier
-                    .background(gradient)
-                    .then(modifier),
-                contentAlignment = Alignment.Center,
+                Box(
+                    modifier = Modifier
+                        .background(gradient)
+                        .then(modifier),
+                    contentAlignment = Alignment.Center,
 
-            ) {
+                    ) {
                     Text(
                         name,
                         color = MaterialTheme.colors.onSurface,
@@ -132,103 +167,12 @@ private fun GenericBoxButton(
                 }
             }
         }
-    }
+   // }
 }
+@Composable
+fun button(onClick: (String) -> Unit, modifier: Modifier, elevation: ButtonElevation, colors: ButtonColors, contentPadding: PaddingValues, content: RowScope.() -> Unit) {
 
-@Composable
-private fun SendBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Send",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
-@Composable
-private fun ReceiveBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Receive",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
 
-@Composable
-private fun PortfolioBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Portfolio",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
 
-@Composable
-private fun MarketBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Market",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
-
-@Composable
-private fun NFTsBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "NFTs",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
-
-@Composable
-private fun SwapBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Swap",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
-}
-
-@Composable
-private fun BuyBox(
-    onClickButton:()->Unit) {
-    Box {
-        GenericBoxButton(
-            modifier = Modifier,
-            "Buy",
-            colorStart = MaterialTheme.colors.secondary,
-            colorEnd = MaterialTheme.colors.primary,
-            onClickButton
-        )
-    }
 }
 

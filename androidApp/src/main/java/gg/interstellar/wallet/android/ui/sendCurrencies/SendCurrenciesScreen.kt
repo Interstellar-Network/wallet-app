@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -20,6 +21,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,7 @@ import gg.interstellar.wallet.android.ui.components.Keypad
 import gg.interstellar.wallet.android.ui.components.handleKeyButtonClick
 
 //@Preview
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SendCurrenciesBody(
     currencies: List<Currency>,
@@ -48,9 +52,13 @@ fun SendCurrenciesBody(
     val destinationOn = remember { mutableStateOf(false)}
     val noInput = remember { mutableStateOf("notUsed") }// to keep it generic
     val keypadOn= remember { mutableStateOf(false)} //custom keypad not used
-    val currencyChoice = remember { mutableStateOf(false)}
+    val currencyChoice = remember { mutableStateOf(true)}
     val addressChoice =  remember { mutableStateOf(false)}
     val inputDone = remember { mutableStateOf(false)}
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
+
+
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -72,6 +80,9 @@ fun SendCurrenciesBody(
                    //.height()
                     //.width()
            )*/
+
+        if (currencyOn.value)  softwareKeyboardController?.show()//does not work???
+
         Spacer(Modifier.height(30.dp))
             SingleCurrencyStatement(
                 modifier = Modifier.padding(150.dp,150.dp),
@@ -82,9 +93,11 @@ fun SendCurrenciesBody(
                 inputDone   // Mutable Boolean to be changed
             ) {
                 currencyChoice.value = true
+
             }
-           Spacer(modifier = Modifier.height(0.dp)
-                   .align(Alignment.CenterHorizontally)
+           Spacer(modifier = Modifier
+               .height(0.dp)
+               .align(Alignment.CenterHorizontally)
            )
             SingleAddressStatement(
                 modifier = Modifier, //.align(Alignment.BottomCenter),
@@ -97,7 +110,7 @@ fun SendCurrenciesBody(
             CircleButtonDest(
                 modifier = Modifier
                     //.align(Alignment.CenterHorizontally),
-                    .offset(0.dp, (-145).dp), //TODO better way
+                    .offset(0.dp, (-127).dp), //TODO better way
                     6.dp, onClickDest = {})
 
 
@@ -108,7 +121,6 @@ fun SendCurrenciesBody(
                         name-> currencyName = name
                     currencyOn.value = true
                     currencyChoice.value = false
-
                 }
             )
 
@@ -131,10 +143,6 @@ fun SendCurrenciesBody(
             }
         }
 
-}
-@Composable
-private fun TEST(modifier: Modifier)
-{Row(modifier) {Text("TEST")}
 }
 
 /** Detail statement for currencies
@@ -198,11 +206,11 @@ fun SingleCurrencyStatement(
         single = true,
     ) { row ->
         CurrencyRow(
-            modifier = Modifier
-                .padding(12.dp,0.dp) //adjust padding to
+            modifier = Modifier        //specific to this screen
+                .padding(12.dp, 0.dp) // padding to be close to address box
                 .clickable {
-                onClickRow()
-            },
+                    onClickRow()
+                },
             name = row.name,
             coin = row.coin,
             pubkey = row.pubkey,
@@ -286,36 +294,35 @@ fun SingleAddressStatement(
 @Composable
 private fun TransactionFee() {
 
-    Box(
-    )
-    {
-        Box(
-            modifier = Modifier
-                .padding(10.dp)
-                .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
-                .sizeIn(220.dp, 50.dp, 220.dp, 50.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(
-                    Brush.linearGradient(
-                        0.0f to Color.DarkGray,
-                        0.8f to Color.White,
-                        start = Offset(0f, 0f),
-                        end = Offset(820f, 0f),
-                    )
-                )
-        ) {
-            Text(
-                "0.10 USD",
+    Spacer(modifier = Modifier.height(25.dp))
+    Box{
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center),
+                    .padding(10.dp)
+                    .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
+                    .sizeIn(220.dp, 50.dp, 220.dp, 50.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.linearGradient(
+                            0.0f to Color.DarkGray,
+                            0.8f to Color.White,
+                            start = Offset(0f, 0f),
+                            end = Offset(820f, 0f),
+                        )
+                    )
+            ) {
+                Text(
+                    "0.10 USD",
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                )
+            }
+            CircleImage(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                "select", 30.dp, 30.dp  //select = interstellar icon with border
             )
-        }
-        CircleImage(
-            modifier =Modifier.align(Alignment.CenterEnd),
-            "select",30.dp,30.dp  //select = interstellar icon with border
-        )
 
-    }
+        }
 }
 
 
