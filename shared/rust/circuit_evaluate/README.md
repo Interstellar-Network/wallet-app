@@ -7,6 +7,6 @@ eg:
 - remove all functions needed only server-side
 - replace AES SSE by a Rust version
 
-TODO we SHOULD move the common in a separate repo! Or better, rewrite in Rust on use it from "lib_garble"(needed only for tests?)
+## TODO
 
-TODO replace GPL by Apache
+- TODO we SHOULD move the common in a separate repo! Or better, rewrite in Rust on use it from "lib_garble"(needed only for tests?)
