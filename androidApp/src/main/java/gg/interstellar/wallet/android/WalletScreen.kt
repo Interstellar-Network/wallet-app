@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 enum class WalletScreen(
     val icon: ImageVector,
 ) {
-    Star(
-        icon = Icons.Filled.Star,
+    Portfolio(
+        icon = Icons.Filled.AccountBalanceWallet
     ),
-
+    /**
     Market(
         icon = Icons.Filled.PieChart,
     ),
@@ -23,25 +23,29 @@ enum class WalletScreen(
     Addresses(
         icon = Icons.Filled.ImportContacts,
     ),
+    */
 
-    SendCurrencies(
+    Send(
         icon = Icons.Default.Send,
     ),
     TxPinpad(
         icon = Icons.Filled.Lock,
 
-    ),;
+    ),
+    Profile(
+        icon = Icons.Filled.AccountCircle,
+    ), ;
 
     companion object {
         fun fromRoute(route: String?): WalletScreen =
             when (route?.substringBefore("/")) {
-                Star.name->Star
-                SendCurrencies.name -> SendCurrencies
+                Profile.name->Profile
+                Portfolio.name->Portfolio
+                Send.name -> Send
                 TxPinpad.name -> TxPinpad
-                Market.name -> Market
-                Addresses.name -> Addresses
-                // TODO start screen(=landing page) on null
-                null -> Star
+                //Market.name -> Market
+                //Addresses.name -> Addresses
+                null -> Portfolio
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
     }
