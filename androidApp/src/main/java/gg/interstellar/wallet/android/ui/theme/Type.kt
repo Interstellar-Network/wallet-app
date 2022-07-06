@@ -53,7 +53,7 @@ val Typography = Typography(
         fontSize = 18.sp,
         lineHeight = 20.sp,
         //fontFamily = EczarFontFamily,
-        letterSpacing = 3.sp
+        letterSpacing = 0.sp// 3 before
     ),
     subtitle1 = TextStyle(
         fontWeight = FontWeight.Light,
@@ -69,7 +69,7 @@ val Typography = Typography(
     body1 = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        letterSpacing = 0.1.em
+        letterSpacing = 0.em //0.1 before
     ),
     body2 = TextStyle(
         fontWeight = FontWeight.Normal,
