@@ -25,7 +25,7 @@ fun <T> StatementCard( //TODO card or box
 }
 
 /** extract first row (use for send currencies init from list except in single currency
- * when doubleColumm are always false*/
+ * when doubleColumn are always false*/
 @Composable
 private fun <T> DoubleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
 
@@ -36,7 +36,7 @@ private fun <T> DoubleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
             list.forEach { item ->
                 rows(item)  }
         }
-        Spacer(Modifier.width(40.dp))
+        Spacer(Modifier.width(30.dp))
         Column {
             val list = items.filterIndexed { index, _ -> (index !=0) && (index%2!=0) }
             list.forEach { item ->
