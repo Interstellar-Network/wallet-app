@@ -156,29 +156,6 @@ object UserData {
             "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
             Color(0xFF5b0705)
         ),
-        /**
-        Address(
-            "robert",
-            "0x54d78737eac5007103e729e9ab7ce64a6850a310",
-            Purple700
-        ),
-        Address(
-            "siegfried",
-            "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
-            Color(0xFFe60079)
-        ),
-        Address(
-            "oneinch",
-            "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
-            MagentaCustom
-        ),
-
-        Address(
-            "tim",
-            "0x54d78737eac5007103e729e9ab7ce64a6850a310",
-            BlueCustom1
-        )
-        */
 
     )
 
