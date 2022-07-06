@@ -1,7 +1,5 @@
 package gg.interstellar.wallet.android
 
-import AddressesBody
-import SingleAddressBody
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,19 +12,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.ui.star.StarScreen
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
-import gg.interstellar.wallet.android.ui.market.CurrenciesBody
-import gg.interstellar.wallet.android.ui.market.SingleCurrencyBody
-import gg.interstellar.wallet.android.ui.sendCurrencies.SendCurrenciesBody
+import gg.interstellar.wallet.android.ui.portfolio.PortfolioBody
+import gg.interstellar.wallet.android.ui.profile.ProfileScreen
+import gg.interstellar.wallet.android.ui.send.SendCurrenciesBody
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 
 class MainActivity : ComponentActivity() {
@@ -71,23 +65,41 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
-        startDestination = WalletScreen.Star.name,
+        startDestination = WalletScreen.Portfolio.name,
         modifier = modifier
     ) {
-        composable(WalletScreen.Star.name) {
-            StarScreen(
-                onSendClick = { navController.navigate(WalletScreen.SendCurrencies.name) },
-                onMarketClick = { navController.navigate(WalletScreen.Market.name) },
-                onPortfolioClick = {},
+        composable(WalletScreen.Profile.name) {
+            ProfileScreen(
+                onSendClick = { navController.navigate(WalletScreen.Send.name) },
+                onMarketClick = {}, // navController.navigate(WalletScreen.Market.name) },
+                onPortfolioClick = {   navController.navigate(WalletScreen.Portfolio.name)   },
             )
         }
 
-        composable(WalletScreen.SendCurrencies.name) {
+        composable(WalletScreen.Send.name) {
             SendCurrenciesBody(currencies = UserData.currencies, addresses = UserData.addresses,
                 onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) },
             )
         }
 
+        composable(WalletScreen.Portfolio.name) {
+            PortfolioBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
+
+                //navigateToSingleCurrency(navController = navController, currencyName = name)
+            }
+        }
+        composable(WalletScreen.TxPinpad.name) {
+            // TODO Hide the status bar -Themes.xml in vaalues not a viable option
+            //TODO use ? https://developer.android.com/training/system-ui/status
+            // https://developer.android.com/reference/android/view/WindowInsetsController
+            TxPinpadScreen()
+        }
+
+    }
+}
+
+//TODO add future screens
+        /**
         composable(WalletScreen.Market.name) {
             CurrenciesBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
                 navigateToSingleCurrency(navController = navController, currencyName = name)
@@ -99,15 +111,10 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
                 navigateToSingleAddress(navController = navController, addressName = name)
             }
         }
+        */
 
 
-        composable(WalletScreen.TxPinpad.name) {
-            // TODO pass params?
-            // TODO Hide the status bar -Themes.xml in vaalues not a viable option
-            //TODO use ? https://developer.android.com/training/system-ui/status
-            // https://developer.android.com/reference/android/view/WindowInsetsController
-            TxPinpadScreen()
-        }
+        /**
         val currenciesName = WalletScreen.Market.name
 
         composable(
@@ -146,10 +153,10 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
             val address = UserData.getAddress(addressesName)
             SingleAddressBody(address = address,notUsed)
         }
+        */
 
-    }
-}
 
+/**
 private fun navigateToSingleCurrency(navController: NavHostController, currencyName: String) {
     navController.navigate("${WalletScreen.Market.name}/$currencyName")
 }
