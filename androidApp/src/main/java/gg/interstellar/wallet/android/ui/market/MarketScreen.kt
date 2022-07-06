@@ -13,7 +13,7 @@ import androidx.compose.ui.semantics.semantics
 
 import gg.interstellar.wallet.android.data.Currency
 
-import gg.interstellar.wallet.android.ui.CurrencyRow
+import gg.interstellar.wallet.android.ui.components.CurrencyRow
 import gg.interstellar.wallet.android.ui.components.StatementBody
 
 
@@ -49,7 +49,7 @@ fun CurrenciesBody(
             },
             name = currency.name,
             coin = currency.coin,
-            pubkey = currency.pubkey,
+            pubKey = currency.pubKey,
             amount = currency.balance,
             amountFiat = currency.balanceFiat,
             change = currency.change,
@@ -92,13 +92,13 @@ fun SingleCurrencyBody(
         CurrencyRow(
             name = row.name,
             coin = row.coin,
-            pubkey = row.pubkey,
+            pubKey = row.pubKey,
             amount = row.balance,
             amountFiat = row.balanceFiat,
             change = row.change,
             usd = row.usd,
             changeOn = true,
-            largeRow = false,
+            largeRow = true,
             inputTextView = inputTextView,
             currencyInFiat =  currencyInFiat,
             useInput = false,

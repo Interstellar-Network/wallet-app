@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import gg.interstellar.wallet.android.data.Address
-import gg.interstellar.wallet.android.ui.AddressRow
+import gg.interstellar.wallet.android.ui.components.AddressRow
 import gg.interstellar.wallet.android.ui.components.StatementBody
 
 @Composable
@@ -34,8 +34,9 @@ fun AddressesBody(
             },
             name = address.name,
             color = address.color,
-            pubkey = address.pubkey,
+            pubKey = address.pubKey,
             largeRow = false, // appearance of row rounded box or circle box
+            single = false,
             currencyInFiat = currencyInFiat,
             useInput = false,
 
@@ -64,8 +65,9 @@ fun SingleAddressBody(address: Address,
     ) { row ->
         AddressRow(
             name = row.name,
-            pubkey = row.pubkey,
+            pubKey = row.pubKey,
             largeRow = true,
+            single = true,
             currencyInFiat =currencyInFiat,
             useInput = false,
             color = row.color

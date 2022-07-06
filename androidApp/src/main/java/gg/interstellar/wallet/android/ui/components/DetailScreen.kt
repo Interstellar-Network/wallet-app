@@ -2,23 +2,15 @@ package gg.interstellar.wallet.android.ui.components
 
 import StatementCard
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import gg.interstellar.wallet.android.ui.DisplayInterstellar
-import gg.interstellar.wallet.android.ui.ScreenTopBox
-import gg.interstellar.wallet.android.ui.extractProportions
-import gg.interstellar.wallet.android.ui.formatAmount
-import java.nio.channels.Selector
 
 /**
  * Generic component used by the  screens to show a chart and a list of items.
@@ -47,9 +39,9 @@ fun <T> StatementBody(
         Spacer(Modifier.height(20.dp))
         DisplayInterstellar()
         Spacer(Modifier.height(20.dp))
-        ScreenTopBox(screenLabel)
+        ScreenTopBox(modifier=Modifier,screenLabel)
         //Spacer(Modifier.height(10.dp))
-        TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
+        //TopCircle(items,colors,amounts,amountsFiat,amountsTotal,circleLabel,fiat)
 
         Spacer(Modifier.height(10.dp))
         StatementCard(modifier,items,doubleColumn,single,rows)

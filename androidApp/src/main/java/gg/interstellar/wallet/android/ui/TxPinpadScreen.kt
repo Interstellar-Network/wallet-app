@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import androidx.compose.material.Icon as MaterialIcon
