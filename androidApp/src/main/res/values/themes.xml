@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- <style name="Theme.InterstellarWallet" parent="android:Theme.Material.Light.NoActionBar">
-     TEST Material.Light vs. MaterialComponents-->
+    -->
     <style name="Theme.InterstellarWallet" parent="Theme.MaterialComponents.NoActionBar">
-
         <!--  <item name="android:statusBarColor">@color/purple_700</item> -->
           <item name="android:statusBarColor">@color/statusBarColor</item>
           <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
-          <!-- true to make the status bar completly disipear on Black-->
+          <!-- true to make the status bar completely disappear on Black-->
           <item name="android:windowBackground">?attr/colorSurface</item>
       </style>
 
-    <!-- <color name="statusBarColor">#EFEFEF</color>
-    <color name="backgroundColor">#26282F</color>
-    <color name="purple_700">#7B1FA2</color>-->
     <color name="statusBarColor">#000000 </color>
 
   </resources>
