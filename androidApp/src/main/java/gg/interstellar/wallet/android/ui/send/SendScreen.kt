@@ -1,8 +1,9 @@
-package gg.interstellar.wallet.android.ui.sendCurrencies
+package gg.interstellar.wallet.android.ui.send
 
 
 import StatementCard
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +13,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -20,21 +20,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gg.interstellar.wallet.android.data.Address
 import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.ui.*
-import gg.interstellar.wallet.android.ui.components.Keypad
-import gg.interstellar.wallet.android.ui.components.handleKeyButtonClick
+import gg.interstellar.wallet.android.ui.components.*
 
 //@Preview
-@OptIn(ExperimentalComposeUiApi::class)
+//@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SendCurrenciesBody(
     currencies: List<Currency>,
@@ -47,43 +42,34 @@ fun SendCurrenciesBody(
     val currency =  UserData.getCurrency(currencyName)
 
     val inputtedCurrency = remember { mutableStateOf("_") }//init state
-    val currencyInFiat = remember { mutableStateOf("+") } // to display in addressrow
+    val currencyInFiat = remember { mutableStateOf("+") } // to display in address
     val currencyOn = remember { mutableStateOf(false)}// match inputtedCurrency state
     val destinationOn = remember { mutableStateOf(false)}
     val noInput = remember { mutableStateOf("notUsed") }// to keep it generic
-    val keypadOn= remember { mutableStateOf(false)} //custom keypad not used
-    val currencyChoice = remember { mutableStateOf(true)}
+
+    val currencyChoice = remember { mutableStateOf(true)} //display or not
     val addressChoice =  remember { mutableStateOf(false)}
     val inputDone = remember { mutableStateOf(false)}
-    val softwareKeyboardController = LocalSoftwareKeyboardController.current
-
-
-
+    //val softwareKeyboardController = LocalSoftwareKeyboardController.current
+    //val keypadOn= remember { mutableStateOf(false)} //custom keypad not used
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
-        if (!currencyChoice.value && !addressChoice.value )
-            Modifier else Modifier.verticalScroll(rememberScrollState())
-        // deactivate scrooling
+        if (!currencyChoice.value && !addressChoice.value && inputDone.value)
+            Modifier else Modifier //.verticalScroll(rememberScrollState())
+        // deactivate scrolling
     ) {
-        //Spacer(Modifier.height(0.dp))
-        DisplayInterstellar()
-
-        ScreenTopBox("Send")
-
-       /**Box {
-           Box(
-               modifier=Modifier
-                    //.fillMaxWidth()
-                    .sizeIn(200.dp,249.dp,220.dp, 500.dp)
-                   //.height()
-                    //.width()
-           )*/
-
-        if (currencyOn.value)  softwareKeyboardController?.show()//does not work???
-
         Spacer(Modifier.height(30.dp))
+        DisplayInterstellar()
+        Spacer(Modifier.height(10.dp))
+
+        ScreenTopBox(modifier=Modifier,"Send")
+
+        //TODO solve this - does not work
+        //if (currencyOn.value)  softwareKeyboardController?.show()//does not work???
+
+        Spacer(Modifier.height(20.dp))
             SingleCurrencyStatement(
                 modifier = Modifier.padding(150.dp,150.dp),
                 currency,
@@ -93,12 +79,9 @@ fun SendCurrenciesBody(
                 inputDone   // Mutable Boolean to be changed
             ) {
                 currencyChoice.value = true
-
+                addressChoice.value = false
             }
-           Spacer(modifier = Modifier
-               .height(0.dp)
-               .align(Alignment.CenterHorizontally)
-           )
+
             SingleAddressStatement(
                 modifier = Modifier, //.align(Alignment.BottomCenter),
                            // .sizeIn(200.dp,249.dp,220.dp, 500.dp),
@@ -106,32 +89,32 @@ fun SendCurrenciesBody(
                 currencyInFiat,
             ) {
                 addressChoice.value = true
+                currencyChoice.value = false
+
             }
             CircleButtonDest(
                 modifier = Modifier
                     //.align(Alignment.CenterHorizontally),
-                    .offset(0.dp, (-127).dp), //TODO better way
-                    6.dp, onClickDest = {})
+                    .offset(0.dp, (-110).dp), //TODO better way
+                    2.dp, onClickDest = {})
 
-
-            //Spacer(modifier = Modifier.height(30.dp))
             if ( currencyChoice.value && !inputDone.value) CurrenciesStatement(
                 currencies = currencies,noInput,noInput,inputDone,
                 onCurrencyClick = {
                         name-> currencyName = name
                     currencyOn.value = true
                     currencyChoice.value = false
+                    addressChoice.value = true
                 }
             )
 
-            if (addressChoice.value)
+            if (addressChoice.value && !destinationOn.value)
                 AddressesStatement(
                     addresses = addresses,noInput,
                     onAddressClick = {
                             name-> addressName = name
                         destinationOn.value = true
                         addressChoice.value = false
-                        //currencyOn.value = false
                     }
                 )
 
@@ -148,7 +131,7 @@ fun SendCurrenciesBody(
 /** Detail statement for currencies
 */
 @Composable
-fun CurrenciesStatement(
+private fun CurrenciesStatement(
     currencies: List<Currency>,
     inputTextView: MutableState<String>,
     currencyInFiat:MutableState<String>,
@@ -168,7 +151,7 @@ fun CurrenciesStatement(
                 },
             name = currency.name,
             coin = currency.coin,
-            pubkey = currency.pubkey,
+            pubKey = currency.pubKey,
             amount = currency.balance,
             amountFiat = currency.balanceFiat,
             change = currency.change,
@@ -190,7 +173,7 @@ fun CurrenciesStatement(
  * Detail statement for a single currency.
  */
 @Composable
-fun SingleCurrencyStatement(
+private fun SingleCurrencyStatement(
     modifier:Modifier=Modifier,
     currency: Currency,
     inputTextView: MutableState<String>,
@@ -207,13 +190,13 @@ fun SingleCurrencyStatement(
     ) { row ->
         CurrencyRow(
             modifier = Modifier        //specific to this screen
-                .padding(12.dp, 0.dp) // padding to be close to address box
+               // .padding(PADDING_FOR_BASE_SIMPLE_ROW, 0.dp) // padding to be close to address box
                 .clickable {
                     onClickRow()
                 },
             name = row.name,
             coin = row.coin,
-            pubkey = row.pubkey,
+            pubKey = row.pubKey,
             amount = row.balance,
             amountFiat = row.balanceFiat,
             change = row.change,
@@ -233,7 +216,7 @@ fun SingleCurrencyStatement(
 
 
 @Composable
-fun AddressesStatement(
+private fun AddressesStatement(
     addresses: List<Address>,
     currencyInFiat: MutableState<String>,
     onAddressClick: (String) -> Unit = {},
@@ -251,8 +234,9 @@ fun AddressesStatement(
             },
             name = address.name,
             color = address.color,
-            pubkey = address.pubkey,
+            pubKey = address.pubKey,
             largeRow = false, // appearance of row rounded box or circle
+            single = false,
             currencyInFiat = currencyInFiat,
             useInput = true,
 
@@ -264,7 +248,7 @@ fun AddressesStatement(
  * Detail screen for a single address
  */
 @Composable
-fun SingleAddressStatement(
+private fun SingleAddressStatement(
     modifier: Modifier= Modifier,
     address: Address,
     currencyInFiat: MutableState<String>,
@@ -281,8 +265,9 @@ fun SingleAddressStatement(
                 onClickRow()
             },
             name = row.name,
-            pubkey = row.pubkey,
+            pubKey= row.pubKey,
             largeRow = true,
+            single = true,
             currencyInFiat = currencyInFiat,
             useInput = true,
             color = row.color
@@ -290,17 +275,16 @@ fun SingleAddressStatement(
     }
 }
 
-
 @Composable
 private fun TransactionFee() {
 
-    Spacer(modifier = Modifier.height(25.dp))
+    Spacer(modifier = Modifier.height(15.dp))
     Box{
             Box(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(18.dp)
                     .shadow(elevation = 25.dp, shape = RectangleShape, clip = false)
-                    .sizeIn(220.dp, 50.dp, 220.dp, 50.dp)
+                    .sizeIn(220.dp, 43.dp, 220.dp, 43.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(
                         Brush.linearGradient(
@@ -313,16 +297,18 @@ private fun TransactionFee() {
             ) {
                 Text(
                     "0.10 USD",
+                    color = MaterialTheme.colors.onSurface,
                     modifier = Modifier
                         .align(Alignment.Center),
                 )
             }
             CircleImage(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                "select", 30.dp, 30.dp  //select = interstellar icon with border
+                "select", 35.dp, 35.dp  //select = interstellar icon with border
             )
 
         }
+    Spacer(modifier = Modifier.height(30.dp))
 }
 
 
