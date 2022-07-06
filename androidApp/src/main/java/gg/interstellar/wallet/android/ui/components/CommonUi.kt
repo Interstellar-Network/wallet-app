@@ -1,4 +1,4 @@
-package gg.interstellar.wallet.android.ui
+package gg.interstellar.wallet.android.ui.components
 
 import android.icu.text.DecimalFormat
 import androidx.compose.foundation.BorderStroke
@@ -27,37 +27,28 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.fontResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.isDigitsOnly
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import kotlin.math.abs
 
 
-//val horizontalLine:HorizontalAlignmentLine = remember { HorizontalAlignmentLine(::min) }
-//val horizontalLine:HorizontalAlignmentLine(merger = { old, new -> min(old, new) })
-
-@Preview (showBackground = true )
 @Composable
 fun DisplayInterstellar() {
 
@@ -85,10 +76,9 @@ fun DisplayInterstellar() {
                 // This Icon will fill maximum size, which is specified by the [Placeholder]
                 // above. Notice the width and height in [Placeholder] are specified in TextUnit,
                 // and are converted into pixel by text layout.
-
                 Icon(
                     painterResource(R.drawable.ic_interstellar_black_logo),
-                    contentDescription = "logo",
+                    contentDescription = "Interstellar logo",
                     tint = MaterialTheme.colors.surface,
                     modifier = Modifier
                         .padding(1.5.dp)
@@ -98,7 +88,7 @@ fun DisplayInterstellar() {
     )
     Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
         .fillMaxWidth()
-        .fillMaxHeight(0.12f)
+       .fillMaxHeight(0.05f)
     ) {
         Text(
             intLogoText,
@@ -106,12 +96,10 @@ fun DisplayInterstellar() {
             fontFamily = Modernista, fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             color = MaterialTheme.colors.surface,
-
             modifier = Modifier
                 .fillMaxHeight()
                 .wrapContentHeight(Alignment.CenterVertically)
-
-                .shadow(elevation = 52.dp, clip = true),
+                .shadow(elevation = 0.dp, clip = true),
             inlineContent = inlineContent //add logo in place holder
         )
     }
@@ -119,9 +107,8 @@ fun DisplayInterstellar() {
 
 @Composable
 fun ScreenTopButton( onClickGo: ()->Unit,
-                 tittle:String
+                    tittle:String
 ) {
-    Row {
         Box(
             modifier = Modifier
                 .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
@@ -162,29 +149,26 @@ fun ScreenTopButton( onClickGo: ()->Unit,
                 }
             }
         }
-    }
 }
 
 //TODO make it cleaner
 @Composable
 fun ScreenTopBox(
+        modifier:Modifier,
         tittle:String
 ) {
-
-    Row {
-        Box(
-            modifier = Modifier
-                .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
+    Box(
+            modifier.shadow(elevation = 0.dp, shape = CircleShape, clip = false)
         ) {
             Surface(
                 modifier = Modifier
-                    .sizeIn(280.dp, 140.dp, 280.dp, 140.dp)
+                    .sizeIn(310.dp, 140.dp, 320.dp, 140.dp)
                     .padding(25.dp),
                 shape = CircleShape,
-                elevation = 50.dp,
+                elevation = 20.dp,
             ) {
                 Box(
-                    modifier = Modifier
+                    modifier
                         .background(
                             Brush.linearGradient(
                                 0.3f to MaterialTheme.colors.secondary,
@@ -202,16 +186,59 @@ fun ScreenTopBox(
                         )
                     }
             }
-        }
-    }
+     }
 }
 
+@Composable
+fun ScreenTopBoxWithCircleLabel(
+    modifier:Modifier,
+    tittle:String,
+    number:Float
+) {
+    Box(
+        modifier
+            .shadow(elevation = 0.dp, shape = CircleShape, clip = false)
+    ) {
+                Box  (modifier = Modifier.padding(0.dp,10.dp))
+                {
+                    Surface(
+                        modifier = Modifier
+                            .sizeIn(310.dp, 140.dp, 310.dp, 140.dp)
+                            .padding(25.dp),
+                        shape = CircleShape,
+                        elevation = 20.dp,
+                    ) {
+                        Box(
+                            modifier
+                                .background(
+                                    Brush.linearGradient(
+                                        0.3f to MaterialTheme.colors.secondary,
+                                        1f to MaterialTheme.colors.primary,
+                                        start = Offset(0f, 0f),
+                                        end = Offset(310f, 310f)
+                                    )
+                                )
+                        ) {
+                            Text(
+                                tittle,
+                                modifier = Modifier
+                                    .align(Alignment.Center),
+                                fontSize = 35.sp,
+                            )
+                        }
+                    }
+                CircleLabelWithIconIn(
+                    modifier = Modifier
+                        //.align(Alignment.TopCenter),
+                        .offset(115.dp,13.dp),//TODO use alignment line
+                    "" + formatChange(number)+ "% ",
+                    if (number>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                    if (number>0)  Color(0xff12c785) else Color(0xffe93943)
+                )
 
-
-
-
-
-
+            }
+        }
+}
 
 
 
@@ -225,7 +252,7 @@ fun CurrencyRow(
     modifier: Modifier = Modifier,
     name: String,
     coin: String,
-    pubkey: String,
+    pubKey: String,
     amount: Float,
     amountFiat: Float,
     change:Float,
@@ -245,7 +272,7 @@ fun CurrencyRow(
         color = color,
         title = name,
         symbol  = coin,
-        subtitle = "address:"+ pubkey,
+        subtitle = "address:$pubKey",
         amount = amount,
         amountFiat = amountFiat,
         change = change,
@@ -264,8 +291,11 @@ fun CurrencyRow(
 /**
  * A row representing the basic information of a currency
  */
-val HEIGHT_BASE_SIMPLE_ROW = 110.dp
-val PADDING_ROW = 12.dp
+
+// TO manage spacing between two singles row in SendScreen
+val HEIGHT_REF = 100.dp
+val PADDING_REF = 5.dp
+val PADDING_ADJUST = 18.dp
 @Composable
 private fun BaseRow(
     modifier: Modifier = Modifier,
@@ -286,7 +316,7 @@ private fun BaseRow(
     inputDone:MutableState<Boolean>,
     fiat: Boolean
 ) {
-    val dollarSign = if (fiat) "$ " else ""
+    val dollarSign = if (fiat) "$" else ""
     val formattedAmount = formatAmount(amount)
     val formattedAmountFiat = formatAmount(amount*usd)
     val formattedChange = formatChange(change)
@@ -295,34 +325,34 @@ private fun BaseRow(
         useInput &&
         inputTextView.value != "_" &&
         inputTextView.value.isNotEmpty() &&
-        !inputTextView.value.isNullOrBlank() &&
+        inputTextView.value.isNotBlank() &&
         symbol != "select" &&
         !inputDone.value
     ) {// otherwise it crash
         currencyInFiat.value = formatAmount(inputTextView.value.toFloat() * usd)
     }
-
     Row(
-
         modifier = modifier
             .height(
-                if (largeRow && single) // adjust row size
-                    HEIGHT_BASE_SIMPLE_ROW - 24.dp else HEIGHT_BASE_SIMPLE_ROW
+                if (largeRow && single)
+                    HEIGHT_REF - PADDING_ADJUST + PADDING_REF else HEIGHT_REF
             )
             //.padding(PADDING_ROW)
 
             .clearAndSetSemantics {
                 contentDescription = // TODO update
-                    "$title account ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
+                    "$title  ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = modifier
         ){
-            Box( modifier = // TEST
-
-                if (largeRow && single) modifier else modifier.padding(12.dp)
+            Box( modifier =
+                if (largeRow && single)
+                    modifier.padding(PADDING_ADJUST, 0.dp)
+                else if (largeRow) modifier.padding(PADDING_ADJUST)
+                else modifier.padding(PADDING_REF)
                 // enlarge the box to put image,labels on border
                 // no padding here for single row
                 // padding modifier is injected in row creation of SingleStatement
@@ -341,7 +371,7 @@ private fun BaseRow(
                     )
                 }
                 else // Circle Row in columns
-                   Box { CircleImage(modifier =Modifier,symbol,90.dp,90.dp)}
+                   Box { CircleImage(modifier =Modifier,symbol,90.dp,90.dp) }
             }
             if (largeRow)
                 if (title!="select") CircleImage(
@@ -351,16 +381,15 @@ private fun BaseRow(
                 )
             if (fiat) RoundedLabel(
                 modifier =Modifier.align(Alignment.BottomCenter),
-                if (useInput) dollarSign + currencyInFiat.value
-                else dollarSign+formattedAmountFiat,
+                if (useInput) " " +dollarSign + currencyInFiat.value +" "
+                else " $dollarSign$formattedAmountFiat ",
 
             )
-            if (changeOn) CircleLabelwithIconIn(
+            if (changeOn) CircleLabelWithIconIn(
                 modifier = Modifier.align(Alignment.TopCenter),
-                formattedChange+"%",
+                "$formattedChange% ",
                 if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                if (change>0)  Color(0xffe93943) else Color(0xff12c785),
-
+                if (change>0)  Color(0xff12c785) else Color(0xffe93943)
             )
         }
     }
@@ -371,8 +400,9 @@ private fun BaseRow(
 fun AddressRow(
     modifier: Modifier = Modifier,
     name: String,
-    pubkey: String,
+    pubKey: String,
     largeRow: Boolean,
+    single: Boolean,
     currencyInFiat: MutableState<String>,
     useInput: Boolean,
     color:Color
@@ -381,6 +411,7 @@ fun AddressRow(
         modifier = modifier,
         title = name,
         largeRow  = largeRow,
+        single = single,
         currencyInFiat = currencyInFiat,
         useInput = useInput,
         color = color
@@ -393,13 +424,14 @@ private fun SimpleBaseRow(
     color: Color,
     title: String,
     largeRow: Boolean,
+    single: Boolean,
     currencyInFiat: MutableState<String>,
     useInput: Boolean
 ) {
-    val noinput = remember { mutableStateOf(false) }
+    val noInput = remember { mutableStateOf(false) }
     Row(
         modifier = modifier
-            .height(HEIGHT_BASE_SIMPLE_ROW)
+            .height(HEIGHT_REF - 3.5.dp)
             .clearAndSetSemantics {
                 contentDescription =
                     "$title add other info"
@@ -409,8 +441,11 @@ private fun SimpleBaseRow(
     ) {
         Box {
             Box(
-                modifier = modifier
-                    .padding(12.dp), // enlarge the box to put image,labels on border
+                modifier =
+                if (largeRow && single)
+                    modifier.padding(PADDING_ADJUST, PADDING_REF,)
+                else modifier.padding(PADDING_REF)
+                    //.padding(PADDING_FOR_SIMPLE_ROW), // enlarge the box to put image,labels on border
             ) {// use box in a box to display text label on border
                 if (largeRow) {
                     LargeRow(
@@ -421,10 +456,8 @@ private fun SimpleBaseRow(
                         color,
                         currencyInFiat, // no textview to update
                         false,
-                        noinput,
+                        noInput,
                     )
-
-
                 } else {// Row of Circles in two columns
                     CircleImage(modifier = Modifier,//.align(Alignment.Center),
                         title, 90.dp, 90.dp)
@@ -438,22 +471,21 @@ private fun SimpleBaseRow(
                     width = 35.dp, height = 35.dp
                 )
                 if (useInput) RoundedLabel(modifier= Modifier.align(Alignment.BottomCenter),
-                    label = currencyInFiat.value +" USD")
+                    label = " "+ currencyInFiat.value +" USD ")
 
             } else {
                 RoundedLabel(
                     modifier = Modifier.align(Alignment.BottomCenter),
-                    title.uppercase()
+                    " "+title.uppercase()+ " "
                 )
             }
         }
-        Spacer(Modifier.height( if (largeRow) 25.dp else 100.dp))
     }
+    Spacer(Modifier.height(if (single) 0.dp else if (largeRow) 15.dp else 25.dp))
 }
 
 @Composable
 fun LargeRow(
-        //modifier: Modifier=Modifier,
         string:String, symbol:String,color: Color,
         inputTextView: MutableState<String>,
         useInput:Boolean,
@@ -463,19 +495,19 @@ fun LargeRow(
         inputTextView.value = string
     Box(
         modifier = Modifier
-            .shadow(elevation = 10.dp, shape = RectangleShape, clip = false)
-            .sizeIn(220.dp, 120.dp, 220.dp, 140.dp)
+            .shadow(elevation = 20.dp, shape = CircleShape, clip = false)
+            .sizeIn(220.dp, 200.dp, 220.dp, 200.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(
                 Brush.linearGradient(
                     0.4f to color,
                     1f to Color.White,
                     start = Offset(0f, 0f),
-                    end = Offset(650f, 0f),
+                    end = Offset(450f, 450f),
                 )
             )
     ) {
-        if (useInput) { // trigger usage of inputTextView for keyppad
+        if (useInput) { // trigger usage of inputTextView for keypad
             /**Text(
                 inputTextView.value + " " + symbol,
                 modifier = Modifier.align(Alignment.Center),
@@ -488,10 +520,10 @@ fun LargeRow(
 
         } else
             Text(
-            string + " " + symbol,
-            modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colors.onSurface,
-            style = typography.h5)
+                "$string $symbol",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colors.onSurface,
+                style = typography.h5)
     }
 }
 
@@ -547,10 +579,10 @@ fun InputTextNumber(
 
 
 /**
- * A vertical colored line that is used in a [BaseRow] to differentiate accounts.
+ * A vertical colored line that will be used in a [BaseRow] to differentiate pubKey.
  */
 @Composable
-private fun AccountIndicator(color: Color, modifier: Modifier = Modifier) {
+private fun PubKeyIndicator(color: Color, modifier: Modifier = Modifier) {
     Spacer(
         modifier
             .size(4.dp, 36.dp)
@@ -564,17 +596,18 @@ fun CircleImage(
     width:Dp,height:Dp)
  {
      val context = LocalContext.current
-     val logoname = "ic_" + string.lowercase() // crash depend on those val position
+     val logoName = "ic_" + string.lowercase() // crash depend on those val position
 
      Surface(
          modifier
              .sizeIn(width, height, width, height)
              .aspectRatio(1f),
          shape = CircleShape,
+         elevation = 20.dp
      ) {
-         val drawableId = remember(logoname) {
+         val drawableId = remember(logoName) {
              context.resources.getIdentifier(
-                 logoname,
+                 logoName,
                  "drawable",
                  context.packageName
              )
@@ -600,14 +633,14 @@ fun RoundedLabel(
         ) {
             Text(label, Modifier
                 .align(Alignment.Center),
-                style = typography.body1)
+                style = typography.h6)
         }
     }
 }
 
 //TODO reuse previous function with different type management for string
 @Composable
-fun CircleLabelwithIconIn(
+fun CircleLabelWithIconIn(
     modifier: Modifier=Modifier,
     label:String, imageVector: ImageVector,color: Color) {
 
@@ -621,13 +654,13 @@ fun CircleLabelwithIconIn(
             modifier = Modifier
                 .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
         ) {
-            TextwithIcon(label,imageVector)
+            TextWithIcon(label,imageVector)
         }
     }
 }
 
 @Composable
-fun TextwithIcon(string:String,imageVector: ImageVector) {
+fun TextWithIcon(string:String,imageVector: ImageVector) {
 
     val myId = "inlineContent"
     val text = buildAnnotatedString {
@@ -644,8 +677,8 @@ fun TextwithIcon(string:String,imageVector: ImageVector) {
                 // Placeholder tells text layout the expected size and vertical alignment of
                 // children composable.
                 Placeholder(
-                    width = 25.sp,
-                    height = 25.sp,
+                    width = 21.sp,
+                    height = 21.sp,
                     placeholderVerticalAlign  = PlaceholderVerticalAlign.TextCenter
                 )
             ) {
@@ -659,6 +692,7 @@ fun TextwithIcon(string:String,imageVector: ImageVector) {
     )
     Text(text,
         textAlign = TextAlign.Center,
+        style = typography.body2,
         inlineContent = inlineContent,
 
     )
@@ -674,7 +708,7 @@ fun CircleButtonDest( /// For sendCurrencies screen
 {
     Surface(
         modifier = modifier
-            .sizeIn(39.dp, 35.dp, 40.dp, 40.dp)
+            .sizeIn(20.dp, 20.dp, 30.dp, 30.dp)
             .aspectRatio(1f),
             //.offset(x = dpx, y = dpy),
 
@@ -682,7 +716,8 @@ fun CircleButtonDest( /// For sendCurrencies screen
         shape = CircleShape,
         border = BorderStroke(
             border,
-            MaterialTheme.colors.onSurface
+            if (MaterialTheme.colors.isLight) Color.LightGray
+                else MaterialTheme.colors.onSurface
         ),
 
         ) {
@@ -721,28 +756,26 @@ fun CircleIcon(
     }
 }
 
-
-@Composable
-fun StellarDivider(modifier: Modifier = Modifier) {
-    Divider(color = MaterialTheme.colors.background, thickness = 1.dp, modifier = modifier)
-}
-
 fun formatAmount(amount: Float): String {
     return AmountDecimalFormat.format(amount)
 }
 fun formatChange(change: Float): String {
     return AmountDecimalFormat.format(abs(change))
 }
+/** for future pubKey usage*/
+@Composable
+fun StellarDivider(modifier: Modifier = Modifier) {
+    Divider(color = MaterialTheme.colors.background, thickness = 1.dp, modifier = modifier)
+}
 
 
-private val AccountDecimalFormat = DecimalFormat("####")
+//private val AccountDecimalFormat = DecimalFormat("####")
 private val AmountDecimalFormat = DecimalFormat("#,###.##")
 
 /**
  * Used with currencies  to create the animated circle.
  */
 fun <E> List<E>.extractProportions(selector: (E) -> Float): List<Float> {
-
     val total = this.sumOf { selector(it).toDouble() }
     return this.map { (selector(it) / total).toFloat() }
 }
