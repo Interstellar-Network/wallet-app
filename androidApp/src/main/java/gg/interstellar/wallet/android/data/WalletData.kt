@@ -18,10 +18,7 @@ package gg.interstellar.wallet.android.data
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import gg.interstellar.wallet.android.WalletScreen
-import gg.interstellar.wallet.android.ui.theme.BlueCustom1
 import gg.interstellar.wallet.android.ui.theme.MagentaCustom
-import gg.interstellar.wallet.android.ui.theme.Purple700
 import gg.interstellar.wallet.android.ui.theme.PurpleCustom
 
 /* Hard-coded data for the wallet sample. */
@@ -39,13 +36,11 @@ data class StarButtonBox(
     val colorEnd: Color,
 )
 
-
-
 @Immutable
 data class Currency(
     val name: String,
     val coin: String,
-    val pubkey: String,
+    val pubKey: String,
     val balance: Float,
     val balanceFiat: Float,
     val change: Float,
@@ -64,12 +59,12 @@ data class Transaction(
 @Immutable
 data class Address(
     val name: String,
-    val pubkey: String,
+    val pubKey: String,
     val color: Color,
     // little trick to use Generic StatementBody with Address screen with no amount
     val no_amount: Float = 0f,
 
-)
+    )
 
 
 /**
@@ -128,7 +123,7 @@ object UserData {
             104.13f*38.61f,
             -2.3f,
             38.61f,
-            Color(0xFF47b7c1)
+            Color(0xFF66f9a1)
         )
     )
 
@@ -138,27 +133,30 @@ object UserData {
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
             PurpleCustom
         ),
+        Address(
+            "bob",
+            "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
+            Color(0xFF95554f)
+        ),
 
         Address(
             "alice",
             "83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri",
-            Color(0xFF17e6b6)
+            Color(0xFF17e6b7)
         ),
+
         Address(
-            "bob",
-            "1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg",
-            Color(0xFF47b7c1)
-        ),
-        Address(
-            "uniswap",
+            "dave",
             "0x54dbb737eac5007103e729e9ab7ce64a6850a310",
-            Color(0xFFe60079)
+            Color(0xFF8fcdf3)
         ),
+
         Address(
-            "li",
+            "charlie",
             "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
-            Color(0xFFFF9500)
+            Color(0xFF5b0705)
         ),
+        /**
         Address(
             "robert",
             "0x54d78737eac5007103e729e9ab7ce64a6850a310",
@@ -180,6 +178,7 @@ object UserData {
             "0x54d78737eac5007103e729e9ab7ce64a6850a310",
             BlueCustom1
         )
+        */
 
     )
 
