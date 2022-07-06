@@ -1,14 +1,12 @@
-package gg.interstellar.wallet.android.ui.star
+package gg.interstellar.wallet.android.ui.profile
 
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,20 +15,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.StarButtonBox
 import gg.interstellar.wallet.android.data.UserData
-import gg.interstellar.wallet.android.data.UserData.getBoxName
-import gg.interstellar.wallet.android.ui.CircleImage
-import gg.interstellar.wallet.android.ui.DisplayInterstellar
-import gg.interstellar.wallet.android.ui.RoundedLabel
-import gg.interstellar.wallet.android.ui.theme.MagentaCustom
-import gg.interstellar.wallet.android.ui.theme.PurpleCustom
-import kotlinx.coroutines.processNextEventInCurrentThread
+import gg.interstellar.wallet.android.ui.components.CircleImage
+import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
+import gg.interstellar.wallet.android.ui.components.RoundedLabel
 
 
 @Composable
-fun StarScreen(
+fun ProfileScreen(
             onSendClick:()->Unit,
             onMarketClick:()->Unit,
             onPortfolioClick:()->Unit,
@@ -38,18 +31,18 @@ fun StarScreen(
     Column(
          horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(30.dp))
         DisplayInterstellar()
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(35.dp))
 
         Box {
-            CircleImage(string = "nash", width = 160.dp, height = 160.dp)
+            CircleImage(string = "nash", width = 180.dp, height = 180.dp)
             RoundedLabel(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter), label = "NASH"
+                    .align(Alignment.BottomCenter), label = " NASH "
             )
         }
-        Spacer(Modifier.height(30.dp))
+        Spacer(Modifier.height(38.dp))
 
         Column {
             val menu = UserData.menu
@@ -57,7 +50,7 @@ fun StarScreen(
                                     onSendClick,
                                     onMarketClick,
                                     onPortfolioClick)
-            Spacer(modifier =Modifier.height(20.dp))
+            Spacer(modifier =Modifier.height(10.dp))
         }
 
     }
@@ -76,8 +69,9 @@ private fun  BoxArrangement(
         items( buttons.chunked(2),) { rowItems ->
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(90.dp, 5.dp),
+                modifier = Modifier.padding(84.dp, 5.dp),
             ) {
+                Spacer(modifier =Modifier.width(10.dp))
                 for (button in rowItems) {
                     GenericBoxButton(
                         modifier = modifier.weight(button.weight),
@@ -145,7 +139,7 @@ private fun GenericBoxButton(
             ) {
             Surface(
                 modifier = modifier
-                    .sizeIn(80.dp, 80.dp, 80.dp, 80.dp),
+                    .sizeIn(130.dp, 80.dp, 130.dp, 80.dp),
                 //.padding(5.dp),
                 shape = RoundedCornerShape(10.dp),
             ) {
