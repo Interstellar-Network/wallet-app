@@ -91,17 +91,13 @@ std::vector<Block> ParallelEvaluate(
     const std::vector<Block> &extractedLabels) {
   std::vector<Block> outputs_map(garbledCircuit.nb_outputs_);
 
-  // TODO(cpp)
+  // REFERENCE
   // AES_KEY aes_key_cipher; // originally a DKCipherContext
   // // previously: const __m128i *sched = ((__m128i *)(aes_key_cipher.rd_key));
   // AES_set_encrypt_key(
   //     reinterpret_cast<const unsigned char *>(&(garbledCircuit.global_key_)),
   //     128,
   //     &aes_key_cipher); // originally DKCipherInit
-  // TODO(cpp)
-  // rust::Box<MyRustAes> my_rust_aes =
-  //     init_aes(reinterpret_cast<const char
-  //     *>(&(garbledCircuit.global_key_)));
   rust::Box<MyRustAes> my_rust_aes =
       init_aes(garbledCircuit.global_key_.GetLow(),
                garbledCircuit.global_key_.GetHigh());

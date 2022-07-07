@@ -46,7 +46,9 @@ mod jni_wrapper;
 /// not position the message/pinpad correctly
 pub const CameraScalingMode: ScalingMode = ScalingMode::FixedVertical;
 
-type TextureUpdateCallbackType = Option<Box<dyn FnMut() -> Vec<u8> + Send + Sync>>;
+type EvaluateWrapperType = circuit_evaluate::cxx::UniquePtr<circuit_evaluate::ffi::EvaluateWrapper>;
+type TextureUpdateCallbackType =
+    Option<Box<dyn FnMut(&mut Vec<u8>, &mut EvaluateWrapperType) + Send + Sync>>;
 
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
@@ -66,6 +68,7 @@ pub struct RectMessage {
     rect: vertices_utils::Rect,
     text_color: Color,
     background_color: Color,
+    circuit_dimension: [u32; 2],
 }
 
 pub struct RectsPinpad {
@@ -74,11 +77,18 @@ pub struct RectsPinpad {
     nb_rows: usize,
     text_color: Color,
     circle_color: Color,
+    circuit_dimension: [u32; 2],
 }
 
-// pub struct Theme {
-//     text_color: Color,
-// }
+// TODO? Default, or impl FromWorld? In any case we need Option
+// TODO? use a common Trait
+pub struct CircuitMessage {
+    wrapper: EvaluateWrapperType,
+}
+
+pub struct CircuitPinpad {
+    wrapper: EvaluateWrapperType,
+}
 
 /// Init the Window with winit
 /// Only needed for Android; this replaces "WinitPlugin"
@@ -106,6 +116,9 @@ pub fn init_window(
 /// and circle_background_color opposite(eg dark for a white theme)
 /// MESSAGE: message_text_color ~ circle_background_color is OK
 ///
+/// param message_pgc_buf/pinpad_pgc_buf: buffers containing a STRIPPED circuit.pgarbled.stripped.pb.bin
+/// param message_packmsg_buf/pinpad_packmsg_buf: buffers containing the corresponding PACKMSG
+///
 /// WARNING: apparently using WHITE(which is Sprite's default) for text colors breaks the shader
 pub fn init_app(
     app: &mut App,
@@ -117,6 +130,10 @@ pub fn init_app(
     mut circle_text_color: Color,
     circle_color: Color,
     background_color: Color,
+    message_pgc_buf: Vec<u8>,
+    message_packmsg_buf: Vec<u8>,
+    pinpad_pgc_buf: Vec<u8>,
+    pinpad_packmsg_buf: Vec<u8>,
 ) {
     // cf renderer/data/transparent_sprite.wgsl
     // apparently using WHITE(which is Sprite's default) make COLORED NOT defined and that breaks the shader!
@@ -139,6 +156,13 @@ pub fn init_app(
         warn!("WORKAROUND for White color breaking shader; replacing 'circle_text_color'");
         circle_text_color = Color::rgb(0.99, 0.99, 0.99)
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// circuits init, via crate ../circuit_evaluate
+    let message_evaluate_wrapper =
+        circuit_evaluate::ffi::new_evaluate_wrapper(message_pgc_buf, message_packmsg_buf);
+    let pinpad_evaluate_wrapper =
+        circuit_evaluate::ffi::new_evaluate_wrapper(pinpad_pgc_buf, pinpad_packmsg_buf);
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
     #[cfg(target_os = "android")]
@@ -187,6 +211,10 @@ pub fn init_app(
         rect: rect_message,
         text_color: message_text_color,
         background_color: background_color,
+        circuit_dimension: [
+            message_evaluate_wrapper.GetWidth().try_into().unwrap(),
+            message_evaluate_wrapper.GetHeight().try_into().unwrap(),
+        ],
     });
     app.add_startup_system(setup::setup_message_texture);
     // and same the pinpad
@@ -196,11 +224,18 @@ pub fn init_app(
         nb_rows: pinpad_nb_rows,
         text_color: circle_text_color,
         circle_color: circle_color,
+        circuit_dimension: [
+            pinpad_evaluate_wrapper.GetWidth().try_into().unwrap(),
+            pinpad_evaluate_wrapper.GetHeight().try_into().unwrap(),
+        ],
     });
-    // app.insert_resource(Theme {
-    //     text_color: text_color,
-    // });
     app.add_startup_system(setup::setup_pinpad_textures);
+    app.insert_resource(CircuitMessage {
+        wrapper: message_evaluate_wrapper,
+    });
+    app.insert_resource(CircuitPinpad {
+        wrapper: pinpad_evaluate_wrapper,
+    });
 
     // TODO only when Debug?
     #[cfg(debug_assertions)]
@@ -219,6 +254,7 @@ fn change_texture_message(
     mut query: Query<(&mut Sprite, &Transform, Option<&Handle<Image>>)>,
     mut images: ResMut<Assets<Image>>,
     mut texture_update_callback: ResMut<TextureUpdateCallbackMessage>,
+    mut circuit_message: ResMut<CircuitMessage>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
     for (_sprite, _t, opt_handle) in query.iter_mut() {
@@ -240,8 +276,16 @@ fn change_texture_message(
             // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
             // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
             let data_len = image.data.len();
-            image.data = (texture_update_callback.callback.as_mut().unwrap().as_mut())();
-            assert!(image.data.len() == data_len, "image: modified data len!");
+            (texture_update_callback.callback.as_mut().unwrap().as_mut())(
+                &mut image.data,
+                &mut circuit_message.wrapper,
+            );
+            assert!(
+                image.data.len() == data_len,
+                "image: modified data len! before: {}, after: {}",
+                data_len,
+                image.data.len()
+            );
 
             // sprite.color = Color::ALICE_BLUE;
         }
@@ -260,6 +304,7 @@ fn change_texture_pinpad(
     mut texture_atlas: ResMut<Assets<TextureAtlas>>,
     mut images: ResMut<Assets<Image>>,
     mut texture_update_callback: ResMut<TextureUpdateCallbackPinpad>,
+    mut circuit_pinpad: ResMut<CircuitPinpad>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
     // TODO FIX the query does not work -> texture_update_callback is not called
@@ -270,10 +315,15 @@ fn change_texture_pinpad(
         {
             if let Some(mut atlas_image) = images.get_mut(&texture_atlas.texture) {
                 let data_len = atlas_image.data.len();
-                atlas_image.data = (texture_update_callback.callback.as_mut().unwrap().as_mut())();
+                (texture_update_callback.callback.as_mut().unwrap().as_mut())(
+                    &mut atlas_image.data,
+                    &mut circuit_pinpad.wrapper,
+                );
                 assert!(
                     atlas_image.data.len() == data_len,
-                    "atlas_image: modified data len!"
+                    "atlas_image: modified data len! before: {}, after: {}",
+                    data_len,
+                    atlas_image.data.len()
                 );
             }
         }

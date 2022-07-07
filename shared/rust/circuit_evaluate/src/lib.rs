@@ -29,11 +29,6 @@ use aes::Aes128;
 #[cxx::bridge]
 pub mod ffi {
 
-    // TODO(cpp) TOREMOVE(and grep in .cpp/.h)
-    struct StrippedCircuit {
-        toremove: u32,
-    }
-
     // Rust types and signatures exposed to C++.
     extern "Rust" {
         type MyRustAes;
@@ -62,12 +57,30 @@ pub mod ffi {
             packmsg_buffer: Vec<u8>,
         ) -> UniquePtr<EvaluateWrapper>;
 
-        fn EvaluateWithPackmsg(&self, inputs: Vec<u8>) -> Vec<u8>;
+        /// PROD version
+        /// inputs are randomized, outputs are externally given
+        /// typically outputs points to some kind of "Texture data"
+        fn EvaluateWithPackmsg(&self, outputs: &mut Vec<u8>);
         /// TEST/DEV only
+        /// PROD uses randomize inputs
+        fn EvaluateWithPackmsgWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
+        /// TEST/DEV only
+        /// PROD is using the PACKMSG version
         fn EvaluateWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
+
         fn GetNbInputs(&self) -> usize;
+        fn GetNbOutputs(&self) -> usize;
+        fn GetWidth(&self) -> usize;
+        fn GetHeight(&self) -> usize;
     }
 }
+
+/// We MUST impl Send+Sync b/c EvaluateWrapper is used as a Bevy's Resource
+/// EvaluateWithPackmsg/etc use a "const" PGC so on that part we are thread safe
+/// BUT EvaluateWithPackmsg in circuit_evaluate/src/rust_wrapper.cpp MAY NOT be thread safe
+/// depending on where "outputs" are(eg NOT thread safe if a class field, thread safe if returning std::vector)
+unsafe impl Send for ffi::EvaluateWrapper {}
+unsafe impl Sync for ffi::EvaluateWrapper {}
 
 pub struct MyRustAes {
     pub aes: Aes128,
@@ -75,7 +88,7 @@ pub struct MyRustAes {
 
 pub fn encrypt_block(aes: &MyRustAes, low: &mut u64, high: &mut u64) {
     // init "block" from "high+low"
-    // TODO(cpp) or better: rewrite to accept a param like "key: *const c_char" and use reinterpret_cast(&this) in block.h?
+    // TODO or better instead of "high, low" params: rewrite to accept a param like "key: *const c_char" and use reinterpret_cast(&this) in block.h?
     let input_vec: Vec<u8> = if cfg!(target_endian = "big") {
         let mut v: Vec<u8> = vec![];
         v.extend(low.to_be_bytes());
@@ -198,7 +211,7 @@ mod tests {
         // bit0,bit1 + carry
         let inputs = vec![0u8; evaluate_wrapper.GetNbInputs()];
 
-        let outputs = evaluate_wrapper.EvaluateWithPackmsg(inputs);
+        let outputs = evaluate_wrapper.EvaluateWithPackmsgWithInputs(inputs);
 
         let expected_outputs = vec![
             0u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

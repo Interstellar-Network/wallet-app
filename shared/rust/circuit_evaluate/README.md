@@ -9,6 +9,4 @@ eg:
 
 TODO we SHOULD move the common in a separate repo! Or better, rewrite in Rust on use it from "lib_garble"(needed only for tests?)
 
-TODO grep "// TODO(cpp)"
-TODO remove all .cpp/.h functions related to AES(NI)
 TODO replace GPL by Apache

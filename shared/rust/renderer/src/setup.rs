@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::render::camera::{
-    Camera2d, CameraProjection, DepthCalculation, OrthographicCameraBundle, OrthographicProjection,
+    CameraProjection, DepthCalculation, OrthographicCameraBundle, OrthographicProjection,
     ScalingMode, WindowOrigin,
 };
 use bevy::render::render_resource::Extent3d;
@@ -65,10 +65,14 @@ pub fn setup_pinpad_textures(
     // TODO https://bevy-cheatbook.github.io/features/parent-child.html
     // circle is the parent, Texture is child
 
+    /// WARNING it is assumed that the layout is one row of 10 "cases"
+    let atlas_width = rects_pinpad.circuit_dimension[0];
+    let atlas_height = rects_pinpad.circuit_dimension[1];
+
     // pinpad
     let atlas_handle = texture_atlas.add(TextureAtlas::from_grid(
-        images.add(uv_debug_texture(590, 50)),
-        Vec2::new(59., 50.),
+        images.add(uv_debug_texture(atlas_width, atlas_height)),
+        Vec2::new((atlas_width as f32) / 10., atlas_height as f32),
         10,
         1,
     ));
@@ -128,7 +132,10 @@ pub fn setup_message_texture(
 ) {
     // Texture message = foreground
     commands.spawn_bundle(SpriteBundle {
-        texture: images.add(uv_debug_texture(224, 96)),
+        texture: images.add(uv_debug_texture(
+            rect_message.circuit_dimension[0],
+            rect_message.circuit_dimension[1],
+        )),
         sprite: Sprite {
             custom_size: Some(Vec2::new(
                 rect_message.rect.width(),

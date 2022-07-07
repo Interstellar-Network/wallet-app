@@ -7,6 +7,9 @@ class RustWrapper : RustInterface {
         // MUST match the lib [package] name in shared/rust/Cargo.toml
         System.loadLibrary("shared_substrate_client")
         System.loadLibrary("renderer")
+        // cf "COPY libc++_shared.so" in shared/build.gradle.kts
+        // System.loadLibrary("c++_shared.so")
+        // NOT needed, but it MUST be in jniLibs/!!!
     }
 
     external override fun CallExtrinsic(url: String): String?

@@ -47,7 +47,7 @@ fn main() {
         .file("src/rust_wrapper.cpp")
         // MUST compile the generated .cc by Protobuf else:
         // "error: undefined symbol: interstellarpbcircuits::_Block_default_instance_"
-        // TODO(cpp) is there a more elegant way(eg using prost_build?)
+        // TODO is there a more elegant way(eg using prost_build?)
         .file(format!("{}/block.pb.cc", out_dir.clone()))
         .file(format!("{}/circuit.pb.cc", out_dir.clone()))
         .file(format!("{}/packmsg.pb.cc", out_dir.clone()))
@@ -69,15 +69,62 @@ fn main() {
         .compile("circuit-evaluate");
 
     // else: "error: undefined symbol: google::protobuf::internal::MapFieldBase::SyncMapWithRepeatedField() const"
+    // FAIL on aarch64
+    //     error: linking with `/home/pratn/Android/Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android31-clang` failed: exit status: 1
+    //   |
+    //   = note: ld: error: /home/pratn/Documents/interstellar/wallet-app/shared/rust/target/aarch64-linux-android/debug/deps/libcircuit_evaluate-1c975ac1cb6d0637.rlib(arena.cc.o) is incompatible with aarch64linux
+    //           ld: error: /home/pratn/Documents/interstellar/wallet-app/shared/rust/target/aarch64-linux-android/debug/deps/libcircuit_evaluate-1c975ac1cb6d0637.rlib(arenastring.cc.o) is incompatible with aarch64linux
+    // Which makes sense b/c "find . -type f -name "*protoc*""
+    //     ./target/debug/build/prost-build-7222232c793920d5/out/lib/libprotoc.a
+    // ./target/debug/build/prost-build-7222232c793920d5/out/build/libprotoc.a
+    // ./target/debug/build/prost-build-7222232c793920d5/out/build/protoc-3.19.4.0
+    // ./target/debug/build/prost-build-7222232c793920d5/out/bin/protoc-3.19.4.0
+    // -> ONLY HOST, no TARGET lib
+    // println!(
+    //     "cargo:rustc-link-search=native={}",
+    //     prost_build::protoc()
+    //         .parent()
+    //         .unwrap()
+    //         .parent()
+    //         .unwrap()
+    //         .join("lib")
+    //         .display()
+    // );
+    //
+    // eg protoc_include = /home/AAA/.cargo/registry/src/github.com-XXX/prost-build-0.10.4/third-party/include
+    let protobuf_src = prost_build::protoc_include()
+        .parent()
+        .unwrap()
+        .join("protobuf")
+        .join("cmake");
+    // cf https://github.com/tokio-rs/prost/blob/v0.10.4/prost-build/build.rs#L77
+    let mut protobuf_cmake_config = cmake::Config::new(protobuf_src);
+    protobuf_cmake_config.define("protobuf_BUILD_TESTS", "OFF");
+
+    // we MUST set "cmake -DANDROID_ABI=XXX" when using CMAKE_TOOLCHAIN_FILE else the detected ABI is always:
+    // -- ANDROID_PLATFORM not set. Defaulting to minimum supported version 19.
+    // -- Android: Targeting API '19' with architecture 'arm', ABI 'armeabi-v7a', and processor 'armv7-a'
+    // -- Android: Selected unified Clang toolchain
+    // and we get the the error "is incompatible with aarch64linux", cf above
+    match std::env::var("CMAKE_TOOLCHAIN_FILE") {
+        Ok(_) => match std::env::var("ANDROID_ABI") {
+            Ok(android_abi) => {
+                println!("ANDROID_ABI env var : {}", android_abi);
+                protobuf_cmake_config.define("ANDROID_ABI", android_abi);
+            }
+            Err(e) => {
+                panic!("ANDROID_ABI MUST be set when using env var \"CMAKE_TOOLCHAIN_FILE\"");
+            }
+        },
+        Err(_) => {
+            println!("CMAKE_TOOLCHAIN_FILE env var not set");
+        }
+    }
+
+    let protobuf_cmake = protobuf_cmake_config.build();
     println!(
         "cargo:rustc-link-search=native={}",
-        prost_build::protoc()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("lib")
-            .display()
+        protobuf_cmake.join("build").display()
     );
     println!("cargo:rustc-link-lib=static=protobuf");
 

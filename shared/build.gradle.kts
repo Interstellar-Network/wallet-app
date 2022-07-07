@@ -287,6 +287,15 @@ abstract class CargoTask : DefaultTask () {
             // But we might as well set the proper env var for all CMake projects
             environment("CMAKE_TOOLCHAIN_FILE", "${project.android.ndkDirectory}/build/cmake/android.toolchain.cmake")
 
+            // that plays a part in cmake-rs detection of NDK builds
+            // cf https://github.com/rust-lang/cmake-rs/blob/master/src/lib.rs#L401 "fn uses_android_ndk"
+            //            -- ANDROID_PLATFORM not set. Defaulting to minimum supported version 19.
+            //            -- Android: Targeting API '19' with architecture 'arm', ABI 'armeabi-v7a', and processor 'armv7-a'
+            //            ...
+            //            ld: error: cannot open crtbegin_dynamic.o: No such file or directory
+            //            ld: error: cannot open crtend_android.o: No such file or directory
+            environment("ANDROID_ABI", map_cargo_target_to_android_abi.get().get(target.get())!!)
+
             // https://github.com/mozilla/rust-android-gradle/blob/4fba4b9db16d56ba4e4f9aef2c028a4c2d6a9126/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L195
             // else:
             // "error: linking with `cc` failed: exit status: "
@@ -319,9 +328,9 @@ abstract class CargoTask : DefaultTask () {
             environment("CARGO_LOG", "cargo::core::compiler::fingerprint=info")
         }
 
-        project.copy {
-            val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(map_cargo_target_to_android_abi.get().get(target.get())!!)
+        val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(map_cargo_target_to_android_abi.get().get(target.get())!!)
 
+        project.copy {
             // TODO debug/release
             from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/debug/"))
             // TODO project.android or project.kotlin.
@@ -331,6 +340,16 @@ abstract class CargoTask : DefaultTask () {
 
             include("*.so")
             // TODO dylib?
+        }
+
+        // COPY libc++_shared.so
+        // cf https://android.googlesource.com/platform/ndk/+/master/docs/BuildSystemMaintainers.md#libc
+        // else "java.lang.UnsatisfiedLinkError: dlopen failed: library "libc++_shared.so" not found: needed by /data/app/~~OsRL7kQNuWmABqVyljXr9Q==/gg.interstellar.wallet.android-TLjOrv0NMAhDKJ2LSBX4Fw==/lib/x86_64/librenderer.so in namespace classloader-namespace"
+        // even when using "protobuf_cmake_config.define("ANDROID_STL", "c++_static");"??
+        project.copy {
+            from(project.android.ndkDirectory.resolve("toolchains/llvm/prebuilt/$hostTag/sysroot/usr/lib/$ndk_target/libc++_shared.so"))
+            into(output_jnilibs_dir)
+            include("*.so")
         }
     }
 
