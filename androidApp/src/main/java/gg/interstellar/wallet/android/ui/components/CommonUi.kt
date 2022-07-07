@@ -279,7 +279,7 @@ fun CurrencyRow(
         usd =usd,
         changeOn=changeOn,
         largeRow  = largeRow,
-        single =single,
+        single = single,
         inputTextView = inputTextView,
         currencyInFiat =currencyInFiat,
         useInput = useInput,
@@ -294,8 +294,9 @@ fun CurrencyRow(
 
 // TO manage spacing between two singles row in SendScreen
 val HEIGHT_REF = 100.dp
-val PADDING_REF = 5.dp
-val PADDING_ADJUST = 18.dp
+val PADDING_V = 5.dp
+val PADDING_H = 18.dp
+val PADDING_CIRCLE = PADDING_V
 @Composable
 private fun BaseRow(
     modifier: Modifier = Modifier,
@@ -334,8 +335,10 @@ private fun BaseRow(
     Row(
         modifier = modifier
             .height(
-                if (largeRow && single)
-                    HEIGHT_REF - PADDING_ADJUST + PADDING_REF else HEIGHT_REF
+                if (largeRow && single )
+                    HEIGHT_REF - PADDING_H + PADDING_V
+                else if (largeRow) HEIGHT_REF + PADDING_H
+                else HEIGHT_REF
             )
             //.padding(PADDING_ROW)
 
@@ -349,10 +352,10 @@ private fun BaseRow(
             modifier = modifier
         ){
             Box( modifier =
-                if (largeRow && single)
-                    modifier.padding(PADDING_ADJUST, 0.dp)
-                else if (largeRow) modifier.padding(PADDING_ADJUST)
-                else modifier.padding(PADDING_REF)
+                if (largeRow && single )
+                    modifier.padding(PADDING_H, 0.dp)
+                else if (largeRow) modifier.padding(PADDING_H, PADDING_V)
+                else modifier.padding(PADDING_CIRCLE)
                 // enlarge the box to put image,labels on border
                 // no padding here for single row
                 // padding modifier is injected in row creation of SingleStatement
@@ -411,7 +414,7 @@ fun AddressRow(
         modifier = modifier,
         title = name,
         largeRow  = largeRow,
-        single = single,
+        single =single,
         currencyInFiat = currencyInFiat,
         useInput = useInput,
         color = color
@@ -443,8 +446,8 @@ private fun SimpleBaseRow(
             Box(
                 modifier =
                 if (largeRow && single)
-                    modifier.padding(PADDING_ADJUST, PADDING_REF,)
-                else modifier.padding(PADDING_REF)
+                    modifier.padding(PADDING_H, PADDING_V,)
+                else modifier.padding(PADDING_CIRCLE)
                     //.padding(PADDING_FOR_SIMPLE_ROW), // enlarge the box to put image,labels on border
             ) {// use box in a box to display text label on border
                 if (largeRow) {
