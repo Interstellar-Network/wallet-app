@@ -21,10 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.data.Currency
-import gg.interstellar.wallet.android.ui.components.CurrencyRow
-import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
-import gg.interstellar.wallet.android.ui.components.ScreenTopBoxWithCircleLabel
-import gg.interstellar.wallet.android.ui.components.formatAmount
+import gg.interstellar.wallet.android.ui.components.*
 
 /**
  * The Portfolio screen.
@@ -80,7 +77,7 @@ fun PortfolioBody(
 
         CurrenciesStatement(
             currencies, inputTextView, currencyInFiat, inputDone,
-            onCurrencyClick = {}
+            onCurrencyClick = onCurrencyClick
         )
     }
 }
@@ -151,7 +148,45 @@ private fun CurrenciesStatement(
         }
  }
 
-
+@Composable
+fun SingleCurrencyBody(
+    currency: Currency,
+    inputTextView: MutableState<String>,
+    currencyInFiat:MutableState<String>,
+    inputDone: MutableState<Boolean>,
+){
+    StatementBody(
+        items = listOf(currency),
+        colors = { currency.color },
+        amounts = { currency.balance },
+        amountsFiat ={ currency.balanceFiat },
+        amountsTotal = currency.balance,
+        circleLabel = currency.coin,
+        screenLabel = currency.name,
+        doubleColumn = false,
+        single = true, // bad trick to use display first statement on single body
+        fiat = false
+    ) { row ->
+        CurrencyRow(
+            name = row.name,
+            coin = row.coin,
+            pubKey = row.pubKey,
+            amount = row.balance,
+            amountFiat = row.balanceFiat,
+            change = row.change,
+            usd = row.usd,
+            changeOn = true,
+            largeRow = true,
+            inputTextView = inputTextView,
+            currencyInFiat =  currencyInFiat,
+            useInput = false,
+            inputDone = inputDone,
+            single = false,
+            fiat = true,
+            color = row.color
+        )
+    }
+}
 
 
 
