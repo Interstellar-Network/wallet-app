@@ -1,9 +1,10 @@
 package gg.interstellar.wallet.android
 
+
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+
 
 /**
  * Screen metadata for Rally.
@@ -11,20 +12,40 @@ import androidx.compose.ui.graphics.vector.ImageVector
 enum class WalletScreen(
     val icon: ImageVector,
 ) {
-    SendCurrencies(
+    Portfolio(
+        icon = Icons.Filled.AccountBalanceWallet
+    ),
+    /**
+    Market(
+        icon = Icons.Filled.PieChart,
+    ),
+
+    Addresses(
+        icon = Icons.Filled.ImportContacts,
+    ),
+    */
+
+    Send(
         icon = Icons.Default.Send,
     ),
     TxPinpad(
         icon = Icons.Filled.Lock,
-    ),;
+
+    ),
+    Profile(
+        icon = Icons.Filled.AccountCircle,
+    ), ;
 
     companion object {
         fun fromRoute(route: String?): WalletScreen =
             when (route?.substringBefore("/")) {
-                SendCurrencies.name -> SendCurrencies
+                Profile.name->Profile
+                Portfolio.name->Portfolio
+                Send.name -> Send
                 TxPinpad.name -> TxPinpad
-                // TODO start screen(=landing page) on null
-                null -> SendCurrencies
+                //Market.name -> Market
+                //Addresses.name -> Addresses
+                null -> Portfolio
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
     }

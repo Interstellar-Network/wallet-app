@@ -4,12 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,16 +17,18 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gg.interstellar.wallet.android.R
+import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import gg.interstellar.wallet.android.ui.theme.Modernista
 import androidx.compose.material.Icon as MaterialIcon
+
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
 @Preview(name = "NEXUS_7_2013", device = Devices.NEXUS_7_2013)
@@ -89,6 +91,7 @@ private fun MessageTopScreen() {
 
 @Composable
 private fun ConfirmMessageMiddleScreen() {
+    //TODO Add Animation
     Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth())
     {
         Box(
@@ -139,12 +142,12 @@ private fun ConfirmMessageMiddleScreen() {
                             )
                         }
                         Text(
-                            " ... ",
+                            stringResource(R.string.three_point_redacted),
                             textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
+                            fontSize = 8.sp,
+                            color =  if (MaterialTheme.colors.isLight) Color.White
+                            else Color.Black,
                             modifier = Modifier
-
-                            //TODO find right alignement use icon?
                         )
 
                         Spacer(Modifier.width(7.dp))
@@ -170,7 +173,7 @@ private fun ConfirmMessageMiddleScreen() {
 }
 
 @Composable
-private fun PinpadBottomScreen() {
+fun PinpadBottomScreen() {
     // We MUST set "weight" on each children, that weight each row will have the same height
     Column()
     {
@@ -196,33 +199,25 @@ private fun PinpadBottomScreen() {
                 modifier = Modifier
                     .weight(0.20f)
                     .wrapContentSize()
-                    .padding(horizontal = 0.dp, vertical = 0.dp),
             ) {
                 Surface(
                     modifier = Modifier.padding(25.dp, 25.dp),
                     shape = RoundedCornerShape(25),
                     elevation = 28.dp,
-                    color = if (MaterialTheme.colors.isLight) Color.Black
+                    color =  if (MaterialTheme.colors.isLight) Color.Black
                     else Color.White,
+
                 ) {
-                    Surface(
-                        modifier = Modifier.padding(25.dp, 25.dp),
-                        shape = RoundedCornerShape(25),
-                        elevation = 28.dp,
-                        color = if (MaterialTheme.colors.isLight) Color.Black
-                        else Color.White,
-                    ) {
                         MaterialIcon(
-                            Icons.Filled.Check,
-                            modifier = Modifier
-                                .padding(horizontal = 0.dp, vertical = 0.0.dp),
-                            contentDescription = "Check icon",
+                            Icons.Filled.Close,
+                            modifier = Modifier,
+                            contentDescription = "close icon",
+                            tint =  if (MaterialTheme.colors.isLight) Color.White
+                            else Color.Black,
                         )
                     }
 
                 }
-
-            }
             Spacer(Modifier.weight(0.20f))
         }
 
@@ -248,7 +243,7 @@ private fun ColumnScope.StandardPinpadRow() {
 }
 
 @Composable
-fun SetPadCircle() {
+private fun SetPadCircle() {
     Box(
         modifier = Modifier
             .shadow(elevation = 35.dp, shape = CircleShape, clip = false)
@@ -275,7 +270,6 @@ fun SetPadCircle() {
         }
     }
 }
-
 
 
 
