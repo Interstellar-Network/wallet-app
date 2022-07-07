@@ -12,13 +12,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import gg.interstellar.wallet.android.data.UserData
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
 import gg.interstellar.wallet.android.ui.portfolio.PortfolioBody
+import gg.interstellar.wallet.android.ui.portfolio.SingleCurrencyBody
 import gg.interstellar.wallet.android.ui.profile.ProfileScreen
 import gg.interstellar.wallet.android.ui.send.SendCurrenciesBody
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
@@ -84,8 +88,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
 
         composable(WalletScreen.Portfolio.name) {
             PortfolioBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
-
-                //navigateToSingleCurrency(navController = navController, currencyName = name)
+                navigateToSingleCurrency(navController = navController, currencyName = name)
             }
         }
         composable(WalletScreen.TxPinpad.name) {
@@ -95,27 +98,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
             TxPinpadScreen()
         }
 
-    }
-}
-
-//TODO add future screens
-        /**
-        composable(WalletScreen.Market.name) {
-            CurrenciesBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
-                navigateToSingleCurrency(navController = navController, currencyName = name)
-            }
-        }
-
-        composable(WalletScreen.Addresses.name) {
-            AddressesBody(addresses = UserData.addresses,notUsed) { name ->
-                navigateToSingleAddress(navController = navController, addressName = name)
-            }
-        }
-        */
-
-
-        /**
-        val currenciesName = WalletScreen.Market.name
+        val currenciesName = WalletScreen.Portfolio.name
 
         composable(
             route = "$currenciesName/{name}",
@@ -134,7 +117,13 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
             val currency = UserData.getCurrency(currenciesName)
             SingleCurrencyBody(currency = currency,notUsed,notUsed,noBool)
         }
+    }
+}
+private fun navigateToSingleCurrency(navController: NavHostController, currencyName: String) {
+    navController.navigate("${WalletScreen.Portfolio.name}/$currencyName")
+}
 
+        /**
         val  addressesName = WalletScreen.Addresses.name
         composable(
             route = "$addressesName/{name}",
@@ -157,9 +146,6 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
 
 
 /**
-private fun navigateToSingleCurrency(navController: NavHostController, currencyName: String) {
-    navController.navigate("${WalletScreen.Market.name}/$currencyName")
-}
 
 private fun navigateToSingleAddress(navController: NavHostController, addressName: String) {
         navController.navigate("${WalletScreen.Addresses.name}/$addressName")
