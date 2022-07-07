@@ -53,7 +53,7 @@ rust::Vec<u_int8_t> EvaluateWrapper::EvaluateWithInputs(
   return vec;
 }
 
-rust::Vec<u_int8_t> EvaluateWrapper::EvaluateWithPackmsg(
+rust::Vec<u_int8_t> EvaluateWrapper::EvaluateWithPackmsgWithInputs(
     rust::Vec<u_int8_t> inputs) const {
   // copy rust::Vec->std::vector
   std::vector<uint8_t> inputs_buf_cpp;
@@ -67,7 +67,25 @@ rust::Vec<u_int8_t> EvaluateWrapper::EvaluateWithPackmsg(
   return vec;
 }
 
+void EvaluateWrapper::EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs) const {
+  // TODO randomize inputs, or get from Rust?
+  std::vector<uint8_t> inputs_buf_cpp(pgc_->nb_inputs_);
+
+  auto outputs_cpp =
+      garble::EvaluateWithPackmsg(*pgc_, inputs_buf_cpp, *packmsg_);
+
+  // MUST clear else we append at the end; which means each call we go length =
+  // 1x -> 2x -> 3x, etc
+  outputs.clear();
+
+  std::copy(outputs_cpp.begin(), outputs_cpp.end(),
+            std::back_inserter(outputs));
+}
+
 size_t EvaluateWrapper::GetNbInputs() const { return pgc_->nb_inputs_; }
+size_t EvaluateWrapper::GetNbOutputs() const { return pgc_->nb_outputs_; }
+size_t EvaluateWrapper::GetWidth() const { return pgc_->config_.at("WIDTH"); }
+size_t EvaluateWrapper::GetHeight() const { return pgc_->config_.at("HEIGHT"); }
 
 std::unique_ptr<EvaluateWrapper> new_evaluate_wrapper(
     rust::Vec<u_int8_t> pgarbled_buffer, rust::Vec<u_int8_t> packmsg_buffer) {

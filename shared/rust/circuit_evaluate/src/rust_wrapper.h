@@ -22,9 +22,6 @@
 
 #include "rust/cxx.h"
 
-// rust-cxx shared struct
-struct StrippedCircuit;
-
 namespace interstellar::garble {
 class ParallelGarbledCircuit;
 }
@@ -36,6 +33,8 @@ class Packmsg;
 /**
  * Wrapper around interstellar::garblehelper::GarbleHelper
  */
+// TODO refacto? add field "outputs_", EvaluateWithPackmsg->return void, and add
+// "GetOutputs"
 class EvaluateWrapper {
  public:
   EvaluateWrapper(
@@ -53,10 +52,19 @@ class EvaluateWrapper {
    */
   // TEST/DEV ONLY
   rust::Vec<u_int8_t> EvaluateWithInputs(rust::Vec<u_int8_t> inputs) const;
+  // TEST/DEV ONLY
+  rust::Vec<u_int8_t> EvaluateWithPackmsgWithInputs(
+      rust::Vec<u_int8_t> inputs) const;
 
-  rust::Vec<u_int8_t> EvaluateWithPackmsg(rust::Vec<u_int8_t> inputs) const;
+  /**
+   * PROD version
+   */
+  void EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs) const;
 
   size_t GetNbInputs() const;
+  size_t GetNbOutputs() const;
+  size_t GetWidth() const;
+  size_t GetHeight() const;
 
  private:
   std::unique_ptr<interstellar::garble::ParallelGarbledCircuit> pgc_;

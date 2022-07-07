@@ -40,8 +40,6 @@
 // needed only if shared structs
 #include "circuit-evaluate/src/lib.rs.h"
 
-// TODO(cpp) remove all intrinsics(and use Rust instead?)
-
 /**
  * Historically a simple "__m128i Block"
  * But it's better to have a proper class(operators overload, etc)

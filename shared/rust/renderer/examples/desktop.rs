@@ -31,6 +31,10 @@ fn main() {
         bevy::render::color::Color::WHITE,
         bevy::render::color::Color::hex("0080FFFF").unwrap(),
         bevy::render::color::Color::BLACK,
+        include_bytes!("data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
+        include_bytes!("data/message_224x96.packmsg.pb.bin").to_vec(),
+        include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
+        include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
     );
 
     // add "dev/debug only systems"

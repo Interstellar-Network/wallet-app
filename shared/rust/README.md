@@ -1,5 +1,7 @@
 ## dev
 
+install the Android toolchains(with emulator if needed): `rustup target add --toolchain=nightly x86_64-unknown-linux-gnu armv7-linux-androideabi aarch64-linux-android`
+
 NOTE: only compile with nightly toolchain else https://github.com/scs/substrate-api-client/issues/166#issuecomment-975614152
 `rustup override set nightly`
 
@@ -40,6 +42,9 @@ see https://github.com/bevyengine/bevy/issues/86#issuecomment-766100761
 
 #### FIX: "error while loading shared libraries: libjvm.so: cannot open shared object file: No such file or directory"
 
+- install JDK eg `sudo apt-get install openjdk-8-jdk`
+    - NOTE: this is needed only to **run** some tests, NOT for compiling
+
 `export LD_LIBRARY_PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/`
 
 #### FIX: "[2022-06-01T12:39:18Z WARN  wgpu_hal::vulkan::instance] Unable to find layer: VK_LAYER_KHRONOS_validation"
@@ -51,3 +56,11 @@ see https://github.com/bevyengine/bevy/issues/86#issuecomment-766100761
 set env var `WGPU_BACKEND=vulkan`
 
 NOTE: "WARNING: lavapipe is not a conformant vulkan implementation, testing use only"
+
+#### W/A crash at startup; "Segmentation fault"
+
+NOTE: even a breakpoint at "Rust Panic" is not reached
+
+FIX: install vulkan drivers eg `sudo apt-get install mesa-vulkan-drivers`
+cf https://github.com/bevyengine/bevy/blob/main/docs/linux_dependencies.md#installing-linux-dependencies
+MAYBE see https://github.com/bevyengine/bevy/issues/2661

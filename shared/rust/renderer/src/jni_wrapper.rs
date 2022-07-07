@@ -125,6 +125,10 @@ fn init_surface(
         circle_text_color,
         circle_color,
         background_color,
+        include_bytes!("../examples/data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
+        include_bytes!("../examples/data/message_224x96.packmsg.pb.bin").to_vec(),
+        include_bytes!("../examples/data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
+        include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
     );
 
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
@@ -282,6 +286,7 @@ unsafe fn convert_rect_floatArr_to_vec_rect(
 }
 
 // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
+#[cfg(test)]
 #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
 fn jvm() -> &'static std::sync::Arc<jni::JavaVM> {
     static mut JVM: Option<std::sync::Arc<jni::JavaVM>> = None;
@@ -304,6 +309,7 @@ fn jvm() -> &'static std::sync::Arc<jni::JavaVM> {
     unsafe { JVM.as_ref().unwrap() }
 }
 
+#[cfg(test)]
 #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
 #[allow(dead_code)]
 pub fn attach_current_thread() -> jni::AttachGuard<'static> {

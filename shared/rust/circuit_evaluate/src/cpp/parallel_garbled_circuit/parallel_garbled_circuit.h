@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <vector>
 
-// TODO(cpp) #include "justgarble/justGarble.h"
 #include "justgarble/block.h"
 
 namespace interstellar {
@@ -57,7 +56,6 @@ class ParallelGarbledCircuit {
   // output of eval (should be in another struct)
   std::vector<uint32_t> outputs_;
   Block global_key_;
-  // TODO(cpp) absl::flat_hash_map<std::string, uint32_t> config_;
   std::unordered_map<std::string, uint32_t> config_;
 
   // INTERNAL/TEST ONLY
