@@ -36,8 +36,8 @@ fun PortfolioBody(
 ) {
     Column(
        horizontalAlignment = Alignment.CenterHorizontally,
-       // modifier = Modifier.verticalScroll(rememberScrollState())
-        // deactivate scrolling
+       modifier = Modifier.verticalScroll(rememberScrollState())
+       
     ) {
         Spacer(Modifier.height(30.dp))
         DisplayInterstellar()
