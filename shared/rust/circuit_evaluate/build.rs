@@ -14,13 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::fmt::format;
-
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     println!("OUT_DIR: {}", out_dir);
 
     let pb_out_dir = out_dir.clone();
+
+    // PROTOC_NO_VENDOR MUST be set in CI, b/c prost-build does not pass correct defines
+    // to CMake(namely ANDROID_PLATFORM)
+    // -- ANDROID_PLATFORM not set. Defaulting to minimum supported version 19.
+    // -- Android: Targeting API '19' with architecture 'arm', ABI 'armeabi-v7a', and processor 'armv7-a'
+    // ..
+    // ld: error: cannot open crtbegin_dynamic.o: No such file or directory
+    // ld: error: cannot open crtend_android.o: No such file or directory
+    // NOTE: we CAN NOT set this env var now, it MUST be done when prost-build is built!
+    match std::env::var("CI") {
+        Ok(_) => {
+            std::env::var("PROTOC_NO_VENDOR")
+                .expect("CI MUST set env var PROTOC_NO_VENDOR(for prost-build)");
+            std::env::var("PROTOC").expect("CI MUST set env var PROTOC(path of protoc)");
+            std::env::var("PROTOC_INCLUDE")
+                .expect("CI MUST set env var PROTOC_INCLUDE(path to Protobuf include/)");
+        }
+        Err(e) => {
+            println!("CI not detected... will use prost-build defaults");
+        }
+    };
 
     prost_build::Config::new()
         // by default prost-build only generates Rust
@@ -55,9 +74,12 @@ fn main() {
         .include("src/cpp")
         .include(pb_out_dir.clone())
         // else "fatal error: google/protobuf/port_def.inc: No such file or directory"
-        // NOTE: this is pointing to eg "target/debug/build/prost-build-XXX" NOT "OUT_DIR"
-        // NOTE2: there is "prost_build::protoc_include()" but that only works from inside prost-build crate
-        // TODO is there a protoc option to avoid generating those includes?
+        // NOTE: there is "prost_build::protoc_include()" but that only works from inside prost-build crate
+        // It works in CI b/c we use protoc pre-built, and use env vars PROTOC/PROTOC_INCLUDE
+        // TODO is there a protoc option to avoid adding those includes?
+        .include(prost_build::protoc_include())
+        // For local build, protoc is compiled by prost_build, and we need to point to the downloaded sources
+        // NOTE: this is pointing to eg "target/debug/build/prost-build-XXX" NOT our own "OUT_DIR"
         .include(
             prost_build::protoc()
                 .parent()
@@ -92,6 +114,7 @@ fn main() {
     // );
     //
     // eg protoc_include = /home/AAA/.cargo/registry/src/github.com-XXX/prost-build-0.10.4/third-party/include
+    // What we download in CI, and what prost_build downloads SHOULD MATCH!
     let protobuf_src = prost_build::protoc_include()
         .parent()
         .unwrap()
@@ -107,15 +130,27 @@ fn main() {
     // -- Android: Selected unified Clang toolchain
     // and we get the the error "is incompatible with aarch64linux", cf above
     match std::env::var("CMAKE_TOOLCHAIN_FILE") {
-        Ok(_) => match std::env::var("ANDROID_ABI") {
-            Ok(android_abi) => {
-                println!("ANDROID_ABI env var : {}", android_abi);
-                protobuf_cmake_config.define("ANDROID_ABI", android_abi);
-            }
-            Err(e) => {
-                panic!("ANDROID_ABI MUST be set when using env var \"CMAKE_TOOLCHAIN_FILE\"");
-            }
-        },
+        Ok(_) => {
+            match std::env::var("ANDROID_ABI") {
+                Ok(android_abi) => {
+                    println!("ANDROID_ABI env var : {}", android_abi);
+                    protobuf_cmake_config.define("ANDROID_ABI", android_abi);
+                }
+                Err(e) => {
+                    panic!("ANDROID_ABI MUST be set when using env var \"CMAKE_TOOLCHAIN_FILE\"");
+                }
+            };
+
+            match std::env::var("ANDROID_PLATFORM") {
+                Ok(android_platform) => {
+                    println!("ANDROID_PLATFORM env var : {}", android_platform);
+                    protobuf_cmake_config.define("ANDROID_PLATFORM", android_platform);
+                }
+                Err(e) => {
+                    panic!("ANDROID_PLATFORM MUST be set when using env var \"CMAKE_TOOLCHAIN_FILE\"[ie pass minSdk]");
+                }
+            };
+        }
         Err(_) => {
             println!("CMAKE_TOOLCHAIN_FILE env var not set");
         }
