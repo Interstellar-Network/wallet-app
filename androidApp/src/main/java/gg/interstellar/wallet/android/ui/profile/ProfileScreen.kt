@@ -156,7 +156,7 @@ private fun GenericBoxButton(
                         color = MaterialTheme.colors.onSurface,
                         modifier = modifier
                             .align(Alignment.Center),
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                     )
                 }
             }
