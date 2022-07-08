@@ -69,7 +69,7 @@ fun PortfolioBody(
                 }
                 DrawDashLine(Modifier
                     .align(Alignment.Center)
-                    .padding(65.dp,0.dp),
+                    .padding(50.dp,0.dp),
                     MaterialTheme.colors.surface,)
             }
         }
