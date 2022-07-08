@@ -57,7 +57,7 @@ fun SendCurrenciesBody(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
         if (!currencyChoice.value && !addressChoice.value && inputDone.value)
-            Modifier else Modifier //.verticalScroll(rememberScrollState())
+            Modifier else Modifier.verticalScroll(rememberScrollState())
         // deactivate scrolling
     ) {
         Spacer(Modifier.height(30.dp))
