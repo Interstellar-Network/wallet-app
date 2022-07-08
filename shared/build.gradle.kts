@@ -60,7 +60,8 @@ android {
     compileSdk = 31
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
-        minSdk = 16
+        // Compose Jetpack: requires >= 21?
+        minSdk = 21
         targetSdk = 31
 
         // TODO? used by our own CargoTask NOT by externalNativeBuild
@@ -295,6 +296,8 @@ abstract class CargoTask : DefaultTask () {
             //            ld: error: cannot open crtbegin_dynamic.o: No such file or directory
             //            ld: error: cannot open crtend_android.o: No such file or directory
             environment("ANDROID_ABI", map_cargo_target_to_android_abi.get().get(target.get())!!)
+
+            environment("ANDROID_PLATFORM", project.android.defaultConfig.minSdk)
 
             // https://github.com/mozilla/rust-android-gradle/blob/4fba4b9db16d56ba4e4f9aef2c028a4c2d6a9126/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L195
             // else:
