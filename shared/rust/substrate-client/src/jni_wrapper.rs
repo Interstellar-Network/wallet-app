@@ -16,11 +16,11 @@
 
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
-use jni::sys::{jint, jstring};
+use jni::sys::{jint, jstring, jboolean};
 use jni::{JNIEnv, JavaVM};
 use std::os::raw::c_void;
 
-use crate::call_extrinsic;
+use crate::{call_submit_config_display_signed, get_api};
 
 use crate::loggers;
 
@@ -46,6 +46,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_CallExtrinsic(
     // native method."
     _class: JClass,
     url: JString,
+    is_message: jboolean,
 ) -> jstring {
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
@@ -54,7 +55,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_CallExtrinsic(
         .expect("Couldn't get java string!")
         .into();
 
-    let tx_hash = call_extrinsic(&url);
+    let api = get_api(&url);
+    let tx_hash = call_submit_config_display_signed(&api, false);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info
