@@ -3980,9 +3980,11 @@ version = "0.1.0"
 dependencies = [
  "android_logger 0.11.0",
  "env_logger 0.9.0",
+ "frame-support",
  "jni",
  "log",
  "openssl",
+ "parity-scale-codec",
  "sp-core",
  "sp-keyring",
  "substrate-api-client",
