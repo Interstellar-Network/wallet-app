@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use frame_support::pallet_prelude::*;
-use sp_keyring::AccountKeyring;
 use codec::{Decode, Encode};
+use core::time::Duration;
+use frame_support::pallet_prelude::*;
+use futures_util::TryStreamExt;
+use ipfs_api_backend_hyper::{
+    BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
+};
+use sp_keyring::AccountKeyring;
 
 use substrate_api_client::{
     compose_extrinsic, rpc::WsRpcClient, Api, Hash, Pair, UncheckedExtrinsicV4, XtStatus,
@@ -44,7 +49,10 @@ fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
 // TODO replace by ocw-garble garbleAndStripSigned(and update params)
-fn call_submit_config_display_signed(api: &Api<sp_core::sr25519::Pair, WsRpcClient>, is_message: bool) -> Hash {
+fn call_submit_config_display_signed(
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    is_message: bool,
+) -> Hash {
     ////////////////////////////////////////////////////////////////////////////
     // // "set the recipient"
     // let to = AccountKeyring::Bob.to_account_id();
@@ -80,8 +88,6 @@ fn call_submit_config_display_signed(api: &Api<sp_core::sr25519::Pair, WsRpcClie
     tx_hash.expect("send_extrinsic failed")
 }
 
-// The custom struct that is to be decoded. The user must know the structure for this to work, which can fortunately
-// be looked up from the node metadata and printed with the `example_print_metadata`.
 // MUST match pallets/ocw-garble/src/lib.rs AccountToPendingCircuitsMap
 #[derive(Encode, Decode, Debug, Clone)]
 struct StrippedCircuitPackage {
@@ -89,13 +95,12 @@ struct StrippedCircuitPackage {
     packmsg_cid: BoundedVec<u8, ConstU32<64>>,
 }
 const MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT: u32 = 16;
-type PendingCircuitsType = BoundedVec<StrippedCircuitPackage,ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>,>;
+type PendingCircuitsType =
+    BoundedVec<StrippedCircuitPackage, ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>>;
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
 // TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
-fn get_pending_circuits(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
-) -> PendingCircuitsType {
+fn get_pending_circuits(api: &Api<sp_core::sr25519::Pair, WsRpcClient>) -> PendingCircuitsType {
     let account = AccountKeyring::Alice.public();
     // let result: AccountInfo = api
     //     .get_storage_map("System", "Account", account, None)
@@ -110,6 +115,54 @@ fn get_pending_circuits(
     println!("[+] pending circuits for account = {:?}", result);
 
     result
+}
+
+fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClient> {
+    log::info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
+    BackendWithGlobalOptions::new(
+        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&ipfs_server_multiaddr).unwrap(),
+        GlobalOptions::builder()
+            .timeout(Duration::from_millis(5000))
+            .build(),
+    )
+}
+
+/// Get the list of pending circuits using an extrinsic
+/// Then download ONE using IPFS
+pub fn get_one_pending_circuit() -> (Vec<u8>, Vec<u8>) {
+    // TODO param? env var?
+    let ipfs_server_multiaddr = "/ip4/127.0.0.1/tcp/5001";
+    let api = get_api("ws://127.0.0.1:9944");
+    let pending_circuits = get_pending_circuits(&api);
+
+    // convert Vec<u8> into str
+    let pgarbled_cid_str =
+        sp_std::str::from_utf8(&pending_circuits[0].pgarbled_cid).expect("pgarbled_cid utf8");
+    let packmsg_cid_str =
+        sp_std::str::from_utf8(&pending_circuits[0].packmsg_cid).expect("packmsg_cid utf8");
+
+    // allow calling ipfs api(ASYNC) from a sync context
+    // TODO can we make jni functions async?
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let (pgarbled_buf, packmsg_buf) = rt.block_on(async {
+        // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
+        let pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(pgarbled_cid_str)
+            .map_ok(|chunk| chunk.to_vec())
+            .try_concat()
+            .await
+            .unwrap();
+        let packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(packmsg_cid_str)
+            .map_ok(|chunk| chunk.to_vec())
+            .try_concat()
+            .await
+            .unwrap();
+
+        (pgarbled_buf, packmsg_buf)
+    });
+
+    (pgarbled_buf, packmsg_buf)
 }
 
 #[cfg(test)]

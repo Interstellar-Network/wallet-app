@@ -15,12 +15,25 @@
 /// IMPORTANT it will compile(and even work) WITHOUT "bevy_winit", but it will render nothing
 /// ie main will "run once" and exit
 use bevy::prelude::*;
+use clap::Parser;
 use ndarray::Array2;
 
 extern crate renderer;
 use renderer::vertices_utils::Rect;
+extern crate substrate_client;
+use substrate_client::get_one_pending_circuit;
+
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// download circuits via crate substrate-client instead of using hardcoded ones from data/
+    #[clap(long)]
+    is_online: bool,
+}
 
 fn main() {
+    let args = Args::parse();
+
     let mut app = renderer::App::new();
 
     app.insert_resource(WindowDescriptor {
@@ -35,21 +48,42 @@ fn main() {
         renderer::vertices_utils::Rect::new_to_ndc_android(0., 0., 1080.0, 381.0, 1080., 1920.);
     let rects_pinpad = generate_pinpad_rects();
 
-    renderer::init_app(
-        &mut app,
-        rect_message,
-        rects_pinpad,
-        3,
-        4,
-        bevy::render::color::Color::WHITE,
-        bevy::render::color::Color::WHITE,
-        bevy::render::color::Color::hex("0080FFFF").unwrap(),
-        bevy::render::color::Color::BLACK,
-        include_bytes!("data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
-        include_bytes!("data/message_224x96.packmsg.pb.bin").to_vec(),
-        include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
-        include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
-    );
+    // TODO if NOT offline: use crate substrate-client to DL the circuits
+    if args.is_online {
+        let (pgarbled_buf, packmsg_buf) = get_one_pending_circuit();
+
+        renderer::init_app(
+            &mut app,
+            rect_message,
+            rects_pinpad,
+            3,
+            4,
+            bevy::render::color::Color::WHITE,
+            bevy::render::color::Color::WHITE,
+            bevy::render::color::Color::hex("0080FFFF").unwrap(),
+            bevy::render::color::Color::BLACK,
+            pgarbled_buf,
+            packmsg_buf,
+            include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
+            include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+        );
+    } else {
+        renderer::init_app(
+            &mut app,
+            rect_message,
+            rects_pinpad,
+            3,
+            4,
+            bevy::render::color::Color::WHITE,
+            bevy::render::color::Color::WHITE,
+            bevy::render::color::Color::hex("0080FFFF").unwrap(),
+            bevy::render::color::Color::BLACK,
+            include_bytes!("data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
+            include_bytes!("data/message_224x96.packmsg.pb.bin").to_vec(),
+            include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
+            include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+        );
+    }
 
     // add "dev/debug only systems"
     // eg we DO NOT need movement in the apps, but is useful to dev/debug

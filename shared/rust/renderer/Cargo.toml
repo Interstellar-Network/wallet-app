@@ -50,10 +50,11 @@ raw-window-handle = "0.4"
 
 # local
 circuit-evaluate = { path = "../circuit_evaluate" }
+substrate-client = { path = "../substrate-client" }
 
 [dev-dependencies]
 png = "0.17.5"
-clap = { version = "3.1.18", features = ["derive"] }
+clap = { version = "3.1.18", features = ["derive", "env"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 # TODO dynamic(ONLY FOR DEBUG/DEV)
