@@ -131,10 +131,14 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 
 /// Get the list of pending circuits using an extrinsic
 /// Then download ONE using IPFS
-pub fn get_one_pending_display_stripped_circuits_package() -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>) {
-    // TODO param? env var?
-    let ipfs_server_multiaddr = "/ip4/127.0.0.1/tcp/5001";
-    let api = get_api("ws://127.0.0.1:9944");
+///
+/// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
+/// - ws_url: adress of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+pub fn get_one_pending_display_stripped_circuits_package(
+    ipfs_server_multiaddr: &str,
+    ws_url: &str,
+) -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>) {
+    let api = get_api(ws_url);
     let pending_circuits = get_pending_circuits(&api);
 
     // convert Vec<u8> into str

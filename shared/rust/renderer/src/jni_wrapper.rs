@@ -32,6 +32,7 @@ use crate::{
     init_app, my_raw_window_handle, update_texture_utils, vertices_utils::Rect, App,
     TextureUpdateCallbackType,
 };
+use substrate_client::get_one_pending_display_stripped_circuits_package;
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -127,8 +128,15 @@ fn init_surface(
     //     indices,
     //     texture_base,
     let mut app = App::new();
-    log::debug!("before init_app");
 
+    log::debug!("before get_one_pending_display_stripped_circuits_package");
+    let (message_pgarbled_buf, message_packmsg_buf, pinpad_pgarbled_buf, pinpad_packmsg_buf) =
+        get_one_pending_display_stripped_circuits_package(
+            "/ip4/127.0.0.1/tcp/5001",
+            "ws://127.0.0.1:9944",
+        );
+
+    log::debug!("before init_app");
     init_app(
         &mut app,
         message_rect,
@@ -139,10 +147,15 @@ fn init_surface(
         circle_text_color,
         circle_color,
         background_color,
-        include_bytes!("../examples/data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
-        include_bytes!("../examples/data/message_224x96.packmsg.pb.bin").to_vec(),
-        include_bytes!("../examples/data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
-        include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+        // DEV/DEBUG: offline
+        // include_bytes!("../examples/data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
+        // include_bytes!("../examples/data/message_224x96.packmsg.pb.bin").to_vec(),
+        // include_bytes!("../examples/data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
+        // include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+        message_pgarbled_buf,
+        message_packmsg_buf,
+        pinpad_pgarbled_buf,
+        pinpad_packmsg_buf,
     );
 
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
