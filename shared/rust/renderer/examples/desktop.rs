@@ -21,7 +21,7 @@ use ndarray::Array2;
 extern crate renderer;
 use renderer::vertices_utils::Rect;
 extern crate substrate_client;
-use substrate_client::get_one_pending_circuit;
+use substrate_client::get_one_pending_display_stripped_circuits_package;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -50,7 +50,8 @@ fn main() {
 
     // TODO if NOT offline: use crate substrate-client to DL the circuits
     if args.is_online {
-        let (pgarbled_buf, packmsg_buf) = get_one_pending_circuit();
+        let (message_pgarbled_buf, message_packmsg_buf, pinpad_pgarbled_buf, pinpad_packmsg_buf) =
+            get_one_pending_display_stripped_circuits_package();
 
         renderer::init_app(
             &mut app,
@@ -62,10 +63,10 @@ fn main() {
             bevy::render::color::Color::WHITE,
             bevy::render::color::Color::hex("0080FFFF").unwrap(),
             bevy::render::color::Color::BLACK,
-            pgarbled_buf,
-            packmsg_buf,
-            include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
-            include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+            message_pgarbled_buf,
+            message_packmsg_buf,
+            pinpad_pgarbled_buf,
+            pinpad_packmsg_buf,
         );
     } else {
         renderer::init_app(

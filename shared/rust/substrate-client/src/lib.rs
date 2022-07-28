@@ -90,13 +90,15 @@ fn call_submit_config_display_signed(
 
 // MUST match pallets/ocw-garble/src/lib.rs AccountToPendingCircuitsMap
 #[derive(Encode, Decode, Debug, Clone)]
-struct StrippedCircuitPackage {
-    pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
-    packmsg_cid: BoundedVec<u8, ConstU32<64>>,
+struct DisplayStrippedCircuitsPackage {
+    message_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
+    message_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
+    pinpad_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
+    pinpad_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
 }
 const MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT: u32 = 16;
 type PendingCircuitsType =
-    BoundedVec<StrippedCircuitPackage, ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>>;
+    BoundedVec<DisplayStrippedCircuitsPackage, ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>>;
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
 // TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
@@ -129,40 +131,60 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 
 /// Get the list of pending circuits using an extrinsic
 /// Then download ONE using IPFS
-pub fn get_one_pending_circuit() -> (Vec<u8>, Vec<u8>) {
+pub fn get_one_pending_display_stripped_circuits_package() -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>) {
     // TODO param? env var?
     let ipfs_server_multiaddr = "/ip4/127.0.0.1/tcp/5001";
     let api = get_api("ws://127.0.0.1:9944");
     let pending_circuits = get_pending_circuits(&api);
 
     // convert Vec<u8> into str
-    let pgarbled_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[0].pgarbled_cid).expect("pgarbled_cid utf8");
-    let packmsg_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[0].packmsg_cid).expect("packmsg_cid utf8");
+    let message_pgarbled_cid_str =
+        sp_std::str::from_utf8(&pending_circuits[0].message_pgarbled_cid)
+            .expect("message_pgarbled_cid utf8");
+    let message_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[0].message_packmsg_cid)
+        .expect("message_packmsg_cid utf8");
+    let pinpad_pgarbled_cid_str = sp_std::str::from_utf8(&pending_circuits[0].pinpad_pgarbled_cid)
+        .expect("pinpad_pgarbled_cid utf8");
+    let pinpad_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[0].pinpad_packmsg_cid)
+        .expect("pinpad_packmsg_cid utf8");
 
     // allow calling ipfs api(ASYNC) from a sync context
     // TODO can we make jni functions async?
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let (pgarbled_buf, packmsg_buf) = rt.block_on(async {
+    rt.block_on(async {
         // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
-        let pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(pgarbled_cid_str)
+        let message_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(message_pgarbled_cid_str)
             .map_ok(|chunk| chunk.to_vec())
             .try_concat()
             .await
             .unwrap();
-        let packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(packmsg_cid_str)
+        let message_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(message_packmsg_cid_str)
+            .map_ok(|chunk| chunk.to_vec())
+            .try_concat()
+            .await
+            .unwrap();
+        let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(pinpad_pgarbled_cid_str)
+            .map_ok(|chunk| chunk.to_vec())
+            .try_concat()
+            .await
+            .unwrap();
+        let pinpad_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            .cat(pinpad_packmsg_cid_str)
             .map_ok(|chunk| chunk.to_vec())
             .try_concat()
             .await
             .unwrap();
 
-        (pgarbled_buf, packmsg_buf)
-    });
-
-    (pgarbled_buf, packmsg_buf)
+        (
+            message_pgarbled_buf,
+            message_packmsg_buf,
+            pinpad_pgarbled_buf,
+            pinpad_packmsg_buf,
+        )
+    })
 }
 
 #[cfg(test)]
