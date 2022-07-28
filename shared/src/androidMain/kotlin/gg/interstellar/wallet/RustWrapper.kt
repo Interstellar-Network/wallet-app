@@ -11,7 +11,7 @@ class RustWrapper : RustInterface {
         // NOT needed, but it MUST be in jniLibs/!!!
     }
 
-    external override fun CallExtrinsic(url: String): String?
+    external override fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, tx_message: String): String?
 
     // TODO? split initSurfaceMessage + initSurfacePinpad?
     // would the rendeder work with 2 windows?

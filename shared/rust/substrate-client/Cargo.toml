@@ -4,9 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-# NOTE: that one is NOT meant to be used as Android library; but linked via crate "renderer"
-# so it can be a standard Rust's "lib"
-crate-type = ["lib"]
+# ANDROID: "This must contain at least cdylib for Android libraries to be generated."
+# https://github.com/bbqsrc/cargo-ndk/blob/main/example/Cargo.toml
+# else:
+# [2022-05-16T09:53:58Z INFO  cargo_ndk::cli] Copying libraries to ./jniLibs...
+# [2022-05-16T09:53:58Z ERROR cargo_ndk::cli] No .so files found in path
+#
+# IOS: error: cannot produce cdylib for `shared-rs v0.1.0 (/.../wallet-app/shared/rust)` as the target `x86_64-apple-ios` does not support these crate types
+crate-type = ["cdylib", "staticlib", "lib"]
 
 [dependencies]
 # default-features to disable all std related code?

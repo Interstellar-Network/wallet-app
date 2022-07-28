@@ -49,9 +49,9 @@ fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
 // TODO replace by ocw-garble garbleAndStripSigned(and update params)
-fn call_submit_config_display_signed(
+fn extrinsic_garble_and_strip_display_circuits_package_signed(
     api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
-    is_message: bool,
+    tx_message: &str,
 ) -> Hash {
     ////////////////////////////////////////////////////////////////////////////
     // // "set the recipient"
@@ -71,10 +71,10 @@ fn call_submit_config_display_signed(
     let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
         api.clone(),
         // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "OcwCircuits",
+        "OcwGarble",
         // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "submit_config_display_signed",
-        is_message
+        "garble_and_strip_display_circuits_package_signed",
+        tx_message.as_bytes().to_vec()
     );
 
     println!("[+] Composed Extrinsic:\n {:?}\n", xt);
@@ -133,7 +133,7 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 /// Then download ONE using IPFS
 ///
 /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
-/// - ws_url: adress of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+/// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
 pub fn get_one_pending_display_stripped_circuits_package(
     ipfs_server_multiaddr: &str,
     ws_url: &str,
@@ -194,7 +194,9 @@ pub fn get_one_pending_display_stripped_circuits_package(
 #[cfg(test)]
 mod tests {
     use crate::loggers;
-    use crate::{call_submit_config_display_signed, get_api, get_pending_circuits};
+    use crate::{
+        extrinsic_garble_and_strip_display_circuits_package_signed, get_api, get_pending_circuits,
+    };
     static INIT: std::sync::Once = std::sync::Once::new();
 
     fn init() {
@@ -204,7 +206,7 @@ mod tests {
     }
 
     #[test]
-    fn call_call_submit_config_display_signed_local_ok() {
+    fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
         let api = get_api("ws://127.0.0.1:9944");
 
@@ -216,7 +218,7 @@ mod tests {
         // IMPORTANT also requires a running "api_circuits"
         // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
         // TODO add integration test with SSL
-        let tx_hash = call_submit_config_display_signed(&api, false);
+        let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, "aaa");
         println!("[+] tx_hash: {:02X}", tx_hash);
     }
 

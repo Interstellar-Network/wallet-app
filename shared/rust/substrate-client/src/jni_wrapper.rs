@@ -16,11 +16,11 @@
 
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
-use jni::sys::{jint, jstring, jboolean};
+use jni::sys::{jboolean, jint, jstring};
 use jni::{JNIEnv, JavaVM};
 use std::os::raw::c_void;
 
-use crate::{call_submit_config_display_signed, get_api};
+use crate::{extrinsic_garble_and_strip_display_circuits_package_signed, get_api};
 
 use crate::loggers;
 
@@ -39,24 +39,29 @@ pub extern "system" fn JNI_OnLoad(vm: JavaVM, _: *mut c_void) -> jint {
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
 #[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_CallExtrinsic(
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAndStripDisplayCircuitsPackage(
     env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
     // native method."
     _class: JClass,
-    url: JString,
-    is_message: jboolean,
+    ws_url: JString,
+    tx_message: JString,
 ) -> jstring {
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
-    let url: String = env
-        .get_string(url)
-        .expect("Couldn't get java string!")
+    let ws_url: String = env
+        .get_string(ws_url)
+        .expect("Couldn't get java string[url]!")
         .into();
 
-    let api = get_api(&url);
-    let tx_hash = call_submit_config_display_signed(&api, false);
+    let tx_message: String = env
+        .get_string(tx_message)
+        .expect("Couldn't get java string[tx_message]!")
+        .into();
+
+    let api = get_api(&ws_url);
+    let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, &tx_message);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info

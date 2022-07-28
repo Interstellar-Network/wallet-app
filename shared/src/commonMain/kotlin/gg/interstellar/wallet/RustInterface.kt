@@ -5,9 +5,13 @@ package gg.interstellar.wallet
  * There will be on implementation("actual") for Android and one for iOs
  */
 interface RustInterface {
+    /**
+     *
+     * @param ws_url address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+     */
     // WARNING: this CAN NOT be "external" if part of the commonMain?
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation
-    fun CallExtrinsic(url: String): String?
+    fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, tx_message: String): String?
 
     fun <Surface> initSurface(
         surface: Surface,
