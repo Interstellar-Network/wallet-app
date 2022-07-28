@@ -13,11 +13,11 @@
 // limitations under the License.
 
 pub fn update_texture_data_message(data: &mut Vec<u8>, circuit: &mut crate::EvaluateWrapperType) {
-    circuit.EvaluateWithPackmsg(data);
+    circuit.as_mut().unwrap().EvaluateWithPackmsg(data);
 }
 
 pub fn update_texture_data_pinpad(data: &mut Vec<u8>, circuit: &mut crate::EvaluateWrapperType) {
-    circuit.EvaluateWithPackmsg(data);
+    circuit.as_mut().unwrap().EvaluateWithPackmsg(data);
 }
 
 // TODO into_luma8? ie yes update "TEXTURE_PIXEL_NB_BYTES" and "Image::new_fill"

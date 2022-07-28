@@ -33,7 +33,9 @@ using namespace interstellar;
 EvaluateWrapper::EvaluateWrapper(
     std::unique_ptr<interstellar::garble::ParallelGarbledCircuit> &&pgc,
     std::unique_ptr<interstellar::packmsg::Packmsg> &&packmsg)
-    : pgc_(std::move(pgc)), packmsg_(std::move(packmsg)) {}
+    : pgc_(std::move(pgc)),
+      packmsg_(std::move(packmsg)),
+      random_mt_(std::random_device()()) {}
 
 // https://stackoverflow.com/questions/13414652/forward-declaration-with-unique-ptr
 EvaluateWrapper::~EvaluateWrapper() = default;
@@ -65,12 +67,20 @@ rust::Vec<u_int8_t> EvaluateWrapper::EvaluateWithPackmsgWithInputs(
   return vec;
 }
 
-void EvaluateWrapper::EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs) const {
-  // TODO randomize inputs, or get from Rust?
-  std::vector<uint8_t> inputs_buf_cpp(pgc_->nb_inputs_);
+void EvaluateWrapper::EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs) {
+  // randomize inputs
+  // TODO class member, to avoid re-alloc each render loop
+  uint32_t nb_inputs = pgc_->nb_inputs_;
+  inputs_.clear();
+  inputs_.reserve(nb_inputs);
+  std::uniform_int_distribution<> distrib(0, 1);
 
-  auto outputs_cpp =
-      garble::EvaluateWithPackmsg(*pgc_, inputs_buf_cpp, *packmsg_);
+  for (int i = 0; i < nb_inputs; ++i) {
+    inputs_.emplace_back(distrib(random_mt_));
+  }
+  assert(inputs_.size() == nb_inputs && "inputs_ size mismatch!");
+
+  auto outputs_cpp = garble::EvaluateWithPackmsg(*pgc_, inputs_, *packmsg_);
 
   // MUST clear else we append at the end; which means each call we go length =
   // 1x -> 2x -> 3x, etc

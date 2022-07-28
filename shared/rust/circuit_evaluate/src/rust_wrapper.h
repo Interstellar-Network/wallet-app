@@ -17,6 +17,8 @@
 #pragma once
 
 #include <memory>
+#include <random>
+#include <vector>
 
 #include "rust/cxx.h"
 
@@ -56,8 +58,12 @@ class EvaluateWrapper {
 
   /**
    * PROD version
+   *
+   * NOTE: NOT const b/c "inputs" and "outputs" are modified in-place
+   * (and random_mt_ is used to generate random inputs and that can not be
+   * const)
    */
-  void EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs) const;
+  void EvaluateWithPackmsg(rust::Vec<u_int8_t> &outputs);
 
   size_t GetNbInputs() const;
   size_t GetNbOutputs() const;
@@ -67,6 +73,8 @@ class EvaluateWrapper {
  private:
   std::unique_ptr<interstellar::garble::ParallelGarbledCircuit> pgc_;
   std::unique_ptr<interstellar::packmsg::Packmsg> packmsg_;
+  std::mt19937 random_mt_;
+  std::vector<uint8_t> inputs_;
 };
 
 std::unique_ptr<EvaluateWrapper> new_evaluate_wrapper(

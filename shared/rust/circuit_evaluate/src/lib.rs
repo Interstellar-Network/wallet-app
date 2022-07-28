@@ -58,7 +58,7 @@ pub mod ffi {
         /// PROD version
         /// inputs are randomized, outputs are externally given
         /// typically outputs points to some kind of "Texture data"
-        fn EvaluateWithPackmsg(&self, outputs: &mut Vec<u8>);
+        fn EvaluateWithPackmsg(self: Pin<&mut EvaluateWrapper>, outputs: &mut Vec<u8>);
         /// TEST/DEV only
         /// PROD uses randomize inputs
         fn EvaluateWithPackmsgWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
