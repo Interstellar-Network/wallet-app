@@ -25,9 +25,6 @@ use substrate_api_client::{
     compose_extrinsic, rpc::WsRpcClient, Api, Hash, Pair, UncheckedExtrinsicV4, XtStatus,
 };
 
-#[macro_use]
-extern crate log;
-
 #[cfg(feature = "with-cwrapper")]
 pub mod c_wrapper;
 #[cfg(feature = "with-jni")]
@@ -75,6 +72,31 @@ fn extrinsic_garble_and_strip_display_circuits_package_signed(
         // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
         "garble_and_strip_display_circuits_package_signed",
         tx_message.as_bytes().to_vec()
+    );
+
+    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+
+    // "send and watch extrinsic until InBlock"
+    let tx_hash = api
+        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
+        .unwrap();
+    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+
+    tx_hash.expect("send_extrinsic failed")
+}
+
+pub fn extrinsic_register_mobile(
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    pub_key: Vec<u8>,
+) -> Hash {
+    #[allow(clippy::redundant_clone)]
+    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
+        api.clone(),
+        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
+        "MobileRegistry",
+        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
+        "register_mobile",
+        pub_key
     );
 
     println!("[+] Composed Extrinsic:\n {:?}\n", xt);
@@ -195,7 +217,8 @@ pub fn get_one_pending_display_stripped_circuits_package(
 mod tests {
     use crate::loggers;
     use crate::{
-        extrinsic_garble_and_strip_display_circuits_package_signed, get_api, get_pending_circuits,
+        extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
+        get_api, get_pending_circuits,
     };
     static INIT: std::sync::Once = std::sync::Once::new();
 
@@ -229,5 +252,15 @@ mod tests {
 
         let pending_circuits = get_pending_circuits(&api);
         println!("[+] pending_circuits: {:?}", pending_circuits);
+    }
+
+    #[test]
+    fn extrinsic_register_mobile_local_ok() {
+        init();
+        let api = get_api("ws://127.0.0.1:9944");
+
+        // MUST be at least 32 bytes
+        let tx_hash = extrinsic_register_mobile(&api, vec![42; 32]);
+        println!("[+] tx_hash: {:02X}", tx_hash);
     }
 }

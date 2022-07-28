@@ -4,6 +4,7 @@ package gg.interstellar.wallet
 
 import android.content.Context
 import android.graphics.Canvas
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.compose.material.Colors
@@ -19,6 +20,7 @@ open class WGPUSurfaceView(
     SurfaceHolder.Callback2 {
     private var rustBrige = RustWrapper()
     private var rustPtr: Long? = null
+    val WS_URl = "ws://127.0.0.1:9944"
 
     init {
         holder.addCallback(this)
@@ -28,6 +30,15 @@ open class WGPUSurfaceView(
         // TODO? hasOverlappingRendering?
         this.setZOrderOnTop(false)
 //        this.setZOrderMediaOverlay(false)
+
+        // TODO move out of here!
+        val pub_key = rustBrige.getMobilePublicKey()
+        Log.i("interstellar", "pub_key : $pub_key")
+        rustBrige.ExtrinsicRegisterMobile(WS_URl, pub_key)
+
+        // TODO move to proper "Loading screen", in a thread
+        // MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
+        rustBrige.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URl, "0.13 ETH to REPLACEME")
     }
 
     override fun hasOverlappingRendering(): Boolean {

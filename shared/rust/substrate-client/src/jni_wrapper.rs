@@ -14,13 +14,16 @@
 
 // cf https://docs.rs/jni/latest/jni/#the-rust-side
 
+use jni::objects::ReleaseMode;
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
-use jni::sys::{jboolean, jint, jstring};
+use jni::sys::{jbyteArray, jint, jstring};
 use jni::{JNIEnv, JavaVM};
 use std::os::raw::c_void;
 
-use crate::{extrinsic_garble_and_strip_display_circuits_package_signed, get_api};
+use crate::{
+    extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile, get_api,
+};
 
 use crate::loggers;
 
@@ -72,4 +75,138 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAn
 
     // "Finally, extract the raw pointer to return."
     output.into_inner()
+}
+
+fn convert_jbytearray_to_vec(env: JNIEnv, byte_arr: jbyteArray) -> Vec<u8> {
+    // FAIL: works on desktop but crash on Android "panicked at 'called `Result::unwrap()` on an `Err` value: TryFromIntError(())', substrate-client/src/jni_wrapper.rs:104:18"
+    // let byte_arr_autoarr = env
+    //     .get_byte_array_elements(byte_arr, ReleaseMode::NoCopyBack)
+    //     .unwrap();
+    // assert_ne!(
+    //     byte_arr_autoarr.size().unwrap(),
+    //     0,
+    //     "byte_arr_autoarr is empty!"
+    // );
+
+    // let bytearr_size: usize = byte_arr_autoarr.size().unwrap().try_into().unwrap();
+    // log::info!(
+    //     "byte_arr_autoarr size = {:?}",
+    //     byte_arr_autoarr.size().unwrap()
+    // );
+    // let mut res_vec = Vec::<u8>::with_capacity(bytearr_size);
+    // unsafe {
+    //     for i in 0..bytearr_size {
+    //         log::info!(
+    //             "convert_jbytearray_to_vec raw: {} -> {:?}",
+    //             i,
+    //             (*byte_arr_autoarr.as_ptr().offset(i.try_into().unwrap()))
+    //         );
+    //         let x: u8 = (*byte_arr_autoarr.as_ptr().offset(i.try_into().unwrap()))
+    //             .try_into()
+    //             .unwrap();
+    //         log::info!("convert_jbytearray_to_vec u8: {} -> {:?}", i, x);
+    //         res_vec.push(x);
+    //     }
+    // }
+
+    let res_vec = env.convert_byte_array(byte_arr).unwrap();
+
+    log::info!("convert_jbytearray_to_vec = {:?}", res_vec);
+    res_vec
+}
+
+// "This keeps Rust from "mangling" the name and making it unique for this
+// crate."
+#[no_mangle]
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegisterMobile(
+    env: JNIEnv,
+    // "This is the class that owns our static method. It's not going to be used,
+    // but still must be present to match the expected signature of a static
+    // native method."
+    _class: JClass,
+    ws_url: JString,
+    pub_key: jbyteArray,
+) -> jstring {
+    // "First, we have to get the string out of Java. Check out the `strings`
+    // module for more info on how this works."
+    let ws_url: String = env
+        .get_string(ws_url)
+        .expect("Couldn't get java string[url]!")
+        .into();
+
+    let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
+
+    let api = get_api(&ws_url);
+    let tx_hash = extrinsic_register_mobile(&api, pub_key_vec);
+    // TODO error handling: .unwrap()
+
+    // "Then we have to create a new Java string to return. Again, more info
+    // in the `strings` module."
+    let output = env
+        .new_string(tx_hash.to_string())
+        .expect("Couldn't create java string!");
+
+    // "Finally, extract the raw pointer to return."
+    output.into_inner()
+}
+
+// https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
+#[cfg(test)]
+#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+fn jvm() -> &'static std::sync::Arc<jni::JavaVM> {
+    static mut JVM: Option<std::sync::Arc<jni::JavaVM>> = None;
+    static INIT: std::sync::Once = std::sync::Once::new();
+
+    INIT.call_once(|| {
+        let jvm_args = jni::InitArgsBuilder::new()
+            .version(jni::JNIVersion::V8)
+            .option("-Xcheck:jni")
+            .build()
+            .unwrap_or_else(|e| panic!("{:#?}", e));
+
+        let jvm = jni::JavaVM::new(jvm_args).unwrap_or_else(|e| panic!("{:#?}", e));
+
+        unsafe {
+            JVM = Some(std::sync::Arc::new(jvm));
+        }
+    });
+
+    unsafe { JVM.as_ref().unwrap() }
+}
+
+#[cfg(test)]
+#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+#[allow(dead_code)]
+pub fn attach_current_thread() -> jni::AttachGuard<'static> {
+    jvm()
+        .attach_current_thread()
+        .expect("failed to attach jvm thread")
+}
+
+// cf https://github.com/jni-rs/jni-rs/blob/master/tests/jni_api.rs
+#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+#[test]
+pub fn test_convert_jbytearray_to_vec() {
+    use jni::sys::jbyte;
+
+    let env = attach_current_thread();
+
+    //     result = {Rect[1]@20529}
+    //  0 = {Rect@20731} Rect.fromLTRB(0.0, 0.0, 1080.0, 381.0)
+    // message_rects_flattened = {ArrayList@20533}  size = 4
+    //  0 = {Float@20689} 0.0
+    //  1 = {Float@20690} 0.0
+    //  2 = {Float@20691} 1080.0
+    //  3 = {Float@20692} 381.0
+    let buf: &[jbyte] = &[0 as jbyte, 42 as jbyte, 12 as jbyte, 42 as jbyte];
+    let java_array = env
+        .new_byte_array(4)
+        .expect("JNIEnv#new_byte_array must create a Java jbyte array with given size");
+
+    // Insert array elements
+    let _ = env.set_byte_array_region(java_array, 0, buf);
+
+    let res = unsafe { convert_jbytearray_to_vec(*env, java_array) };
+
+    assert_eq!(res, vec![0, 42, 12, 42])
 }

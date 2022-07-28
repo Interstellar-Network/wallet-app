@@ -18,7 +18,7 @@
 use android_logger::Config;
 use bevy::prelude::Color;
 use core::ffi::c_void;
-use jni::objects::{AutoArray, JClass, JObject, JString, ReleaseMode};
+use jni::objects::{JClass, JObject, JString, ReleaseMode};
 use jni::sys::{jfloat, jfloatArray, jint, jlong, jstring};
 use jni::JNIEnv;
 use jni_fn::jni_fn;

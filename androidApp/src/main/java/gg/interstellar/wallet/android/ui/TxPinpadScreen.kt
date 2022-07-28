@@ -1,5 +1,6 @@
 package gg.interstellar.wallet.android.ui
 
+import android.util.Log
 import gg.interstellar.wallet.android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -82,11 +83,6 @@ fun TxPinpadScreen() {
     // NOTE: contrary to pinpad we only have ONE Rect, not an array
     // Array b/c same issue than "wgpu_sv_pinpad_coordinates"
     val messageRectRelativeToWGPUSurfaceView: Array<Rect> = Array(1) { Rect.Zero }
-
-    // TODO move to proper "Loading screen", in a thread
-    // MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
-    var rustBrige = RustWrapper()
-    rustBrige.ExtrinsicGarbleAndStripDisplayCircuitsPackage("ws://127.0.0.1:9944", "aaaBBB")
 
     InterstellarWalletTheme {
         Column {
