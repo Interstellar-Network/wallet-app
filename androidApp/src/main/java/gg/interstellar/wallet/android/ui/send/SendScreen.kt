@@ -5,8 +5,10 @@ import StatementCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -57,7 +59,7 @@ fun SendCurrenciesBody(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
         if (!currencyChoice.value && !addressChoice.value && inputDone.value)
-            Modifier else Modifier //.verticalScroll(rememberScrollState())
+            Modifier else Modifier.verticalScroll(rememberScrollState())
         // deactivate scrolling
     ) {
         Spacer(Modifier.height(30.dp))

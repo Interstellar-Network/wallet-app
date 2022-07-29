@@ -3,11 +3,15 @@
 
     <application
         android:allowBackup="false"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:logo="@drawable/ic_interstellar_black_icon_white_border"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Interstellar"
+        android:icon="@mipmap/ic_interstellar_launcher">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/title_activity_main"
             android:theme="@style/Theme.InterstellarWallet">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

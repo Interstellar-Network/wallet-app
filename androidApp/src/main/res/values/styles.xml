@@ -1,7 +1,7 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Rally" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Theme.Interstellar" parent="Theme.MaterialComponents.NoActionBar">
         <item name="android:statusBarColor">@color/statusBarColor</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
         <item name="android:windowBackground">?attr/colorSurface</item>

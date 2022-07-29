@@ -1,9 +1,7 @@
 package gg.interstellar.wallet.android.ui.portfolio
 
 import StatementCard
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -36,8 +34,8 @@ fun PortfolioBody(
 ) {
     Column(
        horizontalAlignment = Alignment.CenterHorizontally,
-       // modifier = Modifier.verticalScroll(rememberScrollState())
-        // deactivate scrolling
+       modifier = Modifier.verticalScroll(rememberScrollState())
+       
     ) {
         Spacer(Modifier.height(30.dp))
         DisplayInterstellar()
@@ -69,7 +67,7 @@ fun PortfolioBody(
                 }
                 DrawDashLine(Modifier
                     .align(Alignment.Center)
-                    .padding(65.dp,0.dp),
+                    .padding(50.dp,0.dp),
                     MaterialTheme.colors.surface,)
             }
         }
