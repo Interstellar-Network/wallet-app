@@ -50,17 +50,18 @@ raw-window-handle = "0.4"
 
 # local
 circuit-evaluate = { path = "../circuit_evaluate" }
-substrate-client = { path = "../substrate-client" }
 
 [dev-dependencies]
 png = "0.17.5"
 clap = { version = "3.1.18", features = ["derive", "env"] }
+# features "invocation" needed for tests(to create a JVM)
+jni = { version = "0.19.0", features = ["invocation"] }
+# needed only for example/desktop
+substrate-client = { path = "../substrate-client" }
 
 [target.'cfg(unix)'.dev-dependencies]
 # TODO dynamic(ONLY FOR DEBUG/DEV)
 bevy = { version = "0.7.0", default-features = false, features = [ "render", "bevy_winit", "x11" ]}
-# features "invocation" needed for tests(to create a JVM)
-jni = { version = "0.19.0", features = ["invocation"] }
 
 [build-dependencies]
 anyhow = "1.0"

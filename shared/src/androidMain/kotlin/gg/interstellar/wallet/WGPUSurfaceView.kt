@@ -18,9 +18,11 @@ open class WGPUSurfaceView(
     val colors: Colors,
 ) : SurfaceView(context),
     SurfaceHolder.Callback2 {
-    private var rustBrige = RustWrapper()
+    private var rustBridge = RustWrapper()
     private var rustPtr: Long? = null
-    val WS_URl = "ws://127.0.0.1:9944"
+    val WS_URL = "ws://127.0.0.1:9944"
+    val IPFS_ADDR = "/ip4/127.0.0.1/tcp/5001"
+    private var circuitsPackagePtr: Long? = null
 
     init {
         holder.addCallback(this)
@@ -32,16 +34,25 @@ open class WGPUSurfaceView(
 //        this.setZOrderMediaOverlay(false)
 
         // TODO move out of here!
-        val pub_key = rustBrige.getMobilePublicKey()
+        val pub_key = rustBridge.getMobilePublicKey()
         Log.i("interstellar", "pub_key : $pub_key")
-        rustBrige.ExtrinsicRegisterMobile(WS_URl, pub_key)
+        rustBridge.ExtrinsicRegisterMobile(WS_URL, pub_key)
+
+        circuitsPackagePtr = rustBridge.GetCircuits(
+            WS_URL,
+            IPFS_ADDR,
+        )
+        Log.i(
+            "interstellar",
+            "circuitsPackagePtr : ${circuitsPackagePtr}"
+        )
 
         // TODO move to proper "Loading screen", in a thread
         // MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
-        rustBrige.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URl, "0.13 ETH to REPLACEME")
+        rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, "0.13 ETH to REPLACEME")
     }
 
-    fun onClickPinpadDigit(idx: Int){
+    fun onClickPinpadDigit(idx: Int) {
         Log.i("interstellar", "onClickPinpadDigit $idx")
     }
 
@@ -55,7 +66,7 @@ open class WGPUSurfaceView(
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         rustPtr?.let {
-            rustBrige.cleanup(it)
+            rustBridge.cleanup(it)
             rustPtr = null
         }
     }
@@ -89,7 +100,7 @@ open class WGPUSurfaceView(
                 message_rect[0].bottom,
             )
 
-            rustPtr = rustBrige.initSurface(
+            rustPtr = rustBridge.initSurface(
                 h.surface,
                 message_rects_flattened.toFloatArray(),
                 pinpad_rects_flattened.toFloatArray(),
@@ -103,7 +114,11 @@ open class WGPUSurfaceView(
                 Integer.toHexString(colors.surface.toArgb()).substring(2),
                 // background_color_hex: String
                 Integer.toHexString(colors.background.toArgb()).substring(2),
+                circuitsPackagePtr!!,
             )
+
+            // not valid anymore after "initSurface" so we "reset" it
+            circuitsPackagePtr = 0
 
             setWillNotDraw(false)
         }
@@ -115,7 +130,7 @@ open class WGPUSurfaceView(
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
         rustPtr?.let {
-            rustBrige.render(it)
+            rustBridge.render(it)
         }
         invalidate()
     }

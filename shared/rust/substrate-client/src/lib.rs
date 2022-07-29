@@ -231,6 +231,14 @@ pub fn get_one_pending_display_stripped_circuits_package(
             .await
             .unwrap();
 
+        log::info!(
+            "get_one_pending_display_stripped_circuits_package: got: {},{},{},{},",
+            message_pgarbled_buf.len(),
+            message_packmsg_buf.len(),
+            pinpad_pgarbled_buf.len(),
+            pinpad_packmsg_buf.len()
+        );
+
         (
             message_pgarbled_buf,
             message_packmsg_buf,

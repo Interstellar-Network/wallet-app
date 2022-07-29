@@ -17,12 +17,13 @@
 use jni::objects::ReleaseMode;
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
-use jni::sys::{jbyteArray, jint, jstring};
+use jni::sys::{jbyteArray, jint, jlong, jstring};
 use jni::{JNIEnv, JavaVM};
 use std::os::raw::c_void;
 
 use crate::{
     extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile, get_api,
+    get_one_pending_display_stripped_circuits_package,
 };
 
 use crate::loggers;
@@ -39,6 +40,11 @@ pub extern "system" fn JNI_OnLoad(vm: JavaVM, _: *mut c_void) -> jint {
     JNI_VERSION_1_6
 }
 
+/// IMPORTANT: this Extrinsic is async!
+/// The circuit generation is started immediatelely(ish), but the results
+/// are not available in IPFS until after at least a few seconds.
+/// ie calling GetCircuits immediately usually fails!
+///
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
 #[no_mangle]
@@ -148,6 +154,101 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
 
     // "Finally, extract the raw pointer to return."
     output.into_inner()
+}
+
+/// IMPORTANT MUST match renderer/src/jni_wrapper.rs
+struct DisplayCircuitsPackage {
+    message_pgarbled_buf: Vec<u8>,
+    message_packmsg_buf: Vec<u8>,
+    pinpad_pgarbled_buf: Vec<u8>,
+    pinpad_packmsg_buf: Vec<u8>,
+}
+
+/// Get circuits, OR throw if there is no circuit ready!
+/// To generate them: use Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAndStripDisplayCircuitsPackage
+///
+/// WARNING: returns a POINTER to a Rust struct = DisplayCircuitsPackage
+// "This keeps Rust from "mangling" the name and making it unique for this
+// crate."
+#[no_mangle]
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
+    env: JNIEnv,
+    // "This is the class that owns our static method. It's not going to be used,
+    // but still must be present to match the expected signature of a static
+    // native method."
+    _class: JClass,
+    ws_url: JString,
+    ipfs_addr: JString,
+) -> jlong {
+    // "First, we have to get the string out of Java. Check out the `strings`
+    // module for more info on how this works."
+    let ws_url: String = env
+        .get_string(ws_url)
+        .expect("Couldn't get java string[ws_url]!")
+        .into();
+
+    let ipfs_addr: String = env
+        .get_string(ipfs_addr)
+        .expect("Couldn't get java string[ipfs_addr]!")
+        .into();
+
+    log::debug!("before get_one_pending_display_stripped_circuits_package");
+    let (message_pgarbled_buf, message_packmsg_buf, pinpad_pgarbled_buf, pinpad_packmsg_buf) =
+        get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
+
+    // https://github.com/jni-rs/jni-rs/issues/101
+    // sort of works without "new_byte_array", but the Java array is not the correct size so it then crash at
+    // IFF the arrays are init with enough space: `ByteArray(10 * 1024 * 1024)`
+    // ```
+    // pub fn convert_byte_array(&self, array: jbyteArray) -> Result<Vec<u8>> {
+    // non_null!(array, "convert_byte_array array argument");
+    // let length = jni_non_void_call!(self.internal, GetArrayLength, array);
+    // ```
+    // FAIL: still not working
+    // message_pgarbled_arr = env
+    //     .new_byte_array(message_pgarbled_buf.len().try_into().unwrap())
+    //     .unwrap();
+    // message_packmsg_arr = env
+    //     .new_byte_array(message_packmsg_buf.len().try_into().unwrap())
+    //     .unwrap();
+    // pinpad_pgarbled_arr = env
+    //     .new_byte_array(pinpad_pgarbled_buf.len().try_into().unwrap())
+    //     .unwrap();
+    // pinpad_packmsg_arr = env
+    //     .new_byte_array(pinpad_packmsg_buf.len().try_into().unwrap())
+    //     .unwrap();
+
+    // env.set_byte_array_region(
+    //     message_pgarbled_arr,
+    //     0,
+    //     bytemuck::cast_slice::<u8, i8>(&*message_pgarbled_buf),
+    // )
+    // .unwrap();
+    // env.set_byte_array_region(
+    //     message_packmsg_arr,
+    //     0,
+    //     bytemuck::cast_slice::<u8, i8>(&*message_packmsg_buf),
+    // )
+    // .unwrap();
+    // env.set_byte_array_region(
+    //     pinpad_pgarbled_arr,
+    //     0,
+    //     bytemuck::cast_slice::<u8, i8>(&*pinpad_pgarbled_buf),
+    // )
+    // .unwrap();
+    // env.set_byte_array_region(
+    //     pinpad_packmsg_arr,
+    //     0,
+    //     bytemuck::cast_slice::<u8, i8>(&*pinpad_packmsg_buf),
+    // )
+    // .unwrap();
+
+    Box::into_raw(Box::new(DisplayCircuitsPackage {
+        message_pgarbled_buf: message_pgarbled_buf,
+        message_packmsg_buf: message_packmsg_buf,
+        pinpad_pgarbled_buf: pinpad_pgarbled_buf,
+        pinpad_packmsg_buf: pinpad_packmsg_buf,
+    })) as jlong
 }
 
 // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs

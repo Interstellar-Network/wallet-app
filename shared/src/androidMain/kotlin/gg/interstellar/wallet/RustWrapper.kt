@@ -14,6 +14,7 @@ class RustWrapper : RustInterface {
     init {
         // MUST match the lib [package] name in shared/rust/Cargo.toml
         System.loadLibrary("renderer")
+        System.loadLibrary("substrate_client")
         // cf "COPY libc++_shared.so" in shared/build.gradle.kts
         // System.loadLibrary("c++_shared.so")
         // NOT needed, but it MUST be in jniLibs/!!!
@@ -24,6 +25,10 @@ class RustWrapper : RustInterface {
         tx_message: String
     ): String?
     external override fun ExtrinsicRegisterMobile(ws_url: String, pub_key: ByteArray): String?
+    external override fun GetCircuits(
+        ws_url: String,
+        ipfs_addr: String,
+    ): Long
 
     // TODO? split initSurfaceMessage + initSurfacePinpad?
     // would the rendeder work with 2 windows?
@@ -37,7 +42,8 @@ class RustWrapper : RustInterface {
         message_text_color_hex: String,
         circle_text_color_hex: String,
         circle_color_hex: String,
-        background_color_hex: String
+        background_color_hex: String,
+        circuits_package_ptr: Long,
     ): Long
 
     external override fun render(rustObj: Long)

@@ -19,7 +19,7 @@ use android_logger::Config;
 use bevy::prelude::Color;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject, JString, ReleaseMode};
-use jni::sys::{jfloat, jfloatArray, jint, jlong, jstring};
+use jni::sys::{jbyteArray, jfloat, jfloatArray, jint, jlong, jstring};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{debug, info, Level};
@@ -32,7 +32,6 @@ use crate::{
     init_app, my_raw_window_handle, update_texture_utils, vertices_utils::Rect, App,
     TextureUpdateCallbackType,
 };
-use substrate_client::get_one_pending_display_stripped_circuits_package;
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -55,6 +54,15 @@ pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle,
 // TODO static state? or return Box<State> in initSurface and store as "long" in Kotlin?
 // static mut state: Option<State> = None;size
 
+/// IMPORTANT MUST match substrate-client/src/jni_wrapper.rs
+// TODO SHOULD probably add dependency to substrate-client instead?
+struct DisplayCircuitsPackage {
+    message_pgarbled_buf: Vec<u8>,
+    message_packmsg_buf: Vec<u8>,
+    pinpad_pgarbled_buf: Vec<u8>,
+    pinpad_packmsg_buf: Vec<u8>,
+}
+
 fn init_surface(
     env: JNIEnv,
     surface: JObject,
@@ -66,6 +74,10 @@ fn init_surface(
     circle_text_color: Color,
     circle_color: Color,
     background_color: Color,
+    message_pgarbled_buf: Vec<u8>,
+    message_packmsg_buf: Vec<u8>,
+    pinpad_pgarbled_buf: Vec<u8>,
+    pinpad_packmsg_buf: Vec<u8>,
 ) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
     // WARNING: conflicts with substrate-client/src/loggers.rs
@@ -77,7 +89,7 @@ fn init_surface(
             .with_filter(
                 FilterBuilder::new()
                     // useful: wgpu_hal=info
-                    .parse("jni::crate=debug")
+                    .parse("info,jni::crate=debug")
                     .build(),
             ),
     );
@@ -132,13 +144,6 @@ fn init_surface(
     //     texture_base,
     let mut app = App::new();
 
-    log::debug!("before get_one_pending_display_stripped_circuits_package");
-    let (message_pgarbled_buf, message_packmsg_buf, pinpad_pgarbled_buf, pinpad_packmsg_buf) =
-        get_one_pending_display_stripped_circuits_package(
-            "/ip4/127.0.0.1/tcp/5001",
-            "ws://127.0.0.1:9944",
-        );
-
     log::debug!("before init_app");
     init_app(
         &mut app,
@@ -182,6 +187,8 @@ fn init_surface(
 /// ie pinpadRects[0] is top left, pinpadRects[12] is bottom right
 ///
 /// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
+/// param: circuits_package_ptr: MUST be the returned value from substrate-client/src/jni_wrapper.rs GetCircuits
+///     NOTE: the pointer is NOT valid after this function returns!
 #[no_mangle]
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn initSurface(
@@ -196,7 +203,13 @@ pub unsafe fn initSurface(
     circle_text_color_hex: JString,
     circle_color_hex: JString,
     background_color_hex: JString,
+    circuits_package_ptr: jlong,
 ) -> jlong {
+    // USE A Box, that way the pointer is properly cleaned up when exiting this function
+    // let circuits_package = &mut *(circuits_package_ptr as *mut DisplayCircuitsPackage);
+    let circuits_package: Box<DisplayCircuitsPackage> =
+        Box::from_raw(circuits_package_ptr as *mut _);
+
     init_surface(
         env,
         surface,
@@ -228,6 +241,10 @@ pub unsafe fn initSurface(
                 .into(),
         )
         .unwrap(),
+        circuits_package.message_pgarbled_buf.clone(),
+        circuits_package.message_packmsg_buf.clone(),
+        circuits_package.pinpad_pgarbled_buf.clone(),
+        circuits_package.pinpad_packmsg_buf.clone(),
     )
 }
 

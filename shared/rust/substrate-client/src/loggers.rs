@@ -29,7 +29,7 @@ pub fn init_logger() {
         Config::default()
             .with_min_level(Level::Info)
             .with_tag("interstellar")
-            .with_filter(FilterBuilder::new().parse("jni::crate=debug").build()),
+            .with_filter(FilterBuilder::new().parse("info,jni::crate=debug").build()),
     );
 }
 

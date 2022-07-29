@@ -13,6 +13,10 @@ interface RustInterface {
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation
     fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, tx_message: String): String?
     fun ExtrinsicRegisterMobile(ws_url: String, pub_key: ByteArray): String?
+    fun GetCircuits(
+        ws_url: String,
+        ipfs_addr: String,
+    ): Long
 
     /********************************** RENDER-related ********************************************/
     fun <Surface> initSurface(
@@ -25,6 +29,7 @@ interface RustInterface {
         circle_text_color_hex: String,
         circle_color_hex: String,
         background_color_hex: String,
+        circuits_package_ptr: Long,
     ): Long
 
     fun render(rustObj: Long)
