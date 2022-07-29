@@ -233,19 +233,12 @@ pub unsafe fn initSurface(
 pub unsafe fn render(_env: *mut JNIEnv, _: JClass, obj: jlong) {
     // TODO static state?
     let app = &mut *(obj as *mut App);
-    // NO! Conflicts with app.update and CRASH on Android
-    // "app.run" ends up calling "app.update"
-    app.run();
-}
-
-#[no_mangle]
-#[jni_fn("gg.interstellar.wallet.RustWrapper")]
-pub unsafe fn update(_env: *mut JNIEnv, _: JClass, _obj: jlong) {
-    // TODO static state?
-    // let app = &mut *(obj as *mut App);
-    // NO! Conflicts with app.update and CRASH on Android
-    // "app.run" ends up calling "app.update"
-    // app.update();
+    // DO NOT use app.run() cf https://github.com/bevyengine/bevy/blob/main/examples/app/custom_loop.rs
+    // calling app.run() makes Android display not updating after a few loops.
+    // The texture are setup, circuit_evaluate runs a few times and then nothing changes anymore
+    // change_texture_message/change_texture_pinpad are NOT called anymore
+    // app.run();
+    app.update();
 }
 
 #[no_mangle]

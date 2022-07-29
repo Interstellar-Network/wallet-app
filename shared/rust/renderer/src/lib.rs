@@ -271,7 +271,10 @@ fn change_texture_message(
     mut circuit_message: ResMut<CircuitMessage>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
+    log::debug!("change_texture_message BEGIN");
     for (_sprite, _t, opt_handle) in query.iter_mut() {
+        log::debug!("change_texture_message query OK");
+
         // let size = if let Some(custom_size) = sprite.custom_size {
         //     custom_size
         // } else if let Some(image) = opt_handle.map(|handle| images.get(handle)).flatten() {
@@ -285,6 +288,8 @@ fn change_texture_message(
         // info!("{:?}", size * t.scale.truncate());
 
         if let Some(mut image) = opt_handle.map(|handle| images.get_mut(handle)).flatten() {
+            log::debug!("change_texture_message images OK");
+
             // IMPORTANT: DO NOT use image.texture_descriptor.size.width/height
             // Eg:
             // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
@@ -322,12 +327,16 @@ fn change_texture_pinpad(
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
     // TODO FIX the query does not work -> texture_update_callback is not called
+    log::debug!("change_texture_pinpad BEGIN");
     for (_sprite, _t, opt_handle) in query.iter_mut() {
+        log::debug!("change_texture_pinpad query OK");
         if let Some(texture_atlas) = opt_handle
             .map(|handle| texture_atlas.get_mut(handle))
             .flatten()
         {
+            log::debug!("change_texture_pinpad texture_atlas OK");
             if let Some(mut atlas_image) = images.get_mut(&texture_atlas.texture) {
+                log::debug!("change_texture_pinpad texture_atlas.texture OK");
                 let data_len = atlas_image.data.len();
                 (texture_update_callback.callback.as_mut().unwrap().as_mut())(
                     &mut atlas_image.data,

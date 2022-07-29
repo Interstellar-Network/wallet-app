@@ -26,6 +26,5 @@ interface RustInterface {
     ): Long
 
     fun render(rustObj: Long)
-    fun update(rustObj: Long)
     fun cleanup(rustObj: Long)
 }

@@ -29,6 +29,5 @@ class RustWrapper : RustInterface {
     ): Long
 
     external override fun render(rustObj: Long)
-    external override fun update(rustObj: Long)
     external override fun cleanup(rustObj: Long)
 }

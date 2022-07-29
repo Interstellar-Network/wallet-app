@@ -100,7 +100,6 @@ open class WGPUSurfaceView(
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
         rustPtr?.let {
-            rustBrige.update(it)
             rustBrige.render(it)
         }
         invalidate()
