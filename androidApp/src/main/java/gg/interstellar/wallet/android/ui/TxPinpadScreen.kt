@@ -1,11 +1,10 @@
 package gg.interstellar.wallet.android.ui
 
-import android.util.Log
-import gg.interstellar.wallet.android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -31,8 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import gg.interstellar.wallet.RustWrapper
 import gg.interstellar.wallet.WGPUSurfaceView
+import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import androidx.compose.material.Icon as MaterialIcon
@@ -83,6 +82,8 @@ fun TxPinpadScreen() {
     // NOTE: contrary to pinpad we only have ONE Rect, not an array
     // Array b/c same issue than "wgpu_sv_pinpad_coordinates"
     val messageRectRelativeToWGPUSurfaceView: Array<Rect> = Array(1) { Rect.Zero }
+    // Array b/c same issue than "wgpu_sv_pinpad_coordinates"
+    val wgpuSurfaceView: Array<WGPUSurfaceView?> = arrayOf(null)
 
     InterstellarWalletTheme {
         Column {
@@ -100,12 +101,13 @@ fun TxPinpadScreen() {
                 if (!LocalInspectionMode.current) {
                     AndroidView(
                         factory = { ctx ->
-                            WGPUSurfaceView(
+                            wgpuSurfaceView[0] = WGPUSurfaceView(
                                 context = ctx,
                                 pinpadRectsRelativeToWGPUSurfaceView,
                                 messageRectRelativeToWGPUSurfaceView,
                                 colors
                             )
+                            wgpuSurfaceView[0]!!
                         },
                         modifier = Modifier.onGloballyPositioned { coordinates ->
                             wgpu_sv_pinpad_coordinates[0] = coordinates
@@ -132,7 +134,8 @@ fun TxPinpadScreen() {
 
                     PinpadBottomScreen(
                         pinpadRectsRelativeToWGPUSurfaceView,
-                        wgpu_sv_pinpad_coordinates
+                        wgpu_sv_pinpad_coordinates,
+                        wgpuSurfaceView
                     )
                 }
             }
@@ -199,7 +202,7 @@ private fun ConfirmMessageMiddleScreen() {
                             stringResource(R.string.three_point_redacted),
                             textAlign = TextAlign.Center,
                             fontSize = 8.sp,
-                            color =  if (MaterialTheme.colors.isLight) Color.White
+                            color = if (MaterialTheme.colors.isLight) Color.White
                             else Color.Black,
                             modifier = Modifier
                         )
@@ -229,7 +232,8 @@ private fun ConfirmMessageMiddleScreen() {
 @Composable
 private fun PinpadBottomScreen(
     arrayRectFinalCoords: Array<Rect>,
-    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>
+    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>,
+    wgpuSurfaceView: Array<WGPUSurfaceView?>
 ) {
     // We MUST set "weight" on each children, that weight each row will have the same height
     Box {
@@ -246,7 +250,8 @@ private fun PinpadBottomScreen(
                 1,
                 2,
                 arrayRectFinalCoords,
-                wgpu_sv_pinpad_coordinates
+                wgpu_sv_pinpad_coordinates,
+                wgpuSurfaceView
             )
             Spacer(Modifier.weight(1f))
             StandardPinpadRow(
@@ -255,7 +260,8 @@ private fun PinpadBottomScreen(
                 4,
                 5,
                 arrayRectFinalCoords,
-                wgpu_sv_pinpad_coordinates
+                wgpu_sv_pinpad_coordinates,
+                wgpuSurfaceView
             )
             Spacer(Modifier.weight(1f))
             StandardPinpadRow(
@@ -264,7 +270,8 @@ private fun PinpadBottomScreen(
                 7,
                 8,
                 arrayRectFinalCoords,
-                wgpu_sv_pinpad_coordinates
+                wgpu_sv_pinpad_coordinates,
+                wgpuSurfaceView
             )
             Spacer(Modifier.weight(1f))
             StandardPinpadRow(
@@ -273,7 +280,8 @@ private fun PinpadBottomScreen(
                 10,
                 11,
                 arrayRectFinalCoords,
-                wgpu_sv_pinpad_coordinates
+                wgpu_sv_pinpad_coordinates,
+                wgpuSurfaceView
             )
 
             Spacer(Modifier.weight(2f))
@@ -291,7 +299,8 @@ private fun ColumnScope.StandardPinpadRow(
     id_middle: Int,
     id_right: Int,
     arrayRectFinalCoords: Array<Rect>,
-    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>
+    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>,
+    wgpuSurfaceView: Array<WGPUSurfaceView?>
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -305,21 +314,24 @@ private fun ColumnScope.StandardPinpadRow(
             Modifier.weight(4f),
             id_left,
             arrayRectFinalCoords,
-            wgpu_sv_pinpad_coordinates
+            wgpu_sv_pinpad_coordinates,
+            wgpuSurfaceView
         )
         Spacer(Modifier.weight(1f))
         SetPadCircle(
             Modifier.weight(4f),
             id_middle,
             arrayRectFinalCoords,
-            wgpu_sv_pinpad_coordinates
+            wgpu_sv_pinpad_coordinates,
+            wgpuSurfaceView
         )
         Spacer(Modifier.weight(1f))
         SetPadCircle(
             Modifier.weight(4f),
             id_right,
             arrayRectFinalCoords,
-            wgpu_sv_pinpad_coordinates
+            wgpu_sv_pinpad_coordinates,
+            wgpuSurfaceView
         )
 
         Spacer(Modifier.weight(4f))
@@ -332,12 +344,14 @@ private fun ColumnScope.StandardPinpadRow(
  *  NOTE: the POSITIONS of the circles is calculated by Compose, and then passed to Rust.
  *  If false(=default): it will draw them in PREVIEW mode, but not in the app.
  */
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SetPadCircle(
     modifier: Modifier,
     id: Int,
     arrayRectFinalCoords: Array<Rect>,
-    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>
+    wgpu_sv_pinpad_coordinates: Array<LayoutCoordinates?>,
+    wgpuSurfaceView: Array<WGPUSurfaceView?>
 ) {
     fun isClearButton(): Boolean {
         return id == 11
@@ -379,9 +393,14 @@ fun SetPadCircle(
                 }
             ),
         // TODO?: .shadow(elevation = 35.dp, /* shape = CircleShape */) are NOT supported on Rust side, so no point in having it enabled
-        shape = if (!isClearButton()) {CircleShape} else {RoundedCornerShape(20)},
+        shape = if (!isClearButton()) {
+            CircleShape
+        } else {
+            RoundedCornerShape(20)
+        },
         elevation = 35.dp,
         color = MaterialTheme.colors.surface,
+        onClick = { wgpuSurfaceView[0]!!.onClickPinpadDigit(id) }
     ) {
         if (isClearButton()) {
             MaterialIcon(

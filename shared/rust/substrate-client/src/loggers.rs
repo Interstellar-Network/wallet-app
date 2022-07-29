@@ -22,12 +22,14 @@ use log::Level;
 
 #[cfg(target_os = "android")]
 pub fn init_logger() {
+    // WARNING: conflicts with renderer/src/jni_wrapper.rs
+    // only the first one called is taken into account
     // https://github.com/Nercury/android_logger-rs#send-rust-logs-to-logcat
     android_logger::init_once(
         Config::default()
-            .with_min_level(Level::Trace)
+            .with_min_level(Level::Info)
             .with_tag("interstellar")
-            .with_filter(FilterBuilder::new().parse("debug,jni::crate=debug").build()),
+            .with_filter(FilterBuilder::new().parse("jni::crate=debug").build()),
     );
 }
 

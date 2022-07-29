@@ -68,13 +68,16 @@ fn init_surface(
     background_color: Color,
 ) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
+    // WARNING: conflicts with substrate-client/src/loggers.rs
+    // only the first one called is taken into account
     android_logger::init_once(
         Config::default()
-            .with_min_level(Level::Trace)
+            .with_min_level(Level::Info)
             .with_tag("interstellar")
             .with_filter(
                 FilterBuilder::new()
-                    .parse("debug,jni::crate=debug,wgpu_hal=debug")
+                    // useful: wgpu_hal=info
+                    .parse("jni::crate=debug")
                     .build(),
             ),
     );

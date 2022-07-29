@@ -41,6 +41,10 @@ open class WGPUSurfaceView(
         rustBrige.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URl, "0.13 ETH to REPLACEME")
     }
 
+    fun onClickPinpadDigit(idx: Int){
+        Log.i("interstellar", "onClickPinpadDigit $idx")
+    }
+
     override fun hasOverlappingRendering(): Boolean {
         return false
     }

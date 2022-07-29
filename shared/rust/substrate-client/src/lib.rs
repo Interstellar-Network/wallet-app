@@ -110,6 +110,33 @@ pub fn extrinsic_register_mobile(
     tx_hash.expect("send_extrinsic failed")
 }
 
+pub fn extrinsic_check_input(
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    ipfs_cid: Vec<u8>,
+    input_digits: Vec<u8>,
+) -> Hash {
+    #[allow(clippy::redundant_clone)]
+    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
+        api.clone(),
+        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
+        "TxValidation",
+        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
+        "check_input",
+        ipfs_cid,
+        input_digits
+    );
+
+    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+
+    // "send and watch extrinsic until InBlock"
+    let tx_hash = api
+        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
+        .unwrap();
+    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+
+    tx_hash.expect("send_extrinsic failed")
+}
+
 // MUST match pallets/ocw-garble/src/lib.rs AccountToPendingCircuitsMap
 #[derive(Encode, Decode, Debug, Clone)]
 struct DisplayStrippedCircuitsPackage {
@@ -217,8 +244,8 @@ pub fn get_one_pending_display_stripped_circuits_package(
 mod tests {
     use crate::loggers;
     use crate::{
-        extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
-        get_api, get_pending_circuits,
+        extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
+        extrinsic_register_mobile, get_api, get_pending_circuits,
     };
     static INIT: std::sync::Once = std::sync::Once::new();
 
@@ -261,6 +288,15 @@ mod tests {
 
         // MUST be at least 32 bytes
         let tx_hash = extrinsic_register_mobile(&api, vec![42; 32]);
+        println!("[+] tx_hash: {:02X}", tx_hash);
+    }
+
+    #[test]
+    fn extrinsic_extrinsic_check_input_local_ok() {
+        init();
+        let api = get_api("ws://127.0.0.1:9944");
+
+        let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
         println!("[+] tx_hash: {:02X}", tx_hash);
     }
 }
