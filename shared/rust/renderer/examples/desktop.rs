@@ -50,16 +50,11 @@ fn main() {
 
     // TODO if NOT offline: use crate substrate-client to DL the circuits
     if args.is_online {
-        let (
-            message_pgarbled_buf,
-            message_packmsg_buf,
-            pinpad_pgarbled_buf,
-            pinpad_packmsg_buf,
-            _message_nb_digits,
-        ) = get_one_pending_display_stripped_circuits_package(
-            "/ip4/127.0.0.1/tcp/5001",
-            "ws://127.0.0.1:9944",
-        );
+        let display_stripped_circuits_package_buffers =
+            get_one_pending_display_stripped_circuits_package(
+                "/ip4/127.0.0.1/tcp/5001",
+                "ws://127.0.0.1:9944",
+            );
 
         renderer::init_app(
             &mut app,
@@ -71,10 +66,10 @@ fn main() {
             bevy::render::color::Color::WHITE,
             bevy::render::color::Color::hex("0080FFFF").unwrap(),
             bevy::render::color::Color::BLACK,
-            message_pgarbled_buf,
-            message_packmsg_buf,
-            pinpad_pgarbled_buf,
-            pinpad_packmsg_buf,
+            display_stripped_circuits_package_buffers.message_pgarbled_buf,
+            display_stripped_circuits_package_buffers.message_packmsg_buf,
+            display_stripped_circuits_package_buffers.pinpad_pgarbled_buf,
+            display_stripped_circuits_package_buffers.pinpad_packmsg_buf,
         );
     } else {
         renderer::init_app(

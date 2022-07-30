@@ -17,6 +17,7 @@
 
 use android_logger::Config;
 use bevy::prelude::Color;
+use common::DisplayStrippedCircuitsPackageBuffers;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject, JString, ReleaseMode};
 use jni::sys::{jbyteArray, jfloat, jfloatArray, jint, jlong, jstring};
@@ -53,16 +54,6 @@ pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle,
 
 // TODO static state? or return Box<State> in initSurface and store as "long" in Kotlin?
 // static mut state: Option<State> = None;size
-
-/// IMPORTANT MUST match substrate-client/src/jni_wrapper.rs
-// TODO SHOULD probably add dependency to substrate-client instead?
-struct DisplayCircuitsPackage {
-    message_pgarbled_buf: Vec<u8>,
-    message_packmsg_buf: Vec<u8>,
-    pinpad_pgarbled_buf: Vec<u8>,
-    pinpad_packmsg_buf: Vec<u8>,
-    message_nb_digits: u32,
-}
 
 fn init_surface(
     env: JNIEnv,
@@ -207,8 +198,8 @@ pub unsafe fn initSurface(
     circuits_package_ptr: jlong,
 ) -> jlong {
     // USE A Box, that way the pointer is properly cleaned up when exiting this function
-    // let circuits_package = &mut *(circuits_package_ptr as *mut DisplayCircuitsPackage);
-    let circuits_package: Box<DisplayCircuitsPackage> =
+    // let circuits_package = &mut *(circuits_package_ptr as *mut DisplayStrippedCircuitsPackageBuffers);
+    let circuits_package: Box<DisplayStrippedCircuitsPackageBuffers> =
         Box::from_raw(circuits_package_ptr as *mut _);
 
     init_surface(

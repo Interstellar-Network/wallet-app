@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use codec::{Decode, Encode};
+use common::{DisplayStrippedCircuitsPackageBuffers, PendingCircuitsType};
 use core::time::Duration;
-use frame_support::pallet_prelude::*;
 use futures_util::TryStreamExt;
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
 use sp_keyring::AccountKeyring;
-
 use substrate_api_client::{
     compose_extrinsic, rpc::WsRpcClient, Api, Hash, Pair, UncheckedExtrinsicV4, XtStatus,
 };
@@ -137,19 +135,6 @@ pub fn extrinsic_check_input(
     tx_hash.expect("send_extrinsic failed")
 }
 
-// MUST match pallets/ocw-garble/src/lib.rs "DisplayStrippedCircuitsPackage"(in repo ocw-demo)
-#[derive(Encode, Decode, Debug, Clone)]
-struct DisplayStrippedCircuitsPackage {
-    message_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
-    message_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
-    pinpad_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
-    pinpad_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
-    message_nb_digits: u32,
-}
-const MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT: u32 = 16;
-type PendingCircuitsType =
-    BoundedVec<DisplayStrippedCircuitsPackage, ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>>;
-
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
 // TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
 fn get_pending_circuits(api: &Api<sp_core::sr25519::Pair, WsRpcClient>) -> PendingCircuitsType {
@@ -184,12 +169,10 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 ///
 /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
 /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
-// TODO return a struct LIKE "DisplayStrippedCircuitsPackage"
-// TODO use struct from new "common" crate
 pub fn get_one_pending_display_stripped_circuits_package(
     ipfs_server_multiaddr: &str,
     ws_url: &str,
-) -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, u32) {
+) -> DisplayStrippedCircuitsPackageBuffers {
     // TODO add param for index
     let idx = 0;
 
@@ -247,13 +230,13 @@ pub fn get_one_pending_display_stripped_circuits_package(
             pinpad_packmsg_buf.len()
         );
 
-        (
-            message_pgarbled_buf,
-            message_packmsg_buf,
-            pinpad_pgarbled_buf,
-            pinpad_packmsg_buf,
-            pending_circuits[idx].message_nb_digits,
-        )
+        DisplayStrippedCircuitsPackageBuffers {
+            message_pgarbled_buf: message_pgarbled_buf,
+            message_packmsg_buf: message_packmsg_buf,
+            pinpad_pgarbled_buf: pinpad_pgarbled_buf,
+            pinpad_packmsg_buf: pinpad_packmsg_buf,
+            message_nb_digits: pending_circuits[idx].message_nb_digits,
+        }
     })
 }
 
@@ -272,7 +255,10 @@ mod tests {
         });
     }
 
+    // IMPORTANT: use #[serial_test::serial] when testing extrinsics else:
+    // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     #[test]
+    #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
         let api = get_api("ws://127.0.0.1:9944");
@@ -298,7 +284,10 @@ mod tests {
         println!("[+] pending_circuits: {:?}", pending_circuits);
     }
 
+    // IMPORTANT: use #[serial] when testing extrinsics else:
+    // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     #[test]
+    #[serial_test::serial]
     fn extrinsic_register_mobile_local_ok() {
         init();
         let api = get_api("ws://127.0.0.1:9944");
@@ -308,12 +297,16 @@ mod tests {
         println!("[+] tx_hash: {:02X}", tx_hash);
     }
 
-    #[test]
-    fn extrinsic_extrinsic_check_input_local_ok() {
-        init();
-        let api = get_api("ws://127.0.0.1:9944");
+    // IMPORTANT: use #[serial] when testing extrinsics else:
+    // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
+    // TODO this requires a setup: ie calling "extrinsic_garble_and_strip_display_circuits_package_signed"
+    // #[test]
+    // #[serial_test::serial]
+    // fn extrinsic_extrinsic_check_input_local_ok() {
+    //     init();
+    //     let api = get_api("ws://127.0.0.1:9944");
 
-        let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
-        println!("[+] tx_hash: {:02X}", tx_hash);
-    }
+    //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
+    //     println!("[+] tx_hash: {:02X}", tx_hash);
+    // }
 }

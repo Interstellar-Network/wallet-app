@@ -1191,6 +1191,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+]
+
+[[package]]
 name = "common-multipart-rfc7578"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4012,6 +4020,7 @@ dependencies = [
  "bevy",
  "circuit-evaluate",
  "clap",
+ "common",
  "fs_extra",
  "glob",
  "image 0.24.2",
@@ -4199,6 +4208,32 @@ dependencies = [
  "itoa 1.0.2",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serial_test"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7eec42e7232e5ca56aa59d63af3c7f991fe71ee6a3ddd2d3480834cf3902b007"
+dependencies = [
+ "futures",
+ "lazy_static",
+ "log",
+ "parking_lot 0.12.0",
+ "serial_test_derive",
+]
+
+[[package]]
+name = "serial_test_derive"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1b95bb2f4f624565e8fe8140c789af7e2082c0e0561b5a82a1b678baa9703dc"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn",
 ]
 
 [[package]]
@@ -4855,14 +4890,14 @@ version = "0.1.0"
 dependencies = [
  "android_logger 0.11.0",
  "bytemuck",
+ "common",
  "env_logger 0.9.0",
- "frame-support",
  "futures-util",
  "ipfs-api-backend-hyper",
  "jni",
  "log",
  "openssl",
- "parity-scale-codec",
+ "serial_test",
  "sp-core",
  "sp-keyring",
  "sp-std",

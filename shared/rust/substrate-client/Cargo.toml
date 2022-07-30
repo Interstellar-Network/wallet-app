@@ -34,10 +34,6 @@ sp-keyring = { version = "6.0.0", git = "https://github.com/paritytech/substrate
 
 sp-std = { default-features = false, version = "4.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
 sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
-frame-support = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [
-	"derive",
-] }
 
 log = "0.4"
 # NOTE: this is a dep of "android_logger" so no point in putting it behind a "cfg"
@@ -50,12 +46,16 @@ tokio = { version = "1.20", features = ["rt-multi-thread"] }
 jni = { version = "0.19.0", optional = true }
 bytemuck = "1.11.0"
 
+# local
+common = { path = "../common" }
+
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.11"
 
-[target.'cfg(unix)'.dev-dependencies]
+[dev-dependencies]
 # features "invocation" needed for tests(to create a JVM)
 jni = { version = "0.19.0", features = ["invocation"] }
+serial_test = "0.8.0"
 
 [features]
 default = ["std"]

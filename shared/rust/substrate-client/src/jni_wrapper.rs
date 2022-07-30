@@ -156,19 +156,10 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
     output.into_inner()
 }
 
-/// IMPORTANT MUST match renderer/src/jni_wrapper.rs
-struct DisplayCircuitsPackage {
-    message_pgarbled_buf: Vec<u8>,
-    message_packmsg_buf: Vec<u8>,
-    pinpad_pgarbled_buf: Vec<u8>,
-    pinpad_packmsg_buf: Vec<u8>,
-    message_nb_digits: u32,
-}
-
 /// Get circuits, OR throw if there is no circuit ready!
 /// To generate them: use Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAndStripDisplayCircuitsPackage
 ///
-/// WARNING: returns a POINTER to a Rust struct = DisplayCircuitsPackage
+/// WARNING: returns a POINTER to a Rust struct = common::DisplayStrippedCircuitsPackageBuffers
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
 #[no_mangle]
@@ -194,13 +185,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
         .into();
 
     log::debug!("before get_one_pending_display_stripped_circuits_package");
-    let (
-        message_pgarbled_buf,
-        message_packmsg_buf,
-        pinpad_pgarbled_buf,
-        pinpad_packmsg_buf,
-        message_nb_digits,
-    ) = get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
+    let display_stripped_circuits_package_buffers =
+        get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
 
     // https://github.com/jni-rs/jni-rs/issues/101
     // sort of works without "new_byte_array", but the Java array is not the correct size so it then crash at
@@ -249,13 +235,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
     // )
     // .unwrap();
 
-    Box::into_raw(Box::new(DisplayCircuitsPackage {
-        message_pgarbled_buf: message_pgarbled_buf,
-        message_packmsg_buf: message_packmsg_buf,
-        pinpad_pgarbled_buf: pinpad_pgarbled_buf,
-        pinpad_packmsg_buf: pinpad_packmsg_buf,
-        message_nb_digits: message_nb_digits,
-    })) as jlong
+    Box::into_raw(Box::new(display_stripped_circuits_package_buffers)) as jlong
 }
 
 // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs

@@ -5,6 +5,7 @@ resolver = "2"
 
 members = [
     "circuit_evaluate",
+    "common",
     "renderer",
     "substrate-client",
 ]

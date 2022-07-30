@@ -50,6 +50,7 @@ raw-window-handle = "0.4"
 
 # local
 circuit-evaluate = { path = "../circuit_evaluate" }
+common = { path = "../common" }
 
 [dev-dependencies]
 png = "0.17.5"
