@@ -1,0 +1,70 @@
+[package]
+name = "renderer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# ANDROID: "This must contain at least cdylib for Android libraries to be generated."
+# https://github.com/bbqsrc/cargo-ndk/blob/main/example/Cargo.toml
+# else:
+# [2022-05-16T09:53:58Z INFO  cargo_ndk::cli] Copying libraries to ./jniLibs...
+# [2022-05-16T09:53:58Z ERROR cargo_ndk::cli] No .so files found in path
+#
+# IOS: error: cannot produce cdylib for `shared-rs v0.1.0 (/.../wallet-app/shared/rust)` as the target `x86_64-apple-ios` does not support these crate types
+crate-type = ["cdylib", "staticlib", "lib"]
+
+# NOTE cargo-patch: "It's only possible to patch dependencies of binary crates as it is not possible for a subcommand to intercept the build process."
+# so we add a "fake bin"
+# [[bin]]
+# name = "fake-bin"
+# test = false
+# bench = false
+
+[dependencies]
+ndarray = "0.15.4"
+# bevy: removed: "animation",  "bevy_gilrs", "bevy_audio", "vorbis", "png", "hdr", "x11", "filesystem_watcher"
+# to avoid dependency on "alsa"(alsa-sys)
+# IMPORTANT: DO NOT add direct dep "winit"; it breaks example: the loop runs once and exits immediately
+# MUST add either "wayland" or "x11" else
+# error: Please select a feature to build for unix: `x11`, `wayland`
+#   --> /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.26.1/src/platform_impl/linux/mod.rs:10:1
+#    |
+# 10 | compile_error!("Please select a feature to build for unix: `x11`, `wayland`");
+#
+# see also "target.'cfg(unix)'.dev-dependencies"
+bevy = { version = "0.7.0", default-features = false, features = [ "render" ]}
+log = "0.4"
+# NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
+wgpu = "0.12.0"  # dep of Bevy, but we need it ourself; versions MUST match
+
+# TODO dev-dependencies?
+image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
+
+#TODO [target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.11"
+jni = { version = "0.19.0" }  # TODO optional = true
+jni_fn = "0.1"
+raw-window-handle = "0.4"
+
+# local
+circuit-evaluate = { path = "../circuit_evaluate" }
+common = { path = "../common" }
+
+[dev-dependencies]
+png = "0.17.5"
+clap = { version = "3.1.18", features = ["derive", "env"] }
+# features "invocation" needed for tests(to create a JVM)
+jni = { version = "0.19.0", features = ["invocation"] }
+# needed only for example/desktop
+substrate-client = { path = "../substrate-client" }
+
+[target.'cfg(unix)'.dev-dependencies]
+# TODO dynamic(ONLY FOR DEBUG/DEV)
+bevy = { version = "0.7.0", default-features = false, features = [ "render", "bevy_winit", "x11" ]}
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"

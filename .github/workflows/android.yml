@@ -1,0 +1,123 @@
+name: Build and Test Android App
+
+on:
+  push:
+
+jobs:
+  # TODO split test and lint; but that REQUIRE caching else recompile from scratch in between
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      # install build dependencies
+      # MUST match the same step in Dockerfile
+      # - name: Install dependencies
+      #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
+
+      - uses: Interstellar-Network/gh-actions/prepare@v1.0.0
+        with:
+          ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
+          install_cmake_and_ninja: true
+
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v1.0.0
+        with:
+          toolchain_toolchain: nightly
+      # for now https://github.com/actions-rs/toolchain only support one "target"...
+      # TODO? "x86_64-unknown-linux-gnu"
+      - run: rustup target add --toolchain nightly armv7-linux-androideabi aarch64-linux-android
+
+      ##########################################################################
+      # NOTE: only needed in CI, local builds are OK?
+      # Need BOTH "protoc-3.19.4-linux-x86_64.zip"(contains protoc itself)
+      # and "protobuf-cpp-3.19.4.tar.gz" for eg "src/google/protobuf/port_def.inc"
+      # What we download in CI, and what prost_build downloads SHOULD MATCH!
+      # DO NOT change the structure, else shared/rust/circuit_evaluate/build.rs will fail!
+      # when using prost_build vendored(ie compiling from sources):
+      #   prost_build::protoc_include() : /home/AAA/.cargo/registry/src/github.com-XXX/prost-build-0.10.4/third-party/include
+      #   prost_build::protoc() : /BBB/wallet-app/shared/rust/target/debug/build/prost-build-YYY/out/bin/protoc
+      # ie: protoc_include() is in .cargo/registry/ BUT protoc() is in build dir(= .../target/)
+      # IMPORTANT: "prebuilt.zip" already contains include/ with eg empty.proto etc
+      # we MUST rm it, and point include/ to src/(which contains the same eg empty.proto AND port_def.inc)
+      # DO NOT remove the ls statements, it can be useful to know if the setup is borked
+      - name: Install protoc custom prebuilt binary
+        run: |
+          mkdir /home/runner/protoc
+          cd /home/runner/protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip -O prebuilt.zip
+          unzip prebuilt.zip
+          rm prebuilt.zip
+          rm -rf include/
+          wget -c https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protobuf-cpp-3.19.4.tar.gz -O - | tar -xz --one-top-level=protobuf --strip-components=1
+          ln -s protobuf/src include
+          export PROTOC_INCLUDE=/home/runner/protoc/include
+          echo "PROTOC=/home/runner/protoc/bin/protoc" >> $GITHUB_ENV
+          eval echo "PROTOC_INCLUDE=$PROTOC_INCLUDE" >> $GITHUB_ENV
+          echo "PROTOC_NO_VENDOR=" >> $GITHUB_ENV
+          echo CHECK PROTOC_INCLUDE include path
+          ls -al ${PROTOC_INCLUDE}
+          ls -al ${PROTOC_INCLUDE}/google
+          ls -al ${PROTOC_INCLUDE}/google/protobuf
+          ls -al ${PROTOC_INCLUDE}/google/protobuf/port_def.inc
+        shell: bash
+
+      ##########################################################################
+
+      # TODO
+      # - uses: Interstellar-Network/gh-actions/rust-lint@v1.0.0
+      # - uses: Interstellar-Network/gh-actions/rust-build-and-test@v1.0.0
+
+      # cf https://github.com/android-actions/setup-android
+
+      # https://github.com/actions/setup-java
+      # TODO cache: "/home/runner/.konan"?
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          cache: "gradle"
+          distribution: "temurin"
+          # cf https://github.com/jni-rs/jni-rs/blob/master/.github/workflows/ci.yml
+          # for the version?
+          # NOTE: "Error: Could not find satisfied version for SemVer '1.8'.
+          # Available versions: 18.0.1+10, 18.0.0+36, 17.0.3+7, 17.0.2+8, 17.0.1+12, 17.0.0+35, 16.0.2+7, 11.0.15+10, 11.0.14+101, 11.0.14+9, 11.0.13+8, 11.0.12+7, 8.0.332+9, 8.0.322+6, 8.0.312+7, 8.0.302+8"
+          # java-version: 8.0
+          #  * What went wrong:
+          # An exception occurred applying plugin request [id: 'com.android.application']
+          # > Failed to apply plugin 'com.android.internal.application'.
+          #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
+          #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
+          # TODO use Java 17(LTS)
+          java-version: 11.0
+
+      # TODO apparently this is not cached?
+      # if not: cache the whole "Setup Android SDK"+"Delete old NDK v23"+"Install NDK v24"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      # else: "Warning: Observed package id 'ndk;23.2.8568313' in inconsistent location '/usr/local/lib/android/sdk/ndk-bundle' (Expected '/usr/local/lib/android/sdk/ndk/23.2.8568313')"
+      - name: Delete old NDK v23
+        # version required else: "Warning: Failed to find package 'ndk'"
+        run: sdkmanager --uninstall "ndk;23.2.8568313"
+      - name: Install NDK v24
+        # version required else: "Warning: Failed to find package 'ndk'"
+        run: sdkmanager "ndk;24.0.8215888"
+
+      - name: Build Wallet-App
+        # TODO build arm7, and Release only?
+        run: ./gradlew --no-daemon assembleArm64Debug
+
+        # TODO move into separate action? ideally into a JS action "post" that setup ccache?
+        # NOTE: remove if using "rust-build-and-test"
+      - name: Print ccache/sccache stats
+        # display stats even if tests failed
+        if: always()
+        run: |
+          ccache --show-stats || true
+          sccache --show-stats || true
+        shell: bash
+
+      # TODO on main/master: it SHOULD be a Release instead of Artifact
+      - name: Upload APKs
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-apks
+          path: |
+            ./androidApp/build/outputs/apk/arm64/debug/androidApp-*.apk

@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
             WalletApp()
         }
     }
+
 }
 
 @Preview
@@ -95,7 +96,7 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
             // TODO Hide the status bar -Themes.xml in vaalues not a viable option
             //TODO use ? https://developer.android.com/training/system-ui/status
             // https://developer.android.com/reference/android/view/WindowInsetsController
-            TxPinpadScreen()
+            TxPinpadScreen(callbackTxDone = { navController.navigate(WalletScreen.Portfolio.name) })
         }
 
         val currenciesName = WalletScreen.Portfolio.name
