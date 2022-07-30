@@ -24,10 +24,12 @@ use std::os::raw::c_void;
 
 use crate::{
     extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
-    extrinsic_register_mobile, get_api, get_one_pending_display_stripped_circuits_package,
+    extrinsic_register_mobile, get_api, get_latest_pending_display_stripped_circuits_package,
 };
 
 use crate::loggers;
+
+static RUNTIME_EXCEPTION_CLASS: &str = "java/lang/RuntimeException";
 
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -186,9 +188,12 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
         .expect("Couldn't get java string[ipfs_addr]!")
         .into();
 
-    log::debug!("before get_one_pending_display_stripped_circuits_package");
+    log::debug!("before get_latest_pending_display_stripped_circuits_package");
     let display_stripped_circuits_package_buffers =
-        get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
+        get_latest_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url).map_err(|_| {
+            env.throw_new(RUNTIME_EXCEPTION_CLASS, "NoCircuitAvailableException")
+                .unwrap()
+        });
 
     // https://github.com/jni-rs/jni-rs/issues/101
     // sort of works without "new_byte_array", but the Java array is not the correct size so it then crash at

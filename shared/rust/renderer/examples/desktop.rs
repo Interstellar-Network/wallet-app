@@ -21,7 +21,7 @@ use ndarray::Array2;
 extern crate renderer;
 use renderer::vertices_utils::Rect;
 extern crate substrate_client;
-use substrate_client::get_one_pending_display_stripped_circuits_package;
+use substrate_client::get_latest_pending_display_stripped_circuits_package;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -51,10 +51,11 @@ fn main() {
     // TODO if NOT offline: use crate substrate-client to DL the circuits
     if args.is_online {
         let display_stripped_circuits_package_buffers =
-            get_one_pending_display_stripped_circuits_package(
+            get_latest_pending_display_stripped_circuits_package(
                 "/ip4/127.0.0.1/tcp/5001",
                 "ws://127.0.0.1:9944",
-            );
+            )
+            .expect("no circuit available");
 
         renderer::init_app(
             &mut app,

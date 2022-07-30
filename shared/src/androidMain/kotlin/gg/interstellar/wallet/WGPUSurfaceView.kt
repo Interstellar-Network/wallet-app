@@ -7,9 +7,11 @@ import android.graphics.Canvas
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.Toast
 import androidx.compose.material.Colors
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
+import java.lang.RuntimeException
 
 open class WGPUSurfaceView(
     context: Context,
@@ -39,23 +41,50 @@ open class WGPUSurfaceView(
 
         ////////////////////////////////////////////////////////////////////////////////////////////
         // TODO properly wrap in "loading screen", in a thread
+        Toast.makeText(context, "Processing...", Toast.LENGTH_SHORT).show()
+
+        // TODO avoid registering if already registered
+        // - use shared_prefs to store status
+        // - add fn in substrate_client: is_registered()
         val pub_key = rustBridge.getMobilePublicKey()
         Log.i("interstellar", "pub_key : $pub_key")
         rustBridge.ExtrinsicRegisterMobile(WS_URL, pub_key)
+        Toast.makeText(context, "Registered", Toast.LENGTH_SHORT).show()
 
         rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, "0.13 ETH to REPLACEME")
 
-        // TODO MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
-        circuitsPackagePtr = rustBridge.GetCircuits(
-            WS_URL,
-            IPFS_ADDR,
-        )
-        message_nb_digts = rustBridge.GetMessageNbDigitsFromPtr(circuitsPackagePtr!!)
-        Log.i(
-            "interstellar",
-            "circuitsPackagePtr : ${circuitsPackagePtr}, message_nb_digts : $message_nb_digts"
-        )
-        packagePtr = rustBridge.GetTxIdPtrFromPtr(circuitsPackagePtr!!)
+        // wait in a loop until CircuitsPackage is valid
+        // TODO SHOULD use Events
+        var retryCount = 0
+        do {
+            try {
+                circuitsPackagePtr = rustBridge.GetCircuits(
+                    WS_URL,
+                    IPFS_ADDR,
+                )
+                message_nb_digts = rustBridge.GetMessageNbDigitsFromPtr(circuitsPackagePtr!!)
+                Log.i(
+                    "interstellar",
+                    "circuitsPackagePtr : ${circuitsPackagePtr}, message_nb_digts : $message_nb_digts"
+                )
+                packagePtr = rustBridge.GetTxIdPtrFromPtr(circuitsPackagePtr!!)
+            } catch (e: RuntimeException) {
+                // ONLY retry when specifically NoCircuitAvailableException; thrown by "Java_gg_interstellar_wallet_RustWrapper_GetCircuits"
+                if(e.message.equals("NoCircuitAvailableException")){
+                    Log.i("interstellar", "NoCircuitAvailableException: will retry in 1s...")
+                    Thread.sleep(1000)
+                    retryCount++
+                } else {
+                    throw e
+                }
+            }
+        } while (circuitsPackagePtr == null && retryCount < 10)
+
+        if(retryCount >= 10){
+            Log.e("interstellar", "Still no circuit available after 10s; exiting!")
+            Toast.makeText(context, "No circuits available after 10s; exiting!", Toast.LENGTH_SHORT).show()
+        }
+
         ////////////////////////////////////////////////////////////////////////////////////////////
     }
 

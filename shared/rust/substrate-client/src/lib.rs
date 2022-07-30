@@ -148,7 +148,7 @@ fn get_pending_circuits(api: &Api<sp_core::sr25519::Pair, WsRpcClient>) -> Pendi
     let result: PendingCircuitsType = api
         .get_storage_map("OcwGarble", "AccountToPendingCircuitsMap", account, None)
         .unwrap()
-        .unwrap();
+        .unwrap_or_default();
     println!("[+] pending circuits for account = {:?}", result);
 
     result
@@ -169,28 +169,29 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 ///
 /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
 /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
-pub fn get_one_pending_display_stripped_circuits_package(
+pub fn get_latest_pending_display_stripped_circuits_package(
     ipfs_server_multiaddr: &str,
     ws_url: &str,
-) -> DisplayStrippedCircuitsPackageBuffers {
-    // TODO add param for index
-    let idx = 0;
-
+) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
     let api = get_api(ws_url);
     let pending_circuits = get_pending_circuits(&api);
 
+    // TODO add param for index?
+    // But how are we supposed to choose which circuit to DL? [we can not really exposed the list to the user?]
+    // in that case; remove .last()
+    let circuit = pending_circuits.last().ok_or(
+        "error: get_latest_pending_display_stripped_circuits_package: no circuit available!",
+    )?;
+
     // convert Vec<u8> into str
     let message_pgarbled_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[idx].message_pgarbled_cid)
-            .expect("message_pgarbled_cid utf8");
+        sp_std::str::from_utf8(&circuit.message_pgarbled_cid).expect("message_pgarbled_cid utf8");
     let message_packmsg_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[idx].message_packmsg_cid)
-            .expect("message_packmsg_cid utf8");
+        sp_std::str::from_utf8(&circuit.message_packmsg_cid).expect("message_packmsg_cid utf8");
     let pinpad_pgarbled_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[idx].pinpad_pgarbled_cid)
-            .expect("pinpad_pgarbled_cid utf8");
-    let pinpad_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[idx].pinpad_packmsg_cid)
-        .expect("pinpad_packmsg_cid utf8");
+        sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
+    let pinpad_packmsg_cid_str =
+        sp_std::str::from_utf8(&circuit.pinpad_packmsg_cid).expect("pinpad_packmsg_cid utf8");
 
     // allow calling ipfs api(ASYNC) from a sync context
     // TODO can we make jni functions async?
@@ -230,13 +231,13 @@ pub fn get_one_pending_display_stripped_circuits_package(
             pinpad_packmsg_buf.len()
         );
 
-        DisplayStrippedCircuitsPackageBuffers {
+        Ok(DisplayStrippedCircuitsPackageBuffers {
             message_pgarbled_buf: message_pgarbled_buf,
             message_packmsg_buf: message_packmsg_buf,
             pinpad_pgarbled_buf: pinpad_pgarbled_buf,
             pinpad_packmsg_buf: pinpad_packmsg_buf,
-            package: pending_circuits[idx].clone(),
-        }
+            package: circuit.clone(),
+        })
     })
 }
 
