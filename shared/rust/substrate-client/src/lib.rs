@@ -137,13 +137,14 @@ pub fn extrinsic_check_input(
     tx_hash.expect("send_extrinsic failed")
 }
 
-// MUST match pallets/ocw-garble/src/lib.rs AccountToPendingCircuitsMap
+// MUST match pallets/ocw-garble/src/lib.rs "DisplayStrippedCircuitsPackage"(in repo ocw-demo)
 #[derive(Encode, Decode, Debug, Clone)]
 struct DisplayStrippedCircuitsPackage {
     message_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
     message_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
     pinpad_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
     pinpad_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
+    message_nb_digits: u32,
 }
 const MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT: u32 = 16;
 type PendingCircuitsType =
@@ -183,22 +184,29 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 ///
 /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
 /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+// TODO return a struct LIKE "DisplayStrippedCircuitsPackage"
+// TODO use struct from new "common" crate
 pub fn get_one_pending_display_stripped_circuits_package(
     ipfs_server_multiaddr: &str,
     ws_url: &str,
-) -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>) {
+) -> (Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>, u32) {
+    // TODO add param for index
+    let idx = 0;
+
     let api = get_api(ws_url);
     let pending_circuits = get_pending_circuits(&api);
 
     // convert Vec<u8> into str
     let message_pgarbled_cid_str =
-        sp_std::str::from_utf8(&pending_circuits[0].message_pgarbled_cid)
+        sp_std::str::from_utf8(&pending_circuits[idx].message_pgarbled_cid)
             .expect("message_pgarbled_cid utf8");
-    let message_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[0].message_packmsg_cid)
-        .expect("message_packmsg_cid utf8");
-    let pinpad_pgarbled_cid_str = sp_std::str::from_utf8(&pending_circuits[0].pinpad_pgarbled_cid)
-        .expect("pinpad_pgarbled_cid utf8");
-    let pinpad_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[0].pinpad_packmsg_cid)
+    let message_packmsg_cid_str =
+        sp_std::str::from_utf8(&pending_circuits[idx].message_packmsg_cid)
+            .expect("message_packmsg_cid utf8");
+    let pinpad_pgarbled_cid_str =
+        sp_std::str::from_utf8(&pending_circuits[idx].pinpad_pgarbled_cid)
+            .expect("pinpad_pgarbled_cid utf8");
+    let pinpad_packmsg_cid_str = sp_std::str::from_utf8(&pending_circuits[idx].pinpad_packmsg_cid)
         .expect("pinpad_packmsg_cid utf8");
 
     // allow calling ipfs api(ASYNC) from a sync context
@@ -244,6 +252,7 @@ pub fn get_one_pending_display_stripped_circuits_package(
             message_packmsg_buf,
             pinpad_pgarbled_buf,
             pinpad_packmsg_buf,
+            pending_circuits[idx].message_nb_digits,
         )
     })
 }

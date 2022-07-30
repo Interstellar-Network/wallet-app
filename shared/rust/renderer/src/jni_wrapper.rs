@@ -61,6 +61,7 @@ struct DisplayCircuitsPackage {
     message_packmsg_buf: Vec<u8>,
     pinpad_pgarbled_buf: Vec<u8>,
     pinpad_packmsg_buf: Vec<u8>,
+    message_nb_digits: u32,
 }
 
 fn init_surface(

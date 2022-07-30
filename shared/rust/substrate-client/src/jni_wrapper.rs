@@ -162,6 +162,7 @@ struct DisplayCircuitsPackage {
     message_packmsg_buf: Vec<u8>,
     pinpad_pgarbled_buf: Vec<u8>,
     pinpad_packmsg_buf: Vec<u8>,
+    message_nb_digits: u32,
 }
 
 /// Get circuits, OR throw if there is no circuit ready!
@@ -193,8 +194,13 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
         .into();
 
     log::debug!("before get_one_pending_display_stripped_circuits_package");
-    let (message_pgarbled_buf, message_packmsg_buf, pinpad_pgarbled_buf, pinpad_packmsg_buf) =
-        get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
+    let (
+        message_pgarbled_buf,
+        message_packmsg_buf,
+        pinpad_pgarbled_buf,
+        pinpad_packmsg_buf,
+        message_nb_digits,
+    ) = get_one_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url);
 
     // https://github.com/jni-rs/jni-rs/issues/101
     // sort of works without "new_byte_array", but the Java array is not the correct size so it then crash at
@@ -248,6 +254,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
         message_packmsg_buf: message_packmsg_buf,
         pinpad_pgarbled_buf: pinpad_pgarbled_buf,
         pinpad_packmsg_buf: pinpad_packmsg_buf,
+        message_nb_digits: message_nb_digits,
     })) as jlong
 }
 
