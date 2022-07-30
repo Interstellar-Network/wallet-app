@@ -18,6 +18,7 @@ open class WGPUSurfaceView(
     val pinpad_rects: Array<Rect>,
     val message_rect: Array<Rect>,
     val colors: Colors,
+    val callbackTxDone: () -> Unit,
 ) : SurfaceView(context),
     SurfaceHolder.Callback2 {
     private var rustBridge = RustWrapper()
@@ -83,6 +84,9 @@ open class WGPUSurfaceView(
         if(retryCount >= 10){
             Log.e("interstellar", "Still no circuit available after 10s; exiting!")
             Toast.makeText(context, "No circuits available after 10s; exiting!", Toast.LENGTH_SHORT).show()
+
+            // TODO? add error-specific callback?
+            callbackTxDone()
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,12 +110,14 @@ open class WGPUSurfaceView(
 
         // if we have enough inputs, try to validate
         if(inputDigits.size >= message_nb_digts) {
+            Toast.makeText(context, "Validating transaction...", Toast.LENGTH_SHORT).show()
             rustBridge.ExtrinsicCheckInput(WS_URL, packagePtr!!, inputDigits.toByteArray())
+            Toast.makeText(context, "Transaction done!", Toast.LENGTH_SHORT).show()
 
             // not valid after ExtrinsicCheckInput, so reset it
             packagePtr = null
 
-            // TODO close the Activity/View, show a Toast?
+            callbackTxDone()
         }
     }
 

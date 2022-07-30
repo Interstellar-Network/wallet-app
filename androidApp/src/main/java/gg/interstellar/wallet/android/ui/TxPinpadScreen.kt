@@ -1,5 +1,7 @@
 package gg.interstellar.wallet.android.ui
 
+import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,11 +33,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat.recreate
+import androidx.core.app.ActivityCompat.startActivity
 import gg.interstellar.wallet.WGPUSurfaceView
 import gg.interstellar.wallet.android.R
 import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import androidx.compose.material.Icon as MaterialIcon
+
+// TODO TxPinpadScreen SHOULD be moved into shared/
 
 /*
 @Preview(name = "NEXUS_7", device = Devices.NEXUS_7)
@@ -60,7 +67,7 @@ import androidx.compose.material.Icon as MaterialIcon
 */
 @Preview(showBackground = true)
 @Composable
-fun TxPinpadScreen() {
+fun TxPinpadScreen(callbackTxDone: () -> Unit) {
     // Will store the computed WGPUSurfaceView's coordinates
     // updated by AndroidView onGloballyPositioned
     // It is needed to compute the BBox for pinpadRectsRelativeToWGPUSurfaceView/messageRectRelativeToWGPUSurfaceView relative
@@ -85,6 +92,8 @@ fun TxPinpadScreen() {
     // Array b/c same issue than "wgpu_sv_pinpad_coordinates"
     val wgpuSurfaceView: Array<WGPUSurfaceView?> = arrayOf(null)
 
+    val activity = LocalContext.current as Activity
+
     InterstellarWalletTheme {
         Column {
             DisplayInterstellar()
@@ -106,7 +115,17 @@ fun TxPinpadScreen() {
                                 pinpadRectsRelativeToWGPUSurfaceView,
                                 messageRectRelativeToWGPUSurfaceView,
                                 colors
-                            )
+                            ) {
+                                Log.i("interstellar", "callbackTxDone[1]")
+
+                                // TODO fix callbackTxDone!
+                                // For some reasons we need to "bounce" using another callback else we get a weird NPE
+                                // Directly adding "callbackTxDone = { navController.navigate(WalletScreen.Portfolio.name) }" param
+                                // causes a NPE at "onClick = { wgpuSurfaceView[0]!!.onClickPinpadDigit(id) }"???
+                                // TODO callbackTxDone()
+                                activity.finish()
+                                // recreate(activity) // works, but it restart on this screen which is NOT what we want!
+                            }
                             wgpuSurfaceView[0]!!
                         },
                         modifier = Modifier.onGloballyPositioned { coordinates ->
