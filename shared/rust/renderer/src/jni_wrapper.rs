@@ -199,7 +199,7 @@ pub unsafe fn initSurface(
 ) -> jlong {
     // USE A Box, that way the pointer is properly cleaned up when exiting this function
     // let circuits_package = &mut *(circuits_package_ptr as *mut DisplayStrippedCircuitsPackageBuffers);
-    let circuits_package: Box<DisplayStrippedCircuitsPackageBuffers> =
+    let display_stripped_circuits_package_buffers: Box<DisplayStrippedCircuitsPackageBuffers> =
         Box::from_raw(circuits_package_ptr as *mut _);
 
     init_surface(
@@ -233,10 +233,18 @@ pub unsafe fn initSurface(
                 .into(),
         )
         .unwrap(),
-        circuits_package.message_pgarbled_buf.clone(),
-        circuits_package.message_packmsg_buf.clone(),
-        circuits_package.pinpad_pgarbled_buf.clone(),
-        circuits_package.pinpad_packmsg_buf.clone(),
+        display_stripped_circuits_package_buffers
+            .message_pgarbled_buf
+            .clone(),
+        display_stripped_circuits_package_buffers
+            .message_packmsg_buf
+            .clone(),
+        display_stripped_circuits_package_buffers
+            .pinpad_pgarbled_buf
+            .clone(),
+        display_stripped_circuits_package_buffers
+            .pinpad_packmsg_buf
+            .clone(),
     )
 }
 

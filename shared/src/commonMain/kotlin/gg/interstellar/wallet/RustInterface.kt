@@ -18,6 +18,23 @@ interface RustInterface {
         ipfs_addr: String,
     ): Long
 
+    fun ExtrinsicCheckInput(
+        ws_url: String,
+        package_ptr: Long,
+        inputs: ByteArray,
+    )
+
+    /**
+     * @param ptr: returned from "GetCircuits"
+     */
+    fun GetMessageNbDigitsFromPtr(circuits_package_ptr: Long): Int
+
+    /**
+     * MUST be called BEFORE "initSurface"
+     * return: MUST be passed to "ExtrinsicCheckInput"
+     */
+    fun GetTxIdPtrFromPtr(circuits_package_ptr: Long): Long
+
     /********************************** RENDER-related ********************************************/
     fun <Surface> initSurface(
         surface: Surface,

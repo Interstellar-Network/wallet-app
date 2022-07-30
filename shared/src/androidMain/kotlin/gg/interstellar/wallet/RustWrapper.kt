@@ -29,6 +29,13 @@ class RustWrapper : RustInterface {
         ws_url: String,
         ipfs_addr: String,
     ): Long
+    external override fun ExtrinsicCheckInput(
+        ws_url: String,
+        circuits_package_ptr: Long,
+        inputs: ByteArray,
+    )
+    external override fun GetMessageNbDigitsFromPtr(ptr: Long): Int
+    external override fun GetTxIdPtrFromPtr(circuits_package_ptr: Long): Long
 
     // TODO? split initSurfaceMessage + initSurfacePinpad?
     // would the rendeder work with 2 windows?

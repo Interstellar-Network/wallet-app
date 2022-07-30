@@ -14,6 +14,7 @@
 
 // cf https://docs.rs/jni/latest/jni/#the-rust-side
 
+use common::{DisplayStrippedCircuitsPackageBuffers, SubPackageType};
 use jni::objects::ReleaseMode;
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
@@ -22,8 +23,8 @@ use jni::{JNIEnv, JavaVM};
 use std::os::raw::c_void;
 
 use crate::{
-    extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile, get_api,
-    get_one_pending_display_stripped_circuits_package,
+    extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
+    extrinsic_register_mobile, get_api, get_one_pending_display_stripped_circuits_package,
 };
 
 use crate::loggers;
@@ -160,6 +161,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
 /// To generate them: use Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAndStripDisplayCircuitsPackage
 ///
 /// WARNING: returns a POINTER to a Rust struct = common::DisplayStrippedCircuitsPackageBuffers
+///
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
 #[no_mangle]
@@ -238,6 +240,84 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
     Box::into_raw(Box::new(display_stripped_circuits_package_buffers)) as jlong
 }
 
+#[no_mangle]
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetMessageNbDigitsFromPtr(
+    _env: JNIEnv,
+    _class: JClass,
+    circuits_package_ptr: jlong,
+) -> jint {
+    // DO NOT USE A Box; we DO NOT want to cleanup the memory at this time!
+    let display_stripped_circuits_package_buffers =
+        unsafe { &mut *(circuits_package_ptr as *mut DisplayStrippedCircuitsPackageBuffers) };
+
+    display_stripped_circuits_package_buffers
+        .package
+        .message_nb_digits
+        .try_into()
+        .unwrap()
+}
+
+/// IMPORTANT: we MUST "clone" what is needed for ExtrinsicCheckInput b/c
+/// renderer/src/jni_wrapper.rs initApp WILL cleanup "circuits_package_ptr"!
+/// So here we just clone the whole "package" field, b/c that should be enough to be used a "tx_id"
+#[no_mangle]
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetTxIdPtrFromPtr(
+    _env: JNIEnv,
+    _class: JClass,
+    circuits_package_ptr: jlong,
+) -> jlong {
+    // DO NOT USE A Box; we DO NOT want to cleanup the memory at this time!
+    let display_stripped_circuits_package_buffers =
+        unsafe { &mut *(circuits_package_ptr as *mut DisplayStrippedCircuitsPackageBuffers) };
+
+    Box::into_raw(Box::new(
+        display_stripped_circuits_package_buffers.package.clone(),
+    )) as jlong
+}
+
+/// @param circuits_package_ptr: returned from "GetTxIdPtrFromPtr"
+///
+/// IMPORTANT: "tx_id_ptr" is NOT valid after calling this function!
+///
+// "This keeps Rust from "mangling" the name and making it unique for this
+// crate."
+#[no_mangle]
+pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInput(
+    env: JNIEnv,
+    // "This is the class that owns our static method. It's not going to be used,
+    // but still must be present to match the expected signature of a static
+    // native method."
+    _class: JClass,
+    ws_url: JString,
+    tx_id_ptr: jlong,
+    inputs: jbyteArray,
+) -> jstring {
+    // USE a Box, that way the pointer is properly cleaned up when exiting this function
+    let package: Box<SubPackageType> = unsafe { Box::from_raw(tx_id_ptr as *mut _) };
+
+    // "First, we have to get the string out of Java. Check out the `strings`
+    // module for more info on how this works."
+    let ws_url: String = env
+        .get_string(ws_url)
+        .expect("Couldn't get java string[url]!")
+        .into();
+
+    let inputs_vec = convert_jbytearray_to_vec(env, inputs);
+
+    let api = get_api(&ws_url);
+    let tx_hash = extrinsic_check_input(&api, package.message_pgarbled_cid.to_vec(), inputs_vec);
+    // TODO error handling: .unwrap()
+
+    // "Then we have to create a new Java string to return. Again, more info
+    // in the `strings` module."
+    let output = env
+        .new_string(tx_hash.to_string())
+        .expect("Couldn't create java string!");
+
+    // "Finally, extract the raw pointer to return."
+    output.into_inner()
+}
+
 // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
 #[cfg(test)]
 #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
@@ -294,7 +374,7 @@ pub fn test_convert_jbytearray_to_vec() {
     // Insert array elements
     let _ = env.set_byte_array_region(java_array, 0, buf);
 
-    let res = unsafe { convert_jbytearray_to_vec(*env, java_array) };
+    let res = convert_jbytearray_to_vec(*env, java_array);
 
     assert_eq!(res, vec![0, 42, 12, 42])
 }

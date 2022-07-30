@@ -23,6 +23,10 @@ open class WGPUSurfaceView(
     val WS_URL = "ws://127.0.0.1:9944"
     val IPFS_ADDR = "/ip4/127.0.0.1/tcp/5001"
     private var circuitsPackagePtr: Long? = null
+    private var packagePtr: Long? = null
+
+    private var message_nb_digts = 0
+    private var inputDigits: ArrayList<Byte> = arrayListOf()
 
     init {
         holder.addCallback(this)
@@ -33,27 +37,53 @@ open class WGPUSurfaceView(
         this.setZOrderOnTop(false)
 //        this.setZOrderMediaOverlay(false)
 
-        // TODO move out of here!
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // TODO properly wrap in "loading screen", in a thread
         val pub_key = rustBridge.getMobilePublicKey()
         Log.i("interstellar", "pub_key : $pub_key")
         rustBridge.ExtrinsicRegisterMobile(WS_URL, pub_key)
 
+        rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, "0.13 ETH to REPLACEME")
+
+        // TODO MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
         circuitsPackagePtr = rustBridge.GetCircuits(
             WS_URL,
             IPFS_ADDR,
         )
+        message_nb_digts = rustBridge.GetMessageNbDigitsFromPtr(circuitsPackagePtr!!)
         Log.i(
             "interstellar",
-            "circuitsPackagePtr : ${circuitsPackagePtr}"
+            "circuitsPackagePtr : ${circuitsPackagePtr}, message_nb_digts : $message_nb_digts"
         )
-
-        // TODO move to proper "Loading screen", in a thread
-        // MUST wait in a loop until CircuitsPackage is valid(or ideally watch for events)
-        rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, "0.13 ETH to REPLACEME")
+        packagePtr = rustBridge.GetTxIdPtrFromPtr(circuitsPackagePtr!!)
+        ////////////////////////////////////////////////////////////////////////////////////////////
     }
 
     fun onClickPinpadDigit(idx: Int) {
+        assert(idx >=0 && idx <= 11,
+            { "onClickPinpadDigit: should only have [0-11] digit on a pinpad!" })
+
         Log.i("interstellar", "onClickPinpadDigit $idx")
+        if (idx == 11) {
+            // "clear" button: reset
+            inputDigits.clear()
+        } else if (idx == 9) {
+            // "go" button, but for now it is empty
+            // DO NOTHING
+        } else {
+            // standard digit: add it to the list
+            inputDigits.add(idx.toByte())
+        }
+
+        // if we have enough inputs, try to validate
+        if(inputDigits.size >= message_nb_digts) {
+            rustBridge.ExtrinsicCheckInput(WS_URL, packagePtr!!, inputDigits.toByteArray())
+
+            // not valid after ExtrinsicCheckInput, so reset it
+            packagePtr = null
+
+            // TODO close the Activity/View, show a Toast?
+        }
     }
 
     override fun hasOverlappingRendering(): Boolean {
@@ -78,7 +108,6 @@ open class WGPUSurfaceView(
 //            holder.setFormat(PixelFormat.TRANSPARENT) // crash EMU + DEVICE
 //            holder.setFormat(PixelFormat.RGBA_8888) // crash EMU + DEVICE
 
-            // TODO pass to rust initPinpad
             val pinpad_rects = pinpad_rects
             val message_rect = message_rect
 
@@ -118,7 +147,7 @@ open class WGPUSurfaceView(
             )
 
             // not valid anymore after "initSurface" so we "reset" it
-            circuitsPackagePtr = 0
+            circuitsPackagePtr = null
 
             setWillNotDraw(false)
         }

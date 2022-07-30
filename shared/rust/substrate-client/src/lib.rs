@@ -235,7 +235,7 @@ pub fn get_one_pending_display_stripped_circuits_package(
             message_packmsg_buf: message_packmsg_buf,
             pinpad_pgarbled_buf: pinpad_pgarbled_buf,
             pinpad_packmsg_buf: pinpad_packmsg_buf,
-            message_nb_digits: pending_circuits[idx].message_nb_digits,
+            package: pending_circuits[idx].clone(),
         }
     })
 }
@@ -244,8 +244,8 @@ pub fn get_one_pending_display_stripped_circuits_package(
 mod tests {
     use crate::loggers;
     use crate::{
-        extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
-        extrinsic_register_mobile, get_api, get_pending_circuits,
+        extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
+        get_api, get_pending_circuits,
     };
     static INIT: std::sync::Once = std::sync::Once::new();
 
