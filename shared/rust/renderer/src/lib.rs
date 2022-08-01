@@ -50,10 +50,13 @@ pub mod vertices_utils;
 mod bevy_regular_polygon;
 mod setup;
 mod update_texture_utils;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 mod winit_raw_handle_plugin;
 
+#[cfg(feature = "with-cwrapper")]
+pub mod c_wrapper;
 // #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
+#[cfg(feature = "with-jni")]
 mod jni_wrapper;
 
 /// IMPORTANT: if tou change it, adjust renderer/src/vertices_utils.rs else it will
@@ -106,8 +109,7 @@ pub struct CircuitPinpad {
 
 /// Init the Window with winit
 /// Only needed for Android; this replaces "WinitPlugin"
-#[cfg(target_os = "android")]
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 pub fn init_window(
     app: &mut App,
     physical_width: u32,
@@ -201,9 +203,14 @@ pub fn init_app(
     }
     #[cfg(not(target_os = "android"))]
     {
-        // TODO?
-        app.add_plugins(DefaultPlugins);
-        // app.add_plugins_with(DefaultPlugins, |group| group.disable::<ImagePlugin>());
+        // https://github.com/gfx-rs/wgpu/issues/1715
+        // "MTLValidateFeatureSupport:4849: failed assertion `Sampler Compare Function is not supported on this device'"
+        // on iOs Simulator
+        // But we don't need the pbr_plugin anyway, so we might as well disable it entirely
+
+        app.add_plugins_with(DefaultPlugins, |group| {
+            group.disable::<bevy::pbr::PbrPlugin>()
+        });
     }
 
     // TODO how much msaa?

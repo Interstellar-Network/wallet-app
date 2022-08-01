@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 /// [Android]
 /// REALLY simplified version of Bevy's WinitPlugin
 /// which basically does nothing except passing a RawHandle usually obtained from JNI with ANativeWindow_fromSurface

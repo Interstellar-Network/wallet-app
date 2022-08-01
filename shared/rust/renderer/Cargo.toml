@@ -38,19 +38,24 @@ bevy = { version = "0.7.0", default-features = false, features = [ "render" ]}
 log = "0.4"
 # NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
 wgpu = "0.12.0"  # dep of Bevy, but we need it ourself; versions MUST match
+raw-window-handle = "0.4"
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
 
-#TODO [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.11"
-jni = { version = "0.19.0" }  # TODO optional = true
-jni_fn = "0.1"
-raw-window-handle = "0.4"
-
 # local
 circuit-evaluate = { path = "../circuit_evaluate" }
 common = { path = "../common" }
+
+# TODO [target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.11"
+jni = { version = "0.19.0", optional = true }
+jni_fn = { version = "0.1", optional = true }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+objc = "0.2.7"
+core-graphics = "0.22.3"
+env_logger = "0.9"
 
 [dev-dependencies]
 png = "0.17.5"
@@ -68,3 +73,8 @@ bevy = { version = "0.7.0", default-features = false, features = [ "render", "be
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
+
+[features]
+default = []
+with-jni = ["jni", "jni_fn"]
+with-cwrapper = []

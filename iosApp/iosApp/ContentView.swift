@@ -1,17 +1,15 @@
 import SwiftUI
-import shared
+import CoreImage.CIFilterBuiltins
 
+/// - Tag: ContentView
 struct ContentView: View {
-	let greet = Greeting().greeting()
-
-	var body: some View {
-	    let txhash = RustWrapper().CallExtrinsic(url: "ws://127.0.0.1:9944")!
-		Text(txhash)
-	}
+    var body: some View {
+        GPUNativeViewRepresentable().aspectRatio(nil, contentMode: .fill)
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
-	static var previews: some View {
-		ContentView()
-	}
+    static var previews: some View {
+        ContentView()
+    }
 }

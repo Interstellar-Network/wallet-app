@@ -26,7 +26,6 @@ use jni_fn::jni_fn;
 use log::{debug, info, Level};
 use raw_window_handle::{AndroidNdkHandle, RawWindowHandle};
 
-// #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
 use crate::{

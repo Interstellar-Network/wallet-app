@@ -15,17 +15,23 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
-use crate::call_extrinsic;
+use crate::{
+    extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
+    extrinsic_register_mobile, get_api, get_latest_pending_display_stripped_circuits_package,
+};
 
 #[no_mangle]
-pub extern "C" fn rust_call_extrinsic(c_ptr_url: *const c_char) -> *mut c_char {
-    let c_url = unsafe { CStr::from_ptr(c_ptr_url) };
-    let url = match c_url.to_str() {
+pub extern "C" fn rust_extrinsic_register_mobile(c_ptr_ws_url: *const c_char) -> *mut c_char {
+    let c_ws_url = unsafe { CStr::from_ptr(c_ptr_ws_url) };
+    let ws_url = match c_ws_url.to_str() {
         Err(_) => "there",
         Ok(string) => string,
     };
 
-    let tx_hash = call_extrinsic(&url);
+    let api = get_api(&ws_url);
+
+    // TODO param for "pub_key"
+    let tx_hash = extrinsic_register_mobile(&api, vec![0; 32]);
 
     CString::new(tx_hash.to_string()).unwrap().into_raw()
 }
