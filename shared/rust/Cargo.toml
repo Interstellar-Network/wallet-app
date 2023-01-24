@@ -11,8 +11,8 @@ members = [
 ]
 
 # NOTE: patch DOES NOT work except at the Workspace level??
-[patch.crates-io]
-bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
+# [patch.crates-io]
+# bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
 
 [profile.release-with-debug]
 inherits = "release"

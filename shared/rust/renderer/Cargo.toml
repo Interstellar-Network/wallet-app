@@ -34,19 +34,20 @@ ndarray = "0.15.4"
 # 10 | compile_error!("Please select a feature to build for unix: `x11`, `wayland`");
 #
 # see also "target.'cfg(unix)'.dev-dependencies"
-bevy = { version = "0.7.0", default-features = false, features = [ "render" ]}
+bevy = { version = "0.9", default-features = false, features = [ "render" ]}
 log = "0.4"
 # NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
-wgpu = "0.12.0"  # dep of Bevy, but we need it ourself; versions MUST match
+# https://github.com/bevyengine/bevy/blob/920543c824735dc1df6f4a59e7036e653dd5a553/crates/bevy_render/Cargo.toml
+wgpu = "0.14"  # dep of Bevy, but we need it ourself; versions MUST match
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
 
 #TODO [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.11"
-jni = { version = "0.19.0" }  # TODO optional = true
+android_logger = "0.12"
+jni = { version = "0.20" }  # TODO optional = true
 jni_fn = "0.1"
-raw-window-handle = "0.4"
+raw-window-handle = "0.5"
 
 # local
 circuit-evaluate = { path = "../circuit_evaluate" }
@@ -54,15 +55,15 @@ common = { path = "../common" }
 
 [dev-dependencies]
 png = "0.17.5"
-clap = { version = "3.1.18", features = ["derive", "env"] }
+clap = { version = "4", features = ["derive", "env"] }
 # features "invocation" needed for tests(to create a JVM)
-jni = { version = "0.19.0", features = ["invocation"] }
+jni = { version = "0.20", features = ["invocation"] }
 # needed only for example/desktop
 substrate-client = { path = "../substrate-client" }
 
 [target.'cfg(unix)'.dev-dependencies]
 # TODO dynamic(ONLY FOR DEBUG/DEV)
-bevy = { version = "0.7.0", default-features = false, features = [ "render", "bevy_winit", "x11" ]}
+bevy = { version = "0.9", default-features = false, features = [ "render", "bevy_winit", "x11" ]}
 
 [build-dependencies]
 anyhow = "1.0"
