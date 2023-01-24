@@ -1,3 +1,0 @@
-[submodule "shared/rust/circuit_evaluate/deps/protos"]
-	path = shared/rust/circuit_evaluate/deps/protos
-	url = git@github.com:Interstellar-Network/protos.git

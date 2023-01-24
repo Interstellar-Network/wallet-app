@@ -174,9 +174,9 @@ pub fn init_app(
     ////////////////////////////////////////////////////////////////////////////
     /// circuits init, via crate ../circuit_evaluate
     let message_evaluate_wrapper =
-        circuit_evaluate::ffi::new_evaluate_wrapper(message_pgc_buf, message_packmsg_buf);
+        circuit_evaluate::new_evaluate_wrapper(message_pgc_buf, message_packmsg_buf);
     let pinpad_evaluate_wrapper =
-        circuit_evaluate::ffi::new_evaluate_wrapper(pinpad_pgc_buf, pinpad_packmsg_buf);
+        circuit_evaluate::new_evaluate_wrapper(pinpad_pgc_buf, pinpad_packmsg_buf);
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
     #[cfg(target_os = "android")]

@@ -13,51 +13,17 @@ jobs:
       # - name: Install dependencies
       #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
 
-      - uses: Interstellar-Network/gh-actions/prepare@v1.0.0
+      - uses: Interstellar-Network/gh-actions/prepare@v3-dev
         with:
           ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
           install_cmake_and_ninja: true
 
-      - uses: Interstellar-Network/gh-actions/prepare_rust@v1.0.0
-        with:
-          toolchain_toolchain: nightly
-      # for now https://github.com/actions-rs/toolchain only support one "target"...
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
+
       # TODO? "x86_64-unknown-linux-gnu"
       - run: rustup target add --toolchain nightly armv7-linux-androideabi aarch64-linux-android
 
-      ##########################################################################
-      # NOTE: only needed in CI, local builds are OK?
-      # Need BOTH "protoc-3.19.4-linux-x86_64.zip"(contains protoc itself)
-      # and "protobuf-cpp-3.19.4.tar.gz" for eg "src/google/protobuf/port_def.inc"
-      # What we download in CI, and what prost_build downloads SHOULD MATCH!
-      # DO NOT change the structure, else shared/rust/circuit_evaluate/build.rs will fail!
-      # when using prost_build vendored(ie compiling from sources):
-      #   prost_build::protoc_include() : /home/AAA/.cargo/registry/src/github.com-XXX/prost-build-0.10.4/third-party/include
-      #   prost_build::protoc() : /BBB/wallet-app/shared/rust/target/debug/build/prost-build-YYY/out/bin/protoc
-      # ie: protoc_include() is in .cargo/registry/ BUT protoc() is in build dir(= .../target/)
-      # IMPORTANT: "prebuilt.zip" already contains include/ with eg empty.proto etc
-      # we MUST rm it, and point include/ to src/(which contains the same eg empty.proto AND port_def.inc)
-      # DO NOT remove the ls statements, it can be useful to know if the setup is borked
-      - name: Install protoc custom prebuilt binary
-        run: |
-          mkdir /home/runner/protoc
-          cd /home/runner/protoc
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip -O prebuilt.zip
-          unzip prebuilt.zip
-          rm prebuilt.zip
-          rm -rf include/
-          wget -c https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protobuf-cpp-3.19.4.tar.gz -O - | tar -xz --one-top-level=protobuf --strip-components=1
-          ln -s protobuf/src include
-          export PROTOC_INCLUDE=/home/runner/protoc/include
-          echo "PROTOC=/home/runner/protoc/bin/protoc" >> $GITHUB_ENV
-          eval echo "PROTOC_INCLUDE=$PROTOC_INCLUDE" >> $GITHUB_ENV
-          echo "PROTOC_NO_VENDOR=" >> $GITHUB_ENV
-          echo CHECK PROTOC_INCLUDE include path
-          ls -al ${PROTOC_INCLUDE}
-          ls -al ${PROTOC_INCLUDE}/google
-          ls -al ${PROTOC_INCLUDE}/google/protobuf
-          ls -al ${PROTOC_INCLUDE}/google/protobuf/port_def.inc
-        shell: bash
+      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
 
@@ -96,9 +62,10 @@ jobs:
       - name: Delete old NDK v23
         # version required else: "Warning: Failed to find package 'ndk'"
         run: sdkmanager --uninstall "ndk;23.2.8568313"
-      - name: Install NDK v24
+      - name: Install NDK v25
         # version required else: "Warning: Failed to find package 'ndk'"
-        run: sdkmanager "ndk;24.0.8215888"
+        # MUST match version used at NDK_ROOT below! Careful when updating!
+        run: sdkmanager "ndk;25.1.8937393"
 
       - name: Build Wallet-App
         # TODO build arm7, and Release only?
