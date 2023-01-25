@@ -14,10 +14,10 @@
 
 use bevy::prelude::*;
 use bevy::render::camera::{CameraProjection, OrthographicProjection, ScalingMode, WindowOrigin};
+use bevy::render::mesh::shape::Circle;
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
 
-use crate::bevy_regular_polygon::Circle;
 use crate::TextureUpdateCallbackMessage;
 use crate::TextureUpdateCallbackPinpad;
 use crate::TEXTURE_PIXEL_NB_BYTES;

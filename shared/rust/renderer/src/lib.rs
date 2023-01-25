@@ -47,7 +47,6 @@ use setup::setup_camera;
 pub mod my_raw_window_handle;
 pub mod vertices_utils;
 
-mod bevy_regular_polygon;
 mod setup;
 mod update_texture_utils;
 #[cfg(target_os = "android")]
