@@ -1,0 +1,3 @@
+[submodule "shared/rust/deps/teaclave-sgx-sdk"]
+	path = shared/rust/deps/teaclave-sgx-sdk
+	url = https://github.com/apache/teaclave-sgx-sdk.git

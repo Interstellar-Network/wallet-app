@@ -7,7 +7,7 @@ package gg.interstellar.wallet
 interface RustInterface {
     /**
      *
-     * @param ws_url address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+     * @param ws_url address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
      */
     // WARNING: this CAN NOT be "external" if part of the commonMain?
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation

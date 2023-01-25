@@ -7,7 +7,7 @@ members = [
     "circuit_evaluate",
     "common",
     "renderer",
-    "interstellar-integritee-cli",
+    # "interstellar-integritee-cli",
     "substrate-client",
 ]
 
@@ -31,5 +31,6 @@ opt-level = 3
 
 ################################################################################
 # local dev
-[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
+[patch."https://github.com/apache/teaclave-sgx-sdk.git"]
+# itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
+sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }

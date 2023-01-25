@@ -53,7 +53,7 @@ fn main() {
         let display_stripped_circuits_package_buffers =
             get_latest_pending_display_stripped_circuits_package(
                 "/ip4/127.0.0.1/tcp/5001",
-                "ws://127.0.0.1:9944",
+                "ws://127.0.0.1:9990",
             )
             .expect("no circuit available");
 

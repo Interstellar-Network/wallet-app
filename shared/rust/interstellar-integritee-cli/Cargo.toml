@@ -29,7 +29,7 @@ ws = { version = "0.9.1", features = ["ssl"] }
 my-node-runtime = { package = "integritee-node-runtime", git = "https://github.com/integritee-network/integritee-node.git", branch = "master" }
 # pallet-evm = { optional = true, git = "https://github.com/integritee-network/frontier.git", branch = "polkadot-v0.9.32" }
 substrate-api-client = { features = ["ws-client"], git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.36" }
-# substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.32" }
+substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.36" }
 teerex-primitives = { git = "https://github.com/integritee-network/pallets.git", branch = "master" }
 
 # substrate dependencies
@@ -42,17 +42,20 @@ sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "polka
 # sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.32" }
 
 # local dependencies
-# ita-stf = { path = "../app-libs/stf" }
+ita-stf = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 # itc-rpc-client = { path = "../core/rpc-client" }
 itp-node-api = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-# itp-rpc = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-# itp-sgx-crypto = { path = "../core-primitives/sgx/crypto" }
+itp-rpc = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+# itp-sgx-crypto = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 itp-stf-primitives = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 # itp-time-utils = { path = "../core-primitives/time-utils" }
 itp-types = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-# itp-utils = { path = "../core-primitives/utils" }
+itp-utils = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 
 # https://github.com/apache/incubator-teaclave-sgx-sdk/blob/master/sgx_crypto_helper/Cargo.toml#L44
 sgx_types   = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
 serde-big-array = { version = "0.4" }
 serde_derive = { version = "1"  }
+
+[dev-dependencies]
+sp-keyring = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }

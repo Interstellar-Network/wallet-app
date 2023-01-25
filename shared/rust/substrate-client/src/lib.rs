@@ -18,6 +18,12 @@ use futures_util::TryStreamExt;
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
+use itc_rpc_client::direct_client::{DirectApi, DirectClient as DirectWorkerApi};
+use log::*;
+use sp_keyring::AccountKeyring;
+use substrate_api_client::{
+    compose_extrinsic, rpc::WsRpcClient, Api, AssetTip, BaseExtrinsicParams, Hash, Pair, XtStatus,
+};
 
 #[cfg(feature = "with-cwrapper")]
 pub mod c_wrapper;
@@ -26,8 +32,10 @@ pub mod jni_wrapper;
 
 mod loggers;
 
-fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
-    integritee_cli::
+/// Return a client for the SUBSTRATE/INTEGRITEE NODE
+fn get_node_api(
+    ws_url: &str,
+) -> Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>> {
     println!("[+] call_extrinsic: {:?}", ws_url);
     let from = AccountKeyring::Alice.pair();
     println!("[+] call_extrinsic: from {:?}", from.public());
@@ -39,10 +47,20 @@ fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
     api
 }
 
+/// Return a client for the INTEGRITEE WORKER
+fn get_worker_api(ws_url: &str) -> DirectWorkerApi {
+    // cf "get_worker_api_direct"
+    info!(
+        "Connecting to integritee-service-direct-port on '{}'",
+        ws_url
+    );
+    DirectWorkerApi::new(ws_url.to_string())
+}
+
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
 // TODO replace by ocw-garble garbleAndStripSigned(and update params)
 fn extrinsic_garble_and_strip_display_circuits_package_signed(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
     tx_message: &str,
 ) -> Hash {
     ////////////////////////////////////////////////////////////////////////////
@@ -60,7 +78,7 @@ fn extrinsic_garble_and_strip_display_circuits_package_signed(
     // );
     ////////////////////////////////////////////////////////////////////////////
     #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
+    let xt = compose_extrinsic!(
         api.clone(),
         // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
         "OcwGarble",
@@ -81,11 +99,11 @@ fn extrinsic_garble_and_strip_display_circuits_package_signed(
 }
 
 pub fn extrinsic_register_mobile(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
     pub_key: Vec<u8>,
 ) -> Hash {
     #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
+    let xt = compose_extrinsic!(
         api.clone(),
         // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
         "MobileRegistry",
@@ -106,12 +124,12 @@ pub fn extrinsic_register_mobile(
 }
 
 pub fn extrinsic_check_input(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
     ipfs_cid: Vec<u8>,
     input_digits: Vec<u8>,
 ) -> Hash {
     #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
+    let xt = compose_extrinsic!(
         api.clone(),
         // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
         "TxValidation",
@@ -134,7 +152,9 @@ pub fn extrinsic_check_input(
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
 // TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
-fn get_pending_circuits(api: &Api<sp_core::sr25519::Pair, WsRpcClient>) -> PendingCircuitsType {
+fn get_pending_circuits(
+    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
+) -> PendingCircuitsType {
     let account = AccountKeyring::Alice.public();
     // let result: AccountInfo = api
     //     .get_storage_map("System", "Account", account, None)
@@ -165,12 +185,12 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
 /// Then download ONE using IPFS
 ///
 /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
-/// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+/// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
 pub fn get_latest_pending_display_stripped_circuits_package(
     ipfs_server_multiaddr: &str,
     ws_url: &str,
 ) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
-    let api = get_api(ws_url);
+    let api = get_node_api(ws_url);
     let pending_circuits = get_pending_circuits(&api);
 
     // TODO add param for index?
@@ -225,7 +245,7 @@ mod tests {
     use crate::loggers;
     use crate::{
         extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
-        get_api, get_pending_circuits,
+        get_node_api, get_pending_circuits,
     };
     static INIT: std::sync::Once = std::sync::Once::new();
 
@@ -241,7 +261,7 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
-        let api = get_api("ws://127.0.0.1:9944");
+        let api = get_node_api("ws://127.0.0.1:9990");
 
         // IMPORTANT this extrinsic requires IPFS!
         // IPFS_PATH=/tmp/ipfs ipfs init -p test
@@ -258,7 +278,7 @@ mod tests {
     #[test]
     fn get_pending_circuits_local_ok() {
         init();
-        let api = get_api("ws://127.0.0.1:9944");
+        let api = get_node_api("ws://127.0.0.1:9990");
 
         let pending_circuits = get_pending_circuits(&api);
         println!("[+] pending_circuits: {:?}", pending_circuits);
@@ -270,7 +290,7 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_register_mobile_local_ok() {
         init();
-        let api = get_api("ws://127.0.0.1:9944");
+        let api = get_node_api("ws://127.0.0.1:9990");
 
         // MUST be at least 32 bytes
         let tx_hash = extrinsic_register_mobile(&api, vec![42; 32]);
@@ -284,7 +304,7 @@ mod tests {
     // #[serial_test::serial]
     // fn extrinsic_extrinsic_check_input_local_ok() {
     //     init();
-    //     let api = get_api("ws://127.0.0.1:9944");
+    //     let api = get_node_api("ws://127.0.0.1:9990");
 
     //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
     //     println!("[+] tx_hash: {:02X}", tx_hash);

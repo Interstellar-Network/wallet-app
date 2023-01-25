@@ -23,7 +23,7 @@ open class WGPUSurfaceView(
     SurfaceHolder.Callback2 {
     private var rustBridge = RustWrapper()
     private var rustPtr: Long? = null
-    val WS_URL = "ws://127.0.0.1:9944"
+    val WS_URL = "ws://127.0.0.1:9990"
     val IPFS_ADDR = "/ip4/127.0.0.1/tcp/5001"
     private var circuitsPackagePtr: Long? = null
     private var packagePtr: Long? = null
