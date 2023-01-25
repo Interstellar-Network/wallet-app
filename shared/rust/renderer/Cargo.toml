@@ -34,7 +34,29 @@ ndarray = "0.15.4"
 # 10 | compile_error!("Please select a feature to build for unix: `x11`, `wayland`");
 #
 # see also "target.'cfg(unix)'.dev-dependencies"
-bevy = { version = "0.9", default-features = false, features = [ "render", "bevy_asset" ]}
+#
+# TODO cleanup features; and also in dev-dependencies
+bevy = { version = "0.9", default-features = false, features = [
+    # https://github.com/bevyengine/bevy/blob/main/Cargo.toml#L29
+    "animation",
+    "bevy_asset",
+    # "bevy_audio",
+    "bevy_gilrs",
+    "bevy_scene",
+    # "bevy_winit",
+    "bevy_core_pipeline",
+    # "bevy_pbr",
+    "bevy_gltf",
+    "bevy_render",
+    "bevy_sprite",
+    # "bevy_text",
+    # "bevy_ui",
+    # "png",
+    # "hdr",
+    # "vorbis",
+    # "x11",
+    # "filesystem_watcher",
+ ]}
 log = "0.4"
 # NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
 # https://github.com/bevyengine/bevy/blob/920543c824735dc1df6f4a59e7036e653dd5a553/crates/bevy_render/Cargo.toml
@@ -60,12 +82,9 @@ clap = { version = "4", features = ["derive", "env"] }
 jni = { version = "0.20", features = ["invocation"] }
 # needed only for example/desktop
 substrate-client = { path = "../substrate-client" }
+# TODO TOREMOVE
+lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 # TODO dynamic(ONLY FOR DEBUG/DEV)
-bevy = { version = "0.9", default-features = false, features = [ "render", "bevy_winit", "x11" ]}
-
-[build-dependencies]
-anyhow = "1.0"
-fs_extra = "1.2"
-glob = "0.3"
+bevy = { version = "0.9", default-features = true}

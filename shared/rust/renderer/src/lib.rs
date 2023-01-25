@@ -149,9 +149,8 @@ pub fn init_app(
     circle_color: Color,
     background_color: Color,
     message_pgc_buf: Vec<u8>,
-    message_packmsg_buf: Vec<u8>,
     pinpad_pgc_buf: Vec<u8>,
-    pinpad_packmsg_buf: Vec<u8>,
+    plugin_skip_window: bool,
 ) {
     // cf renderer/data/transparent_sprite.wgsl
     // apparently using WHITE(which is Sprite's default) make COLORED NOT defined and that breaks the shader!
@@ -177,38 +176,84 @@ pub fn init_app(
 
     ////////////////////////////////////////////////////////////////////////////
     /// circuits init, via crate ../circuit_evaluate
-    let message_evaluate_wrapper =
-        circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
-    let pinpad_evaluate_wrapper =
-        circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
+    let message_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
+    let pinpad_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
+
+    // TODO? #[cfg(target_os = "android")]
+    // default runner crash at app.run on Android
+    // app.set_runner(my_runner);
+
+    // TODO CHECK history for why "app.add_plugins_with(DefaultPlugins, |group| group.disable::<ImagePlugin>());"
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
-    #[cfg(target_os = "android")]
-    {
-        // default runner crash at app.run on Android
-        // app.set_runner(my_runner);
 
-        app.add_plugins_with(DefaultPlugins, |group| {
-            // NOTE: this is in case we re-add "bevy_winit" for all arch later by mystake
-            // Yes, to DISABLE WinitPlugin we need to enable "bevy_winit"...
-            // REALLY IMPORTANT: else ndk-glue is used and we end up aborting at
-            // pub fn native_activity() -> &'static NativeActivity {
-            //     unsafe { NATIVE_ACTIVITY.as_ref().unwrap() }
-            // }
-            // TODO(android) #[cfg(feature = "bevy/bevy_winit")]
-            // group.disable::<bevy::winit::WinitPlugin>();
+    // DEFAULT: /.../bevy_internal-0.9.1/src/default_plugins.rs
+    // group = group
+    // .add(bevy_log::LogPlugin::default())
+    // .add(bevy_core::CorePlugin::default())
+    // .add(bevy_time::TimePlugin::default())
+    // .add(bevy_transform::TransformPlugin::default())
+    // .add(bevy_hierarchy::HierarchyPlugin::default())
+    // .add(bevy_diagnostic::DiagnosticsPlugin::default())
+    // .add(bevy_input::InputPlugin::default())
+    // .add(bevy_window::WindowPlugin::default());
 
-            // crash: does not exist?? group.disable::<ImagePlugin>();
-            // TODO FIX?: this crashes on Android see also android_logger::init_once in jni_wrapper.rs
-            group.disable::<bevy::log::LogPlugin>()
-        });
-    }
+    // WARNING: order matters!
     #[cfg(not(target_os = "android"))]
-    {
-        // TODO?
-        app.add_plugins(DefaultPlugins);
-        // app.add_plugins_with(DefaultPlugins, |group| group.disable::<ImagePlugin>());
-    }
+    app.add_plugin(bevy::log::LogPlugin { ..default() });
+    app.add_plugin(bevy::core::CorePlugin { ..default() });
+    app.add_plugin(bevy::time::TimePlugin { ..default() });
+    app.add_plugin(bevy::transform::TransformPlugin { ..default() });
+    app.add_plugin(bevy::hierarchy::HierarchyPlugin { ..default() });
+    app.add_plugin(bevy::diagnostic::DiagnosticsPlugin { ..default() });
+    app.add_plugin(bevy::input::InputPlugin { ..default() });
+    // if !plugin_skip_window {
+    //     app.add_plugin(bevy::window::WindowPlugin { ..default() });
+    // }
+    app.add_plugin(WindowPlugin {
+        window: WindowDescriptor {
+            title: "renderer demo".to_string(),
+            width: 1920. / 2.,
+            height: 1080. / 2.,
+            // TODO?
+            // present_mode: PresentMode::AutoVsync,
+            ..default()
+        },
+        // MUST set ELSE: "thread 'main' panicked at 'Requested resource bevy_window::windows::Windows does not exist in the `World`."
+        add_primary_window: true,
+        ..default()
+    });
+    // #[cfg(feature = "bevy_asset")]
+    app.add_plugin(bevy::asset::AssetPlugin { ..default() });
+    // #[cfg(feature = "bevy_scene")]
+    app.add_plugin(bevy::scene::ScenePlugin { ..default() });
+    // the two next are feature gated behind #[cfg(feature = "bevy_render")]
+    app.add_plugin(bevy::render::RenderPlugin { ..default() });
+    app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
+    app.add_plugin(bevy::winit::WinitPlugin { ..default() });
+    // #[cfg(feature = "bevy_core_pipeline")]
+    app.add_plugin(bevy::core_pipeline::CorePipelinePlugin { ..default() });
+    // #[cfg(feature = "bevy_sprite")]
+    app.add_plugin(bevy::sprite::SpritePlugin { ..default() });
+
+    // TODO
+    // app.add_plugins_with(DefaultPlugins, |group| {
+    //     #[cfg(target_os = "android")]
+    //     {
+    //         // NOTE: this is in case we re-add "bevy_winit" for all arch later by mystake
+    //         // Yes, to DISABLE WinitPlugin we need to enable "bevy_winit"...
+    //         // REALLY IMPORTANT: else ndk-glue is used and we end up aborting at
+    //         // pub fn native_activity() -> &'static NativeActivity {
+    //         //     unsafe { NATIVE_ACTIVITY.as_ref().unwrap() }
+    //         // }
+    //         // TODO(android) #[cfg(feature = "bevy/bevy_winit")]
+    //         // group.disable::<bevy::winit::WinitPlugin>();
+
+    //         // crash: does not exist?? group.disable::<ImagePlugin>();
+    //         // TODO FIX?: this crashes on Android see also android_logger::init_once in jni_wrapper.rs
+    //         group.disable::<bevy::log::LogPlugin>()
+    //     }
+    // });
 
     // TODO how much msaa?
     app.insert_resource(Msaa { samples: 4 });

@@ -22,6 +22,7 @@ extern crate renderer;
 use renderer::vertices_utils::Rect;
 extern crate substrate_client;
 use substrate_client::get_latest_pending_display_stripped_circuits_package;
+extern crate lib_garble_rs;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -32,21 +33,42 @@ struct Args {
 }
 
 fn main() {
+    // TODO TOREMOVE write the results to files directly; then remove deps "lib-garble-rs"
+    let display_message_buf = {
+        let garb = lib_garble_rs::garble_skcd(include_bytes!(
+            "data/display_message_640x360_2digits.skcd.pb.bin"
+        ))
+        .unwrap();
+
+        // "packsmg"
+        let encoded_garbler_inputs = lib_garble_rs::garbled_display_circuit_prepare_garbler_inputs(
+            &garb,
+            &[4, 0],
+            "test\nmessage",
+        )
+        .unwrap();
+        // then serialize "garb" and "packmsg"
+        lib_garble_rs::serialize_for_evaluator(garb, encoded_garbler_inputs).unwrap()
+    };
+    let display_pinpad_buf = {
+        let garb =
+            lib_garble_rs::garble_skcd(include_bytes!("data/display_pinpad_590x50.skcd.pb.bin"))
+                .unwrap();
+
+        // "packsmg"
+        let encoded_garbler_inputs = lib_garble_rs::garbled_display_circuit_prepare_garbler_inputs(
+            &garb,
+            &[9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+            "",
+        )
+        .unwrap();
+        // then serialize "garb" and "packmsg"
+        lib_garble_rs::serialize_for_evaluator(garb, encoded_garbler_inputs).unwrap()
+    };
+
     let args = Args::parse();
 
     let mut app = renderer::App::new();
-
-    app.add_plugins(DefaultPlugins.set(WindowPlugin {
-        window: WindowDescriptor {
-            title: "renderer demo".to_string(),
-            width: 1920. / 2.,
-            height: 1080. / 2.,
-            // TODO?
-            // present_mode: PresentMode::AutoVsync,
-            ..default()
-        },
-        ..default()
-    }));
 
     // roughly match what we get from Android; this is just for consistency
     // cf test_convert_rect_floatArr_to_vec_rect
@@ -74,9 +96,8 @@ fn main() {
             bevy::render::color::Color::hex("0080FFFF").unwrap(),
             bevy::render::color::Color::BLACK,
             display_stripped_circuits_package_buffers.message_pgarbled_buf,
-            display_stripped_circuits_package_buffers.message_packmsg_buf,
             display_stripped_circuits_package_buffers.pinpad_pgarbled_buf,
-            display_stripped_circuits_package_buffers.pinpad_packmsg_buf,
+            true,
         );
     } else {
         renderer::init_app(
@@ -89,12 +110,25 @@ fn main() {
             bevy::render::color::Color::WHITE,
             bevy::render::color::Color::hex("0080FFFF").unwrap(),
             bevy::render::color::Color::BLACK,
-            include_bytes!("data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
-            include_bytes!("data/message_224x96.packmsg.pb.bin").to_vec(),
-            include_bytes!("data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
-            include_bytes!("data/pinpad_590x50.packmsg.pb.bin").to_vec(),
+            display_message_buf,
+            display_pinpad_buf,
+            true,
         );
     }
+
+    // MUST be after "renderer::init_app" b/c it adds DefaultPlugins
+    // ELSE we FAIL thread 'main' panicked at 'Error adding plugin bevy_window::WindowPlugin in group bevy_internal::default_plugins::DefaultPlugins: plugin was already added in application', /home/xxx/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_app-0.9.1/src/plugin_group.rs:183:25
+    // app.add_plugin(WindowPlugin {
+    //     window: WindowDescriptor {
+    //         title: "renderer demo".to_string(),
+    //         width: 1920. / 2.,
+    //         height: 1080. / 2.,
+    //         // TODO?
+    //         // present_mode: PresentMode::AutoVsync,
+    //         ..default()
+    //     },
+    //     ..default()
+    // });
 
     // add "dev/debug only systems"
     // eg we DO NOT need movement in the apps, but is useful to dev/debug

@@ -16,7 +16,16 @@
 // https://github.com/substrate-developer-hub/substrate-module-template/blob/master/HOWTO.md#forgetting-cfg_attr-for-no_std
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub struct EvaluateWrapper {}
+use lib_garble_rs::{EncodedGarblerInputs, EvalCache, EvaluatorInput, InterstellarGarbledCircuit};
+
+pub struct EvaluateWrapper {
+    garbled: InterstellarGarbledCircuit,
+    encoded_garbler_inputs: EncodedGarblerInputs,
+    eval_cache: EvalCache,
+    evaluator_inputs: Vec<EvaluatorInput>,
+    width: usize,
+    height: usize,
+}
 
 impl EvaluateWrapper {
     /// Create a new EvaluateWrapper, to be used later eg
@@ -27,33 +36,58 @@ impl EvaluateWrapper {
     /// typically in PROD we use STRIPPED ones, but for tests/dev we keep compat with FULL circuits
     /// [in which case] packmsg_buffer can be empty
     pub fn new(pgarbled_buffer: Vec<u8>) -> EvaluateWrapper {
-        todo!("EvaluateWrapper::new")
+        let (mut garbled, encoded_garbler_inputs) =
+            lib_garble_rs::deserialize_for_evaluator(&pgarbled_buffer).unwrap();
+        let eval_cache = garbled.init_cache();
+        let evaluator_inputs = lib_garble_rs::prepare_evaluator_inputs(&garbled).unwrap();
+
+        let width = garbled
+            .config
+            .display_config
+            .unwrap()
+            .width
+            .try_into()
+            .unwrap();
+        let height = garbled
+            .config
+            .display_config
+            .unwrap()
+            .height
+            .try_into()
+            .unwrap();
+
+        EvaluateWrapper {
+            garbled,
+            encoded_garbler_inputs,
+            eval_cache,
+            evaluator_inputs,
+            width,
+            height,
+        }
     }
 
     /// PROD version
     /// inputs are randomized, outputs are externally given
     /// typically outputs points to some kind of "Texture data"
     pub fn EvaluateWithPackmsg(&mut self, outputs: &mut Vec<u8>) {
-        todo!("EvaluateWrapper::EvaluateWithPackmsg")
-    }
-    /// TEST/DEV only
-    /// PROD uses randomize inputs
-    //fn EvaluateWithPackmsgWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
-    /// TEST/DEV only
-    /// PROD is using the PACKMSG version
-    //fn EvaluateWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
+        // TODO convert/transmute texture data???
+        let mut temp_outputs = vec![Some(0u16); self.width * self.height];
 
-    pub fn GetNbInputs(&self) -> usize {
-        todo!("GetNbInputs");
+        self.garbled
+            .eval_with_prealloc(
+                &self.encoded_garbler_inputs,
+                &self.evaluator_inputs,
+                &mut temp_outputs,
+                &mut self.eval_cache,
+            )
+            .unwrap()
     }
-    pub fn GetNbOutputs(&self) -> usize {
-        todo!("GetNbOutputs");
-    }
+
     pub fn GetWidth(&self) -> usize {
-        todo!("GetWidth");
+        self.width
     }
     pub fn GetHeight(&self) -> usize {
-        todo!("GetHeight");
+        self.height
     }
 }
 

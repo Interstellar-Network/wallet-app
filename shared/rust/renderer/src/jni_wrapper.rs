@@ -67,9 +67,7 @@ fn init_surface(
     circle_color: Color,
     background_color: Color,
     message_pgarbled_buf: Vec<u8>,
-    message_packmsg_buf: Vec<u8>,
     pinpad_pgarbled_buf: Vec<u8>,
-    pinpad_packmsg_buf: Vec<u8>,
 ) -> jlong {
     // TODO use loggers.rs(same as substrate-client)
     // WARNING: conflicts with substrate-client/src/loggers.rs
@@ -153,9 +151,8 @@ fn init_surface(
         // include_bytes!("../examples/data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
         // include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
         message_pgarbled_buf,
-        message_packmsg_buf,
         pinpad_pgarbled_buf,
-        pinpad_packmsg_buf,
+        true,
     );
 
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
@@ -237,13 +234,7 @@ pub unsafe fn initSurface(
             .message_pgarbled_buf
             .clone(),
         display_stripped_circuits_package_buffers
-            .message_packmsg_buf
-            .clone(),
-        display_stripped_circuits_package_buffers
             .pinpad_pgarbled_buf
-            .clone(),
-        display_stripped_circuits_package_buffers
-            .pinpad_packmsg_buf
             .clone(),
     )
 }

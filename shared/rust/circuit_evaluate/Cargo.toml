@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 
 [lib]
 name = "circuit_evaluate"
