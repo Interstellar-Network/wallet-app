@@ -18,10 +18,6 @@ use futures_util::TryStreamExt;
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
-use sp_keyring::AccountKeyring;
-use substrate_api_client::{
-    compose_extrinsic, rpc::WsRpcClient, Api, Hash, Pair, UncheckedExtrinsicV4, XtStatus,
-};
 
 #[cfg(feature = "with-cwrapper")]
 pub mod c_wrapper;
@@ -31,6 +27,7 @@ pub mod jni_wrapper;
 mod loggers;
 
 fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
+    integritee_cli::
     println!("[+] call_extrinsic: {:?}", ws_url);
     let from = AccountKeyring::Alice.pair();
     println!("[+] call_extrinsic: from {:?}", from.public());
@@ -186,12 +183,8 @@ pub fn get_latest_pending_display_stripped_circuits_package(
     // convert Vec<u8> into str
     let message_pgarbled_cid_str =
         sp_std::str::from_utf8(&circuit.message_pgarbled_cid).expect("message_pgarbled_cid utf8");
-    let message_packmsg_cid_str =
-        sp_std::str::from_utf8(&circuit.message_packmsg_cid).expect("message_packmsg_cid utf8");
     let pinpad_pgarbled_cid_str =
         sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
-    let pinpad_packmsg_cid_str =
-        sp_std::str::from_utf8(&circuit.pinpad_packmsg_cid).expect("pinpad_packmsg_cid utf8");
 
     // allow calling ipfs api(ASYNC) from a sync context
     // TODO can we make jni functions async?
@@ -204,38 +197,24 @@ pub fn get_latest_pending_display_stripped_circuits_package(
             .try_concat()
             .await
             .unwrap();
-        let message_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(message_packmsg_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
         let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
             .cat(pinpad_pgarbled_cid_str)
             .map_ok(|chunk| chunk.to_vec())
             .try_concat()
             .await
             .unwrap();
-        let pinpad_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(pinpad_packmsg_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
 
         log::info!(
-            "get_one_pending_display_stripped_circuits_package: got: {},{},{},{},",
+            "get_one_pending_display_stripped_circuits_package: got: {},{}",
             message_pgarbled_buf.len(),
-            message_packmsg_buf.len(),
             pinpad_pgarbled_buf.len(),
-            pinpad_packmsg_buf.len()
         );
 
         Ok(DisplayStrippedCircuitsPackageBuffers {
             message_pgarbled_buf: message_pgarbled_buf,
-            message_packmsg_buf: message_packmsg_buf,
+            message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
             pinpad_pgarbled_buf: pinpad_pgarbled_buf,
-            pinpad_packmsg_buf: pinpad_packmsg_buf,
+            pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
             package: circuit.clone(),
         })
     })

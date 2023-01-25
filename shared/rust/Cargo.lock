@@ -19,7 +19,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5568a4aa5ba8adf5175c5c460b030e27d8893412976cc37bef0e4fbc16cfbba"
 dependencies = [
  "ab_glyph_rasterizer",
- "owned_ttf_parser 0.18.0",
+ "owned_ttf_parser",
 ]
 
 [[package]]
@@ -27,9 +27,6 @@ name = "ab_glyph_rasterizer"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c71b1793ee61086797f5c80b6efa2b8ffa6d5dd703f118545808a7f2e27f7046"
-dependencies = [
- "libm",
-]
 
 [[package]]
 name = "ac-compose-macros"
@@ -105,48 +102,6 @@ name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
-
-[[package]]
-name = "aes"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "884391ef1066acaa41e766ba8f596341b96e93ce34f9a43e7d24bf0a0eaf0561"
-dependencies = [
- "aes-soft",
- "aesni",
- "cipher 0.2.5",
-]
-
-[[package]]
-name = "aes"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "433cfd6710c9986c576a25ca913c39d66a6474107b406f34f91d4a8923395241"
-dependencies = [
- "cfg-if 1.0.0",
- "cipher 0.4.3",
- "cpufeatures",
-]
-
-[[package]]
-name = "aes-soft"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be14c7498ea50828a38d0e24a765ed2effe92a705885b57d029cd67d45744072"
-dependencies = [
- "cipher 0.2.5",
- "opaque-debug 0.3.0",
-]
-
-[[package]]
-name = "aesni"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea2e11f5e94c2f7d386164cc2aa1f97823fed6f259e486940a71c174dd01b0ce"
-dependencies = [
- "cipher 0.2.5",
- "opaque-debug 0.3.0",
-]
 
 [[package]]
 name = "ahash"
@@ -337,12 +292,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "auto_ops"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7460f7dd8e100147b82a63afca1a20eb6c231ee36b90ba7272e14951cb58af59"
-
-[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -388,24 +337,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
-name = "base64"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
-
-[[package]]
 name = "base64ct"
 version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b645a089122eccb6111b4f81cbc1a49f5900ac4666bb93ac027feaecf15607bf"
-
-[[package]]
-name = "base_conversion"
-version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
-dependencies = [
- "cc",
-]
 
 [[package]]
 name = "bevy"
@@ -567,7 +502,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e853e346ba412354e02292c7aa5b9a9dccdfa748e273b1b7ebf8f6a172f89712"
 dependencies = [
  "anyhow",
- "base64 0.13.1",
+ "base64",
  "bevy_app",
  "bevy_asset",
  "bevy_core",
@@ -624,6 +559,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c46014b7e885b1311de06b6039e448454a4db55b8d35464798ba88faa186e11"
 dependencies = [
  "bevy_app",
+ "bevy_asset",
  "bevy_core",
  "bevy_core_pipeline",
  "bevy_derive",
@@ -788,7 +724,7 @@ dependencies = [
  "futures-lite",
  "hex",
  "hexasphere",
- "image 0.24.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image",
  "naga",
  "once_cell",
  "parking_lot",
@@ -1265,29 +1201,9 @@ dependencies = [
  "js-sys",
  "num-integer",
  "num-traits",
- "serde",
- "time 0.1.45",
+ "time",
  "wasm-bindgen",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "cipher"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12f8e7987cbd042a63249497f41aed09f8e65add917ea6566effbc56578d6801"
-dependencies = [
- "generic-array 0.14.6",
-]
-
-[[package]]
-name = "cipher"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1873270f8f7942c191139cb8a40fd228da6c3fd2fc376d7e92d47aa14aeb59e"
-dependencies = [
- "crypto-common",
- "inout",
 ]
 
 [[package]]
@@ -1303,7 +1219,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -1385,12 +1301,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cobs"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67ba02a97a2bd10f4b59b25c7973101c79642302776489e030cd13cdab09ed15"
-
-[[package]]
 name = "cocoa"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1436,11 +1346,6 @@ name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
-
-[[package]]
-name = "color_quant"
-version = "1.1.0"
-source = "git+https://github.com/Interstellar-Network/color_quant.git?branch=sgx-nostd-compat#4bf3c4bf4f307891bf53145c3165016d38200fde"
 
 [[package]]
 name = "combine"
@@ -1806,18 +1711,8 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a01d95850c592940db9b8194bc39f4bc0e89dee5c4265e4b1807c34a9aba453c"
 dependencies = [
- "darling_core 0.13.4",
- "darling_macro 0.13.4",
-]
-
-[[package]]
-name = "darling"
-version = "0.14.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0dd3cd20dc6b5a876612a6e5accfe7f3dd883db6d07acfbf14c128f61550dfa"
-dependencies = [
- "darling_core 0.14.2",
- "darling_macro 0.14.2",
+ "darling_core",
+ "darling_macro",
 ]
 
 [[package]]
@@ -1835,37 +1730,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "darling_core"
-version = "0.14.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a784d2ccaf7c98501746bf0be29b2022ba41fd62a2e622af997a03e9f972859f"
-dependencies = [
- "fnv",
- "ident_case",
- "proc-macro2",
- "quote",
- "strsim",
- "syn",
-]
-
-[[package]]
 name = "darling_macro"
 version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c972679f83bdf9c42bd905396b6c3588a843a17f0f16dfcfa3e2c5d57441835"
 dependencies = [
- "darling_core 0.13.4",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "darling_macro"
-version = "0.14.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7618812407e9402654622dd402b0a89dff9ba93badd6540781526117b92aab7e"
-dependencies = [
- "darling_core 0.14.2",
+ "darling_core",
  "quote",
  "syn",
 ]
@@ -1986,12 +1856,6 @@ name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
-
-[[package]]
-name = "doc-comment"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 
 [[package]]
 name = "downcast-rs"
@@ -2158,11 +2022,6 @@ dependencies = [
 
 [[package]]
 name = "environmental"
-version = "1.1.3"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-
-[[package]]
-name = "environmental"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e48c92028aaa870e83d51c64e5d4e0b6981b360c522198c23959f219a4e1b15b"
@@ -2232,20 +2091,6 @@ name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
-
-[[package]]
-name = "fancy-garbling"
-version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
-dependencies = [
- "base_conversion",
- "itertools",
- "ocelot",
- "rand 0.8.5",
- "scuttlebutt",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "fastrand"
@@ -2368,7 +2213,7 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-runtime-interface",
  "sp-std",
@@ -2385,7 +2230,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-tracing",
@@ -2436,7 +2281,7 @@ dependencies = [
  "sp-core",
  "sp-core-hashing-proc-macro",
  "sp-inherents",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-staking",
  "sp-state-machine",
@@ -2493,7 +2338,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-version",
@@ -2700,16 +2545,6 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "gif"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80792593675e051cf94a4b111980da2ba60d4a83e43e0048c5693baab3977045"
-dependencies = [
- "color_quant 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "weezl",
 ]
 
 [[package]]
@@ -2932,7 +2767,7 @@ version = "7.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f19b9f54f7c7f55e31401bb647626ce0cf0f67b0004982ce815b3ee72a02aa8"
 dependencies = [
- "base64 0.13.1",
+ "base64",
  "byteorder",
  "crossbeam-channel",
  "flate2",
@@ -3049,37 +2884,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-grpc-client"
-version = "0.3.0"
-source = "git+https://github.com/Interstellar-Network/rs-common.git?branch=interstellar-M5#6d23263f5ba9582eb39f7d76d1c3b3f3f8e01742"
-dependencies = [
- "base64 0.21.0",
- "bytes 1.3.0",
- "hex",
- "http_req",
- "log",
- "parity-scale-codec",
- "prost 0.11.6",
- "serde",
- "serde_json",
- "snafu",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
- "sp-runtime",
-]
-
-[[package]]
-name = "http_req"
-version = "0.8.1"
-source = "git+https://github.com/integritee-network/http_req?branch=master#3723e88235f2b29bc1a31835853b072ffd0455fd"
-dependencies = [
- "log",
- "rustls",
- "unicase",
- "webpki 0.21.4",
- "webpki-roots",
-]
-
-[[package]]
 name = "httparse"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3163,16 +2967,16 @@ name = "ias-verify"
 version = "0.1.4"
 source = "git+https://github.com/integritee-network/pallets.git?branch=master#a820beded0935e4612b1a54ff3cff26472dd045d"
 dependencies = [
- "base64 0.13.1",
+ "base64",
  "chrono",
  "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde_json",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-std",
- "webpki 0.21.0",
+ "webpki",
 ]
 
 [[package]]
@@ -3199,42 +3003,11 @@ checksum = "69b7ea949b537b0fd0af141fff8c77690f2ce96f4f41f042ccb6c69c6c965945"
 dependencies = [
  "bytemuck",
  "byteorder",
- "color_quant 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "color_quant",
  "jpeg-decoder",
  "num-rational",
  "num-traits",
  "png",
-]
-
-[[package]]
-name = "image"
-version = "0.24.5"
-source = "git+https://github.com/Interstellar-Network/image.git?branch=sgx-nostd-compat#c7e2362f75bfff380612d11fb9fcb3d70be3a89d"
-dependencies = [
- "bytemuck",
- "byteorder",
- "color_quant 1.1.0 (git+https://github.com/Interstellar-Network/color_quant.git?branch=sgx-nostd-compat)",
- "gif",
- "num-rational",
- "num-traits",
-]
-
-[[package]]
-name = "imageproc"
-version = "0.23.0"
-source = "git+https://github.com/Interstellar-Network/imageproc.git?branch=sgx-nostd-compat#fdc07c0cf6720fa9d3924828d7a9db307311ffc9"
-dependencies = [
- "approx",
- "image 0.24.5 (git+https://github.com/Interstellar-Network/image.git?branch=sgx-nostd-compat)",
- "itertools",
- "nalgebra 0.30.1",
- "num",
- "num-traits",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "rand_core 0.6.4",
- "rand_distr",
- "rusttype",
 ]
 
 [[package]]
@@ -3284,15 +3057,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a257582fdcde896fd96463bf2d40eefea0580021c0712a0e2b028b60b47a837a"
 
 [[package]]
-name = "inout"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0c10553d664a4d0bcff9f4215d0aac67a639cc68ef660840afe309b807bc9f5"
-dependencies = [
- "generic-array 0.14.6",
-]
-
-[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3311,53 +3075,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "276ec31bcb4a9ee45f58bec6f9ec700ae4cf4f4f8f2fa7e06cb406bd5ffdd770"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "integritee-cli"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "base58",
- "blake2-rfc",
- "chrono",
- "clap 3.2.23",
- "env_logger 0.9.3",
- "frame-system",
- "hdrhistogram",
- "hex",
- "integritee-node-runtime",
- "ita-stf",
- "itc-rpc-client",
- "itp-node-api",
- "itp-rpc",
- "itp-sgx-crypto",
- "itp-stf-primitives",
- "itp-time-utils",
- "itp-types",
- "itp-utils",
- "log",
- "pallet-balances",
- "pallet-mobile-registry",
- "pallet-ocw-circuits",
- "pallet-ocw-garble",
- "pallet-tx-validation",
- "parity-scale-codec",
- "primitive-types",
- "rand 0.8.5",
- "rayon",
- "sc-keystore",
- "serde",
- "serde_json",
- "sgx_crypto_helper",
- "sp-application-crypto",
- "sp-core",
- "sp-keyring",
- "sp-runtime",
- "substrate-api-client",
- "substrate-client-keystore",
- "teerex-primitives",
- "ws",
 ]
 
 [[package]]
@@ -3405,6 +3122,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "interstellar-integritee-cli"
+version = "0.1.0"
+dependencies = [
+ "base58",
+ "blake2-rfc",
+ "chrono",
+ "clap 3.2.23",
+ "env_logger 0.9.3",
+ "hdrhistogram",
+ "hex",
+ "integritee-node-runtime",
+ "itp-node-api",
+ "itp-stf-primitives",
+ "itp-types",
+ "log",
+ "parity-scale-codec",
+ "primitive-types",
+ "rand 0.8.5",
+ "rayon",
+ "serde",
+ "serde-big-array",
+ "serde_derive",
+ "serde_json",
+ "sgx_types",
+ "sp-application-crypto",
+ "sp-core",
+ "substrate-api-client",
+ "teerex-primitives",
+ "ws",
+]
+
+[[package]]
 name = "io-lifetimes"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3436,7 +3185,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9d131b408b4caafe1e7c00d410a09ad3eb7e3ab68690cf668e86904b2176b4"
 dependencies = [
  "async-trait",
- "base64 0.13.1",
+ "base64",
  "bytes 1.3.0",
  "futures",
  "http",
@@ -3473,19 +3222,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipfs-client-http-req"
-version = "0.2.0"
-source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=initial#777af95f43eb263411d830f96f0cb5024f94ce80"
-dependencies = [
- "http-grpc-client",
- "log",
- "serde",
- "serde_json",
- "serde_with",
- "snafu",
-]
-
-[[package]]
 name = "is-terminal"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3495,103 +3231,6 @@ dependencies = [
  "io-lifetimes 1.0.4",
  "rustix 0.36.7",
  "windows-sys 0.42.0",
-]
-
-[[package]]
-name = "ita-sgx-runtime"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "itp-sgx-runtime-primitives",
- "log",
- "pallet-aura",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-mobile-registry",
- "pallet-ocw-circuits",
- "pallet-ocw-garble",
- "pallet-parentchain",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-tx-registry",
- "pallet-tx-validation",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
-]
-
-[[package]]
-name = "ita-stf"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "derive_more",
- "frame-support",
- "frame-system",
- "integritee-node-runtime",
- "ita-sgx-runtime",
- "itp-hashing",
- "itp-sgx-externalities",
- "itp-stf-interface",
- "itp-stf-primitives",
- "itp-storage",
- "itp-types",
- "itp-utils",
- "log",
- "pallet-balances",
- "pallet-mobile-registry",
- "pallet-ocw-circuits",
- "pallet-ocw-garble",
- "pallet-parentchain",
- "pallet-sudo",
- "pallet-tx-registry",
- "pallet-tx-validation",
- "parity-scale-codec",
- "rlp",
- "sha3",
- "sp-application-crypto",
- "sp-core",
- "sp-io 7.0.0 (git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5)",
- "sp-runtime",
-]
-
-[[package]]
-name = "itc-rpc-client"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "itp-rpc",
- "itp-types",
- "itp-utils",
- "log",
- "openssl",
- "parity-scale-codec",
- "parking_lot",
- "serde_derive",
- "serde_json",
- "sgx_crypto_helper",
- "substrate-api-client",
- "thiserror",
- "url",
- "ws",
 ]
 
 [[package]]
@@ -3612,7 +3251,7 @@ checksum = "fad582f4b9e86b6caa621cabeb0963332d92eea04729ab12892c2533951e6440"
 [[package]]
 name = "itp-api-client-extensions"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "itp-types",
  "parity-scale-codec",
@@ -3626,24 +3265,16 @@ dependencies = [
 [[package]]
 name = "itp-api-client-types"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "sp-core",
  "substrate-api-client",
 ]
 
 [[package]]
-name = "itp-hashing"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "sp-core",
-]
-
-[[package]]
 name = "itp-node-api"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "itp-api-client-extensions",
  "itp-api-client-types",
@@ -3655,7 +3286,7 @@ dependencies = [
 [[package]]
 name = "itp-node-api-factory"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "itp-api-client-types",
  "sp-core",
@@ -3665,7 +3296,7 @@ dependencies = [
 [[package]]
 name = "itp-node-api-metadata"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "derive_more",
  "parity-scale-codec",
@@ -3676,71 +3307,16 @@ dependencies = [
 [[package]]
 name = "itp-node-api-metadata-provider"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "itp-node-api-metadata",
  "thiserror",
 ]
 
 [[package]]
-name = "itp-rpc"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "itp-types",
- "parity-scale-codec",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "itp-settings"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-
-[[package]]
-name = "itp-sgx-crypto"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "aes 0.6.0",
- "derive_more",
- "itp-settings",
- "itp-sgx-io",
- "log",
- "ofb",
- "parity-scale-codec",
- "serde",
- "serde_json",
- "sgx_crypto_helper",
- "sgx_types 1.1.6",
- "sp-core",
-]
-
-[[package]]
-name = "itp-sgx-externalities"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "derive_more",
- "environmental 1.1.3",
- "itp-hashing",
- "log",
- "parity-scale-codec",
- "postcard 0.7.3",
- "serde",
- "sp-core",
-]
-
-[[package]]
-name = "itp-sgx-io"
-version = "0.8.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-
-[[package]]
 name = "itp-sgx-runtime-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "frame-system",
  "pallet-balances",
@@ -3749,50 +3325,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "itp-stf-interface"
-version = "0.8.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "itp-types",
-]
-
-[[package]]
 name = "itp-stf-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
 ]
-
-[[package]]
-name = "itp-storage"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "derive_more",
- "frame-metadata 15.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "frame-support",
- "hash-db",
- "itp-types",
- "parity-scale-codec",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "sp-trie",
- "thiserror",
-]
-
-[[package]]
-name = "itp-time-utils"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
 
 [[package]]
 name = "itp-types"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
+source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#373bcd4b61896429a5d133cafbabbabc038e43e2"
 dependencies = [
  "chrono",
  "frame-system",
@@ -3805,18 +3350,6 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "itp-utils"
-version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "frame-support",
- "hex",
- "parity-scale-codec",
- "sp-core",
- "thiserror",
 ]
 
 [[package]]
@@ -3929,23 +3462,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
-name = "lib-garble-rs"
-version = "0.2.0"
-source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=initial#777af95f43eb263411d830f96f0cb5024f94ce80"
-dependencies = [
- "bytes 1.3.0",
- "fancy-garbling",
- "image 0.24.5 (git+https://github.com/Interstellar-Network/image.git?branch=sgx-nostd-compat)",
- "imageproc",
- "num_enum",
- "postcard 1.0.2",
- "prost 0.11.3",
- "rusttype",
- "serde",
- "snafu",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3974,7 +3490,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95b09eff1b35ed3b33b877ced3a691fc7a481919c7e29c53c906226fcf55e2a1"
 dependencies = [
  "arrayref",
- "base64 0.13.1",
+ "base64",
  "digest 0.9.0",
  "hmac-drbg",
  "libsecp256k1-core",
@@ -4030,7 +3546,7 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6c601a85f5ecd1aba625247bca0031585fb1c446461b142878a16f8245ddeb8"
 dependencies = [
- "nalgebra 0.27.1",
+ "nalgebra",
  "statrs",
 ]
 
@@ -4361,21 +3877,7 @@ dependencies = [
  "num-traits",
  "rand 0.8.5",
  "rand_distr",
- "simba 0.5.1",
- "typenum 1.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "nalgebra"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fb2d0de08694bed883320212c18ee3008576bfe8c306f4c3c4a58b4876998be"
-dependencies = [
- "approx",
- "num-complex",
- "num-rational",
- "num-traits",
- "simba 0.7.3",
+ "simba",
  "typenum 1.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -4446,7 +3948,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0df7ac00c4672f9d5aece54ee3347520b7e20f158656c7db2e6de01902eb7a6c"
 dependencies = [
- "darling 0.13.4",
+ "darling",
  "proc-macro-crate",
  "proc-macro2",
  "quote",
@@ -4506,20 +4008,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43db66d1170d347f9a065114077f7dccb00c1b9478c89384490a3425279a4606"
-dependencies = [
- "num-bigint",
- "num-complex",
- "num-integer",
- "num-iter",
- "num-rational",
- "num-traits",
-]
-
-[[package]]
 name = "num-bigint"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4556,17 +4044,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "225d3389fb3509a24c93f5c29eb6bde2586b98d9f016636dff58d7c6f7569cd9"
 dependencies = [
  "autocfg",
- "num-traits",
-]
-
-[[package]]
-name = "num-iter"
-version = "0.1.43"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d03e6c028c5dc5cac6e2dec0efda81fc887605bb3d884578bb6d6bf7514e252"
-dependencies = [
- "autocfg",
- "num-integer",
  "num-traits",
 ]
 
@@ -4664,25 +4141,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ocelot"
-version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
-dependencies = [
- "libc",
- "rand 0.8.5",
- "scuttlebutt",
-]
-
-[[package]]
-name = "ofb"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5e609fc8b72da3dabd56427be9489d8a9f4bd2e4dc41660dd033c3c8e90b93c"
-dependencies = [
- "cipher 0.2.5",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4753,20 +4211,11 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
 name = "owned_ttf_parser"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05e6affeb1632d6ff6a23d2cd40ffed138e82f1532571a26f527c8a284bb2fbb"
-dependencies = [
- "ttf-parser 0.15.2",
-]
-
-[[package]]
-name = "owned_ttf_parser"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a5f3c7ca08b6879e7965fb25e24d1f5eeb32ea73f9ad99b3854778a38c57e93"
 dependencies = [
- "ttf-parser 0.18.1",
+ "ttf-parser",
 ]
 
 [[package]]
@@ -4828,7 +4277,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -4849,24 +4298,10 @@ dependencies = [
  "sp-application-crypto",
  "sp-core",
  "sp-finality-grandpa",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-mobile-registry"
-version = "4.0.0-dev"
-source = "git+https://github.com/Interstellar-Network/pallets?branch=interstellar-M5#3791ce1dfab14ee15c0cb80e81d75c7f63495f74"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
  "sp-std",
 ]
 
@@ -4881,75 +4316,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-ocw-circuits"
-version = "4.0.0-dev"
-source = "git+https://github.com/Interstellar-Network/pallets?branch=interstellar-M5#3791ce1dfab14ee15c0cb80e81d75c7f63495f74"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "http-grpc-client",
- "log",
- "parity-scale-codec",
- "prost 0.11.6",
- "prost-types",
- "scale-info",
- "serde",
- "serde_json",
- "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
- "sp-keystore",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-ocw-garble"
-version = "4.0.0-dev"
-source = "git+https://github.com/Interstellar-Network/pallets?branch=interstellar-M5#3791ce1dfab14ee15c0cb80e81d75c7f63495f74"
-dependencies = [
- "bytes 1.3.0",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "http-grpc-client",
- "ipfs-client-http-req",
- "lib-garble-rs",
- "log",
- "pallet-timestamp",
- "pallet-tx-validation",
- "parity-scale-codec",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "scale-info",
- "serde",
- "serde_json",
- "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
- "sp-keystore",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-parentchain"
-version = "0.9.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=master#a820beded0935e4612b1a54ff3cff26472dd045d"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -4964,7 +4331,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -4979,7 +4346,7 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5009,7 +4376,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-weights",
@@ -5028,7 +4395,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-session",
  "sp-staking",
@@ -5051,7 +4418,7 @@ dependencies = [
  "serde",
  "sidechain-primitives",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "teerex-primitives",
@@ -5066,7 +4433,7 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5083,7 +4450,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-fixed",
@@ -5104,7 +4471,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "teerex-primitives",
@@ -5122,7 +4489,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-inherents",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-timestamp",
@@ -5139,7 +4506,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5174,34 +4541,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-tx-registry"
-version = "4.0.0-dev"
-source = "git+https://github.com/Interstellar-Network/pallets?branch=interstellar-M5#3791ce1dfab14ee15c0cb80e81d75c7f63495f74"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-tx-validation"
-version = "4.0.0-dev"
-source = "git+https://github.com/Interstellar-Network/pallets?branch=interstellar-M5#3791ce1dfab14ee15c0cb80e81d75c7f63495f74"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-utility"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
@@ -5212,7 +4551,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5375,32 +4714,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "postcard"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a25c0b0ae06fcffe600ad392aabfa535696c8973f2253d9ac83171924c58a858"
-dependencies = [
- "postcard-cobs",
- "serde",
-]
-
-[[package]]
-name = "postcard"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c2b180dc0bade59f03fd005cb967d3f1e5f69b13922dad0cd6e047cb8af2363"
-dependencies = [
- "cobs",
- "serde",
-]
-
-[[package]]
-name = "postcard-cobs"
-version = "0.1.5-pre"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c68cb38ed13fd7bc9dd5db8f165b7c8d9c1a315104083a2b10f11354c2af97f"
-
-[[package]]
 name = "pp-rs"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5478,60 +4791,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74605f360ce573babfe43964cbe520294dcb081afbf8c108fc6e23036b4da2df"
 
 [[package]]
-name = "prost"
-version = "0.11.3"
-source = "git+https://github.com/tokio-rs/prost.git?rev=a7aac766e362d87de5180774c124829e198f2b4c#a7aac766e362d87de5180774c124829e198f2b4c"
-dependencies = [
- "bytes 1.3.0",
- "prost-derive 0.11.2",
-]
-
-[[package]]
-name = "prost"
-version = "0.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21dc42e00223fc37204bd4aa177e69420c604ca4a183209a8f9de30c6d934698"
-dependencies = [
- "bytes 1.3.0",
- "prost-derive 0.11.6",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.11.2"
-source = "git+https://github.com/tokio-rs/prost.git?rev=a7aac766e362d87de5180774c124829e198f2b4c#a7aac766e362d87de5180774c124829e198f2b4c"
-dependencies = [
- "anyhow",
- "itertools",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bda8c0881ea9f722eb9629376db3d0b903b462477c1aafcb0566610ac28ac5d"
-dependencies = [
- "anyhow",
- "itertools",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "prost-types"
-version = "0.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5e0526209433e96d83d750dd81a99118edbc55739e7e61a46764fd2ad537788"
-dependencies = [
- "bytes 1.3.0",
- "prost 0.11.6",
-]
-
-[[package]]
 name = "psm"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5605,21 +4864,6 @@ dependencies = [
  "ppv-lite86",
  "rand_core 0.6.4",
 ]
-
-[[package]]
-name = "rand_core"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a6fdeb83b075e8266dcc8762c22776f6877a63111121f5f8c7411e5be7eed4b"
-dependencies = [
- "rand_core 0.4.2",
-]
-
-[[package]]
-name = "rand_core"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c33a3c44ca05fa6f1807d8e6743f3824e8509beca625669633be0acbdf509dc"
 
 [[package]]
 name = "rand_core"
@@ -5717,15 +4961,6 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
  "num_cpus",
-]
-
-[[package]]
-name = "rdrand"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5014f842b5515f60c15d3bca398477951f785883f73e7f9bc8a9d9c9bb6821c7"
-dependencies = [
- "rand_core 0.4.2",
 ]
 
 [[package]]
@@ -5827,7 +5062,7 @@ dependencies = [
  "common",
  "fs_extra",
  "glob",
- "image 0.24.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image",
  "jni",
  "jni_fn",
  "log",
@@ -5878,22 +5113,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "rlp"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb919243f34364b6bd2fc10ef797edbfa75f33c252e7998527479c6d6b47e1ec"
-dependencies = [
- "bytes 1.3.0",
- "rustc-hex",
-]
-
-[[package]]
 name = "ron"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "300a51053b1cb55c80b7a9fde4120726ddf25ca241a1cbb926626f62fb136bff"
 dependencies = [
- "base64 0.13.1",
+ "base64",
  "bitflags",
  "serde",
 ]
@@ -5963,30 +5188,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustls"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35edb675feee39aec9c99fa5ff985081995a06d594114ae14cbe797ad7b7a6d7"
-dependencies = [
- "base64 0.13.1",
- "log",
- "ring 0.16.20",
- "sct",
- "webpki 0.21.4",
-]
-
-[[package]]
-name = "rusttype"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ff8374aa04134254b7995b63ad3dc41c7f7236f69528b28553da7d72efaa967"
-dependencies = [
- "ab_glyph_rasterizer",
- "libm",
- "owned_ttf_parser 0.15.2",
-]
-
-[[package]]
 name = "rustversion"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6014,21 +5215,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "sc-keystore"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
-dependencies = [
- "array-bytes",
- "async-trait",
- "parking_lot",
- "serde_json",
- "sp-application-crypto",
- "sp-core",
- "sp-keystore",
- "thiserror",
 ]
 
 [[package]]
@@ -6086,29 +5272,6 @@ name = "scratch"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ddccb15bcce173023b3fedd9436f882a0739b8dfb45e4f6b6002bee5929f61b2"
-
-[[package]]
-name = "sct"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
-dependencies = [
- "ring 0.16.20",
- "untrusted",
-]
-
-[[package]]
-name = "scuttlebutt"
-version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
-dependencies = [
- "aes 0.8.2",
- "auto_ops",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "rand_core 0.6.4",
- "serde",
-]
 
 [[package]]
 name = "sec1"
@@ -6195,12 +5358,11 @@ dependencies = [
 
 [[package]]
 name = "serde-big-array"
-version = "0.1.5"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b926cfbabfe8011609dda0350cb24d884955d294909ac71c0db7027366c77e3e"
+checksum = "3323f09a748af288c3dc2474ea6803ee81f118321775bffa3ac8f7e65c5e90e7"
 dependencies = [
  "serde",
- "serde_derive",
 ]
 
 [[package]]
@@ -6238,33 +5400,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_with"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30d904179146de381af4c93d3af6ca4984b3152db687dacb9c3c35e86f39809c"
-dependencies = [
- "base64 0.13.1",
- "chrono",
- "hex",
- "serde",
- "serde_json",
- "serde_with_macros",
- "time 0.3.17",
-]
-
-[[package]]
-name = "serde_with_macros"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1966009f3c05f095697c537312f5415d1e3ed31ce0a56942bac4c771c5c335e"
-dependencies = [
- "darling 0.14.2",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "serial_test"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6290,39 +5425,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "sgx_crypto_helper"
-version = "1.1.6"
-source = "git+https://github.com/apache/teaclave-sgx-sdk.git?branch=master#23ab3e05623ab9a9417a9c2908facf7e5a8197ac"
-dependencies = [
- "itertools",
- "libc",
- "serde",
- "serde-big-array",
- "serde_derive",
- "sgx_types 1.1.3",
- "sgx_ucrypto",
-]
-
-[[package]]
 name = "sgx_types"
 version = "1.1.3"
 source = "git+https://github.com/apache/teaclave-sgx-sdk.git?rev=v1.1.3#a6a172e652b4db4eaa17e4faa078fda8922abdd0"
-
-[[package]]
-name = "sgx_types"
-version = "1.1.6"
-source = "git+https://github.com/apache/teaclave-sgx-sdk.git?branch=master#23ab3e05623ab9a9417a9c2908facf7e5a8197ac"
-
-[[package]]
-name = "sgx_ucrypto"
-version = "1.1.3"
-source = "git+https://github.com/apache/teaclave-sgx-sdk.git?rev=v1.1.3#a6a172e652b4db4eaa17e4faa078fda8922abdd0"
-dependencies = [
- "libc",
- "rand_core 0.3.1",
- "rdrand",
- "sgx_types 1.1.3",
-]
 
 [[package]]
 name = "sha-1"
@@ -6400,7 +5505,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -6420,18 +5525,6 @@ name = "simba"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e82063457853d00243beda9952e910b82593e4b07ae9f721b9278a99a0d3d5c"
-dependencies = [
- "approx",
- "num-complex",
- "num-traits",
- "paste",
-]
-
-[[package]]
-name = "simba"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f3fd720c48c53cace224ae62bef1bbff363a70c68c4802a78b5cc6159618176"
 dependencies = [
  "approx",
  "num-complex",
@@ -6464,28 +5557,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "snafu"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb0656e7e3ffb70f6c39b3c2a86332bb74aa3c679da781642590f3c1118c5045"
-dependencies = [
- "doc-comment",
- "snafu-derive",
-]
-
-[[package]]
-name = "snafu-derive"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "475b3bbe5245c26f2d8a6f62d67c1f30eb9fffeccee721c45d162c3ebbdf81b2"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -6537,7 +5608,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-std",
 ]
 
@@ -6716,7 +5787,7 @@ name = "sp-externalities"
 version = "0.13.0"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
 dependencies = [
- "environmental 1.1.4",
+ "environmental",
  "parity-scale-codec",
  "sp-std",
  "sp-storage",
@@ -6757,28 +5828,6 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "7.0.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#cc0615731c87ca36b1999cdfabbe2d18e7cc11db"
-dependencies = [
- "environmental 1.1.3",
- "futures",
- "hash-db",
- "itp-sgx-externalities",
- "libsecp256k1",
- "log",
- "parity-scale-codec",
- "parking_lot",
- "sp-core",
- "sp-runtime-interface",
- "sp-std",
- "sp-tracing",
- "sp-wasm-interface",
- "tracing",
- "tracing-core",
-]
-
-[[package]]
-name = "sp-io"
-version = "7.0.0"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
 dependencies = [
  "bytes 1.3.0",
@@ -6804,17 +5853,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp-keyring"
-version = "7.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
-dependencies = [
- "lazy_static",
- "sp-core",
- "sp-runtime",
- "strum",
-]
-
-[[package]]
 name = "sp-keystore"
 version = "0.13.0"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36#cb4f2491b00af7d7817f3a54209c26b20faa1f51"
@@ -6825,7 +5863,6 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot",
  "schnorrkel",
- "serde",
  "sp-core",
  "sp-externalities",
  "thiserror",
@@ -6887,7 +5924,7 @@ dependencies = [
  "sp-application-crypto",
  "sp-arithmetic",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-std",
  "sp-weights",
 ]
@@ -7166,7 +6203,7 @@ checksum = "05bdbb8e4e78216a85785a85d3ec3183144f98d0097b9281802c019bb07a6f05"
 dependencies = [
  "approx",
  "lazy_static",
- "nalgebra 0.27.1",
+ "nalgebra",
  "num-traits",
  "rand 0.8.5",
 ]
@@ -7250,28 +6287,12 @@ dependencies = [
  "common",
  "env_logger 0.10.0",
  "futures-util",
- "integritee-cli",
+ "interstellar-integritee-cli",
  "ipfs-api-backend-hyper",
  "jni",
  "log",
  "serial_test",
  "tokio",
-]
-
-[[package]]
-name = "substrate-client-keystore"
-version = "0.7.0"
-source = "git+https://github.com/scs/substrate-api-client.git?branch=polkadot-v0.9.36#1446f5ba4082ba6df3bc7fd6165cca4c2f01af3e"
-dependencies = [
- "async-trait",
- "hex",
- "parking_lot",
- "sc-keystore",
- "serde_json",
- "sp-application-crypto",
- "sp-core",
- "sp-keyring",
- "sp-keystore",
 ]
 
 [[package]]
@@ -7382,7 +6403,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.36)",
+ "sp-io",
  "sp-std",
 ]
 
@@ -7454,22 +6475,6 @@ dependencies = [
  "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi 0.3.9",
 ]
-
-[[package]]
-name = "time"
-version = "0.3.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
-dependencies = [
- "serde",
- "time-core",
-]
-
-[[package]]
-name = "time-core"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e153e1f1acaef8acc537e68b44906d2db6436e2b35ac2c6b42640fff91f00fd"
 
 [[package]]
 name = "tiny-bip39"
@@ -7689,12 +6694,6 @@ name = "tt-call"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4f195fd851901624eee5a58c4bb2b4f06399148fcd0ed336e6f1cb60a9881df"
-
-[[package]]
-name = "ttf-parser"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b3e06c9b9d80ed6b745c7159c40b311ad2916abb34a49e9be2653b90db0d8dd"
 
 [[package]]
 name = "ttf-parser"
@@ -8182,31 +7181,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "webpki"
-version = "0.21.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8e38c0608262c46d4a56202ebabdeb094cef7e560ca7a226c6bf055188aa4ea"
-dependencies = [
- "ring 0.16.20",
- "untrusted",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "0.21.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aabe153544e473b775453675851ecc86863d2a81d786d741f6b76778f2a48940"
-dependencies = [
- "webpki 0.21.4",
-]
-
-[[package]]
-name = "weezl"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9193164d4de03a926d909d3bc7c30543cecb35400c02114792c2cae20d5e2dbb"
-
-[[package]]
 name = "wgpu"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8587,3 +7561,7 @@ dependencies = [
  "libc",
  "pkg-config",
 ]
+
+[[patch.unused]]
+name = "itc-rpc-client"
+version = "0.9.0"

@@ -13,10 +13,7 @@
 // limitations under the License.
 
 use bevy::prelude::*;
-use bevy::render::camera::{
-    CameraProjection, DepthCalculation, OrthographicCameraBundle, OrthographicProjection,
-    ScalingMode, WindowOrigin,
-};
+use bevy::render::camera::{CameraProjection, OrthographicProjection, ScalingMode, WindowOrigin};
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
 
@@ -28,25 +25,29 @@ use crate::TEXTURE_PIXEL_NB_BYTES;
 /// Init the Camera, with a 2D projection
 // NOTE: not sure how to have a "add_startup_system" depends on another, so this is called FROM setup_main, not via "add_startup_system"
 pub fn setup_camera(mut commands: Commands) {
-    // camera
-    let mut camera = OrthographicCameraBundle::new_2d();
-    // let proj = OrthographicProjection {
-    //     near: 0.0,
-    //     far: 1000.0,
-    //     window_origin: WindowOrigin::Center,
-    //     scaling_mode: ScalingMode::FixedVertical,
-    //     scale: scale,
-    //     depth_calculation: DepthCalculation::ZDifference,
-    //     ..Default::default()
-    // };
-    camera.orthographic_projection.scale = 1.0;
-    camera.orthographic_projection.scaling_mode = crate::CameraScalingMode;
+    // TODO TOREMOVE
+    // // camera
+    // let mut camera = OrthographicCameraBundle::new_2d();
+    // // let proj = OrthographicProjection {
+    // //     near: 0.0,
+    // //     far: 1000.0,
+    // //     window_origin: WindowOrigin::Center,
+    // //     scaling_mode: ScalingMode::FixedVertical,
+    // //     scale: scale,
+    // //     depth_calculation: DepthCalculation::ZDifference,
+    // //     ..Default::default()
+    // // };
+    // camera.orthographic_projection.scale = 1.0;
+    // camera.orthographic_projection.scaling_mode = crate::CameraScalingMode;
 
-    let camera2 = camera.camera.clone();
-    let global_transform = camera.global_transform.clone();
+    // let camera2 = camera.camera.clone();
+    // let global_transform = camera.global_transform.clone();
 
     // TODO? use proj.get_projection_matrix()?
-    commands.spawn_bundle(camera);
+    commands.spawn(Camera2dBundle {
+        // projection: OrthographicProjection {}
+        ..default()
+    });
 
     // FOR REFERENCE; useful to get the resolution from the camera
     // If needed in the future: add a resource with eg ResMut<MyCameraData> and pass around
@@ -89,6 +90,8 @@ pub fn setup_pinpad_textures(
         Vec2::new((atlas_width as f32) / 10., atlas_height as f32),
         10,
         1,
+        None,
+        None,
     ));
     // draw a sprite from the atlas
     for row in 0..rects_pinpad.nb_rows {
@@ -107,7 +110,7 @@ pub fn setup_pinpad_textures(
             let center_x = current_rect.center()[0];
             let center_y = current_rect.center()[1];
 
-            commands.spawn_bundle(SpriteSheetBundle {
+            commands.spawn(SpriteSheetBundle {
                 transform: Transform {
                     translation: Vec3::new(center_x, center_y, 1.0),
                     ..default()
@@ -128,7 +131,7 @@ pub fn setup_pinpad_textures(
             // circle_radius: max(width, height), that way it works even if change
             let circle_radius = (current_rect.width() / 2.0).max(current_rect.height() / 2.0);
 
-            commands.spawn_bundle(MaterialMesh2dBundle {
+            commands.spawn(MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::new(circle_radius).into()).into(),
                 material: materials_color.add(rects_pinpad.circle_color.into()),
                 transform: Transform::from_xyz(center_x, center_y, 0.0),
@@ -145,7 +148,7 @@ pub fn setup_message_texture(
     rect_message: Res<crate::RectMessage>,
 ) {
     // Texture message = foreground
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: images.add(uv_debug_texture(
             rect_message.circuit_dimension[0],
             rect_message.circuit_dimension[1],

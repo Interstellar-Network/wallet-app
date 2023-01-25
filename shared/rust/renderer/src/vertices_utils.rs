@@ -91,11 +91,11 @@ impl Rect {
             bevy::render::camera::ScalingMode::WindowSize => {
                 todo!("ScalingMode::WindowSize not yet supported")
             }
-            bevy::render::camera::ScalingMode::FixedVertical => {
+            bevy::render::camera::ScalingMode::FixedVertical(viewport_height_world) => {
                 left = left * (width / height);
                 right = right * (width / height);
             }
-            bevy::render::camera::ScalingMode::FixedHorizontal => {
+            bevy::render::camera::ScalingMode::FixedHorizontal(viewport_width_world) => {
                 top = top * (width / height);
                 bottom = bottom * (width / height);
             }

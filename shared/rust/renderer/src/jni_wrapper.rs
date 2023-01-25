@@ -23,7 +23,7 @@ use jni::objects::{JClass, JObject, JString, ReleaseMode};
 use jni::sys::{jbyteArray, jfloat, jfloatArray, jint, jlong, jstring};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
-use log::{debug, info, Level};
+use log::{debug, info, LevelFilter};
 use raw_window_handle::{AndroidNdkHandle, RawWindowHandle};
 
 // #[cfg(target_os = "android")]
@@ -76,7 +76,7 @@ fn init_surface(
     // only the first one called is taken into account
     android_logger::init_once(
         Config::default()
-            .with_min_level(Level::Info)
+            .with_max_level(LevelFilter::Info)
             .with_tag("interstellar")
             .with_filter(
                 FilterBuilder::new()

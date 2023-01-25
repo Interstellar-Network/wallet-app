@@ -7,9 +7,11 @@ members = [
     "circuit_evaluate",
     "common",
     "renderer",
+    "interstellar-integritee-cli",
     "substrate-client",
 ]
 
+# TODO re-add for bevy 0.9
 # NOTE: patch DOES NOT work except at the Workspace level??
 # [patch.crates-io]
 # bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
@@ -26,3 +28,8 @@ opt-level = 1
 # "Enable high optimizations for dependencies (incl. Bevy), but not for our code:"
 [profile.dev.package."*"]
 opt-level = 3
+
+################################################################################
+# local dev
+[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }

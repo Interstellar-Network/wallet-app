@@ -14,8 +14,6 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib", "lib"]
 
 [dependencies]
-integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-
 log = "0.4"
 # NOTE: this is a dep of "android_logger" so no point in putting it behind a "cfg"
 env_logger = "0.10"
@@ -29,6 +27,7 @@ bytemuck = "1.11.0"
 
 # local
 common = { path = "../common" }
+interstellar-integritee-cli = { path = "../interstellar-integritee-cli" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.12"

@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy::{asset::LoadState, prelude::*};
 use ndarray::Array2;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
@@ -56,9 +56,9 @@ mod winit_raw_handle_plugin;
 // #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
 mod jni_wrapper;
 
-/// IMPORTANT: if tou change it, adjust renderer/src/vertices_utils.rs else it will
+/// IMPORTANT: if you change it, adjust renderer/src/vertices_utils.rs else it will
 /// not position the message/pinpad correctly
-pub const CameraScalingMode: ScalingMode = ScalingMode::FixedVertical;
+pub const CameraScalingMode: ScalingMode = ScalingMode::FixedVertical(1.0);
 
 type EvaluateWrapperType = circuit_evaluate::cxx::UniquePtr<circuit_evaluate::ffi::EvaluateWrapper>;
 type TextureUpdateCallbackType =
@@ -66,18 +66,19 @@ type TextureUpdateCallbackType =
 
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct TextureUpdateCallbackMessage {
     callback: TextureUpdateCallbackType,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct TextureUpdateCallbackPinpad {
     callback: TextureUpdateCallbackType,
 }
 
 /// Declare the position/size of the message(usually at the top of the window, full width)
 /// used via "insert_resource"
+#[derive(Resource)]
 pub struct RectMessage {
     rect: vertices_utils::Rect,
     text_color: Color,
@@ -85,6 +86,7 @@ pub struct RectMessage {
     circuit_dimension: [u32; 2],
 }
 
+#[derive(Resource)]
 pub struct RectsPinpad {
     rects: Array2<vertices_utils::Rect>,
     nb_cols: usize,
@@ -96,10 +98,12 @@ pub struct RectsPinpad {
 
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
+#[derive(Resource)]
 pub struct CircuitMessage {
     wrapper: EvaluateWrapperType,
 }
 
+#[derive(Resource)]
 pub struct CircuitPinpad {
     wrapper: EvaluateWrapperType,
 }

@@ -34,7 +34,7 @@ ndarray = "0.15.4"
 # 10 | compile_error!("Please select a feature to build for unix: `x11`, `wayland`");
 #
 # see also "target.'cfg(unix)'.dev-dependencies"
-bevy = { version = "0.9", default-features = false, features = [ "render" ]}
+bevy = { version = "0.9", default-features = false, features = [ "bevy_render", "bevy_asset" ]}
 log = "0.4"
 # NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
 # https://github.com/bevyengine/bevy/blob/920543c824735dc1df6f4a59e7036e653dd5a553/crates/bevy_render/Cargo.toml
