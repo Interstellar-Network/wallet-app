@@ -26,12 +26,16 @@ impl EvaluateWrapper {
     /// param: pgarbled_buffer can be a FULL, or a STRIPPED circuit
     /// typically in PROD we use STRIPPED ones, but for tests/dev we keep compat with FULL circuits
     /// [in which case] packmsg_buffer can be empty
-    // fn new_evaluate_wrapper(pgarbled_buffer: Vec<u8>, packmsg_buffer: Vec<u8>) -> EvaluateWrapper;
+    pub fn new(pgarbled_buffer: Vec<u8>) -> EvaluateWrapper {
+        todo!("EvaluateWrapper::new")
+    }
 
     /// PROD version
     /// inputs are randomized, outputs are externally given
     /// typically outputs points to some kind of "Texture data"
-    //fn EvaluateWithPackmsg(&mut self, outputs: &mut Vec<u8>);
+    pub fn EvaluateWithPackmsg(&mut self, outputs: &mut Vec<u8>) {
+        todo!("EvaluateWrapper::EvaluateWithPackmsg")
+    }
     /// TEST/DEV only
     /// PROD uses randomize inputs
     //fn EvaluateWithPackmsgWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
@@ -39,16 +43,16 @@ impl EvaluateWrapper {
     /// PROD is using the PACKMSG version
     //fn EvaluateWithInputs(&self, inputs: Vec<u8>) -> Vec<u8>;
 
-    fn GetNbInputs(&self) -> usize {
+    pub fn GetNbInputs(&self) -> usize {
         todo!("GetNbInputs");
     }
-    fn GetNbOutputs(&self) -> usize {
+    pub fn GetNbOutputs(&self) -> usize {
         todo!("GetNbOutputs");
     }
-    fn GetWidth(&self) -> usize {
+    pub fn GetWidth(&self) -> usize {
         todo!("GetWidth");
     }
-    fn GetHeight(&self) -> usize {
+    pub fn GetHeight(&self) -> usize {
         todo!("GetHeight");
     }
 }

@@ -14,13 +14,13 @@
 
 pub fn update_texture_data_message(data: &mut Vec<u8>, circuit: &mut crate::EvaluateWrapperType) {
     log::debug!("update_texture_data_message BEGIN");
-    circuit.as_mut().unwrap().EvaluateWithPackmsg(data);
+    circuit.EvaluateWithPackmsg(data);
     log::debug!("update_texture_data_message END");
 }
 
 pub fn update_texture_data_pinpad(data: &mut Vec<u8>, circuit: &mut crate::EvaluateWrapperType) {
     log::debug!("update_texture_data_pinpad BEGIN");
-    circuit.as_mut().unwrap().EvaluateWithPackmsg(data);
+    circuit.EvaluateWithPackmsg(data);
     log::debug!("update_texture_data_pinpad END");
 }
 

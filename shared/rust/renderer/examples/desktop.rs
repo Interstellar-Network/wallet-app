@@ -36,11 +36,17 @@ fn main() {
 
     let mut app = renderer::App::new();
 
-    app.insert_resource(WindowDescriptor {
-        width: 1080. / 2.,
-        height: 1920. / 2.,
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        window: WindowDescriptor {
+            title: "renderer demo".to_string(),
+            width: 1920. / 2.,
+            height: 1080. / 2.,
+            // TODO?
+            // present_mode: PresentMode::AutoVsync,
+            ..default()
+        },
         ..default()
-    });
+    }));
 
     // roughly match what we get from Android; this is just for consistency
     // cf test_convert_rect_floatArr_to_vec_rect
@@ -92,7 +98,7 @@ fn main() {
 
     // add "dev/debug only systems"
     // eg we DO NOT need movement in the apps, but is useful to dev/debug
-    app.add_system(bevy::input::system::exit_on_esc_system);
+    app.add_system(bevy::window::close_on_esc);
     // app.add_system(camera_movement);
     // app.add_system(light_movement);
 

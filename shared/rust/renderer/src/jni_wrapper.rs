@@ -24,7 +24,7 @@ use jni::sys::{jbyteArray, jfloat, jfloatArray, jint, jlong, jstring};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{debug, info, LevelFilter};
-use raw_window_handle::{AndroidNdkHandle, RawWindowHandle};
+use raw_window_handle::{AndroidNdkWindowHandle, RawWindowHandle};
 
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
@@ -43,7 +43,7 @@ extern "C" {
 
 pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle, u32, u32) {
     let a_native_window = unsafe { ANativeWindow_fromSurface(env, surface) };
-    let mut handle = AndroidNdkHandle::empty();
+    let mut handle = AndroidNdkWindowHandle::empty();
     handle.a_native_window = a_native_window as *mut c_void;
 
     let width = unsafe { ANativeWindow_getWidth(a_native_window) };

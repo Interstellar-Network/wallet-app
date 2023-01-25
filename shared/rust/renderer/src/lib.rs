@@ -60,7 +60,7 @@ mod jni_wrapper;
 /// not position the message/pinpad correctly
 pub const CameraScalingMode: ScalingMode = ScalingMode::FixedVertical(1.0);
 
-type EvaluateWrapperType = circuit_evaluate::cxx::UniquePtr<circuit_evaluate::ffi::EvaluateWrapper>;
+type EvaluateWrapperType = circuit_evaluate::EvaluateWrapper;
 type TextureUpdateCallbackType =
     Option<Box<dyn FnMut(&mut Vec<u8>, &mut EvaluateWrapperType) + Send + Sync>>;
 
@@ -178,9 +178,9 @@ pub fn init_app(
     ////////////////////////////////////////////////////////////////////////////
     /// circuits init, via crate ../circuit_evaluate
     let message_evaluate_wrapper =
-        circuit_evaluate::new_evaluate_wrapper(message_pgc_buf, message_packmsg_buf);
+        circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
     let pinpad_evaluate_wrapper =
-        circuit_evaluate::new_evaluate_wrapper(pinpad_pgc_buf, pinpad_packmsg_buf);
+        circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
     #[cfg(target_os = "android")]

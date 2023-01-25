@@ -88,6 +88,7 @@ impl Rect {
         // but the horizontal axis is [-1 / (16/9), 1 / (16/9)] == [-0.5625, 0.5625]
         match crate::CameraScalingMode {
             bevy::render::camera::ScalingMode::None => todo!("ScalingMode::None not yet supported"),
+            bevy::render::camera::ScalingMode::Auto { min_width, min_height } => todo!("ScalingMode::Auto not yet supported"),
             bevy::render::camera::ScalingMode::WindowSize => {
                 todo!("ScalingMode::WindowSize not yet supported")
             }
