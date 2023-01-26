@@ -29,11 +29,12 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
-################################################################################
-# local dev
 [patch."https://github.com/apache/teaclave-sgx-sdk.git"]
 # itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
 sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
-[patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
-lib-garble-rs = { path = "../../../lib-garble-rs/lib-garble-rs/" }
+################################################################################
+# local dev
+
+# [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
+# lib-garble-rs = { path = "../../../lib-garble-rs/lib-garble-rs/" }

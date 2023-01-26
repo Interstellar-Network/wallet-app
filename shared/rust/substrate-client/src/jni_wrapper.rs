@@ -24,7 +24,7 @@ use std::os::raw::c_void;
 
 use crate::{
     extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
-    extrinsic_register_mobile, get_api, get_latest_pending_display_stripped_circuits_package,
+    extrinsic_register_mobile, get_latest_pending_display_stripped_circuits_package, get_node_api,
 };
 
 use crate::loggers;
@@ -72,7 +72,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAn
         .expect("Couldn't get java string[tx_message]!")
         .into();
 
-    let api = get_api(&ws_url);
+    let api = get_node_api(&ws_url);
     let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, &tx_message);
     // TODO error handling: .unwrap()
 
@@ -83,7 +83,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAn
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."
-    output.into_inner()
+    output.into_raw()
 }
 
 fn convert_jbytearray_to_vec(env: JNIEnv, byte_arr: jbyteArray) -> Vec<u8> {
@@ -145,7 +145,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
 
     let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
 
-    let api = get_api(&ws_url);
+    let api = get_node_api(&ws_url);
     let tx_hash = extrinsic_register_mobile(&api, pub_key_vec);
     // TODO error handling: .unwrap()
 
@@ -156,7 +156,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."
-    output.into_inner()
+    output.into_raw()
 }
 
 /// Get circuits, OR throw if there is no circuit ready!
@@ -309,7 +309,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInp
 
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
-    let api = get_api(&ws_url);
+    let api = get_node_api(&ws_url);
     let tx_hash = extrinsic_check_input(&api, package.message_pgarbled_cid.to_vec(), inputs_vec);
     // TODO error handling: .unwrap()
 
@@ -320,7 +320,7 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInp
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."
-    output.into_inner()
+    output.into_raw()
 }
 
 // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
