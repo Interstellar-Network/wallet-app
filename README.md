@@ -2,7 +2,7 @@
 
 ## Dev Details
 
-NOTE: for now compiling on windows is not supported b/c of poor support of Rust cross-compiling wrt to Android NDK  
+NOTE: for now compiling on windows is not supported b/c of poor support of Rust cross-compiling wrt to Android NDK
 It can probably be fixed but setting up Windows as dev env is a pain; it requires at least: Perl, Python, Rust, C++ Dev Tools, etc
 
 Uses:
@@ -23,16 +23,35 @@ TODO cleanup/rewrite below
     eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
     with wsl_perl.bat: `wsl perl %*`
     CHECK: `perl -v`
-- `rustup toolchain install nightly`
-- `rustup target add armv7-linux-androideabi --toolchain nightly`
-- `rustup target add aarch64-linux-android --toolchain nightly`
-- `rustup target add x86_64-linux-android --toolchain nightly`
-- CHECK:
+- [FAIL for now] `rustup target add armv7-linux-androideabi`
+- `rustup target add aarch64-linux-android`
+- [FAIL for now] `rustup target add x86_64-linux-android`
+- CHECK if it cross-compiles directly(ie without gradle):
+  - NOTE: you can check for the correct env vars in [CI of other projects eg](https://github.com/Interstellar-Network/lib-garble-rs/blob/initial/.github/workflows/rust.yml#L88)
   - `cd shared/rust`
-  - `export NDK_ROOT=~/Android/Sdk/ndk/24.0.8215888`
-  - `CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang AR_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$CC_armv7_linux_androideabi cargo build --verbose --target=armv7-linux-androideabi` 
-  - TODO `cargo build --verbose --target=aarch64-linux-android`
-- [in Root=InterstellarWallet] .\gradlew cargoBuild --info
+  - `export NDK_ROOT=~/Android/Sdk/ndk/25.1.8937393`
+  -
+    ```bash
+    export CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang
+    export CXX_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang++
+    export AR_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang
+
+    export CC_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+    export CXX_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang++
+    export AR_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+
+    export CC_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang
+    export CXX_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang++
+    export AR_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang
+
+    export CMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake
+    export ANDROID_PLATFORM=21
+    ```
+  - `cargo build --target=aarch64-linux-android` and/or [FAIL for now]`cargo build --target=x86_64-linux-android`
+- [cd to Root of the repo] `.\gradlew cargoBuild --info`
 
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
 NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = Dual
@@ -41,8 +60,7 @@ NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = D
 
 cf https://kotlinlang.org/docs/multiplatform-mobile-integrate-in-existing-app.html#connect-the-framework-to-your-ios-project
 
-- `rustup toolchain install nightly`
-- `rustup target add aarch64-apple-ios x86_64-apple-ios --toolchain nightly`
+- `rustup target add aarch64-apple-ios x86_64-apple-ios`
 - Install Android Studio
 - Android Studio: open the project "wallet-app"; this is needed to download the SDK etc else iOs can not compile
   - NOTE: you will have to download eg the NDK using the SDK Manager, and anything else that is required until you can Build on this machine

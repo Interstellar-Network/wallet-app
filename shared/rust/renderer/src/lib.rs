@@ -44,13 +44,10 @@ const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
 pub use bevy::prelude::App;
 use setup::setup_camera;
 
-pub mod my_raw_window_handle;
 pub mod vertices_utils;
 
 mod setup;
 mod update_texture_utils;
-#[cfg(target_os = "android")]
-mod winit_raw_handle_plugin;
 
 // #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
 mod jni_wrapper;
@@ -105,24 +102,6 @@ pub struct CircuitMessage {
 #[derive(Resource)]
 pub struct CircuitPinpad {
     wrapper: EvaluateWrapperType,
-}
-
-/// Init the Window with winit
-/// Only needed for Android; this replaces "WinitPlugin"
-#[cfg(target_os = "android")]
-#[cfg(target_os = "android")]
-pub fn init_window(
-    app: &mut App,
-    physical_width: u32,
-    physical_height: u32,
-    raw_window_handle: my_raw_window_handle::MyRawWindowHandleWrapper,
-) {
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-        physical_width,
-        physical_height,
-        1.0,
-        raw_window_handle,
-    ));
 }
 
 /// param message_text_color: color of the segments on the message
@@ -229,6 +208,7 @@ pub fn init_app(
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
     app.add_plugin(bevy::render::RenderPlugin { ..default() });
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
+    #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::winit::WinitPlugin { ..default() });
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin { ..default() });

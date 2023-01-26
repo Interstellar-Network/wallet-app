@@ -8,8 +8,8 @@ buildscript {
     dependencies {
         // compose_version 1.1.1: kotlin-gradle-plugin:1.6.10
         // cf https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
-        classpath("com.android.tools.build:gradle:7.2.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+        classpath("com.android.tools.build:gradle:7.4.0")
     }
 }
 

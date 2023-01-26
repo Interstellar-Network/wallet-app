@@ -29,10 +29,7 @@ use raw_window_handle::{AndroidNdkWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{
-    init_app, my_raw_window_handle, update_texture_utils, vertices_utils::Rect, App,
-    TextureUpdateCallbackType,
-};
+use crate::{init_app, update_texture_utils, vertices_utils::Rect, App, TextureUpdateCallbackType};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -157,13 +154,13 @@ fn init_surface(
 
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
     // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
-    #[cfg(target_os = "android")]
-    crate::init_window(
-        &mut app,
-        width,
-        height,
-        my_raw_window_handle::MyRawWindowHandleWrapper::new(handle),
-    );
+    // #[cfg(target_os = "android")]
+    // crate::init_window(
+    //     &mut app,
+    //     width,
+    //     height,
+    //     my_raw_window_handle::MyRawWindowHandleWrapper::new(handle),
+    // );
 
     info!("init_app ok!");
 

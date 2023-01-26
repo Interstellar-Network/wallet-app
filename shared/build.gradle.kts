@@ -72,7 +72,7 @@ android {
     namespace = "gg.interstellar.wallet"
 
     // MUST match the version installed with SDK Manager
-    ndkVersion = "24.0.8215888"
+    ndkVersion = "25.1.8937393"
 
     flavorDimensions += listOf("abi")
     productFlavors {
@@ -359,7 +359,9 @@ abstract class CargoTask : DefaultTask () {
 }
 
 // https://github.com/scs/substrate-api-client only supports nightly, cf README
-val cargo_use_nightly = true
+// BUT we use a rust-toolchain.toml file so we MUST NOT set it
+// else: eg "toolchain 'nightly-x86_64-unknown-linux-gnu' is not installed"
+val cargo_use_nightly = false
 val cargo_project_dir = projectDir.absoluteFile.resolve("./rust")
 val cargo_features_android = "with-jni"
 tasks.register<CargoTask>("cargoBuildAndroidArm") {
