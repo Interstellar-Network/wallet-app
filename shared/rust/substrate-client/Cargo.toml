@@ -38,7 +38,7 @@ openssl = { version = '0.10', features = ["vendored"] }
 # TODO cleanup eg MAYBE we need sp-core NOT the full node-template-runtime
 # env_logger = "0.9.0"
 # node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-keyring = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
 # clap = { version = "2.33", features = ["yaml"] }
 # wabt = "0.10.0"
 
@@ -49,6 +49,11 @@ sp-core = { default-features = false, features = ["full_crypto"], git = "https:/
 common = { path = "../common" }
 # interstellar-integritee-cli = { path = "../interstellar-integritee-cli" }
 itc-rpc-client = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+
+# TEMP
+# else we hit: https://github.com/bytecodealliance/wasmtime/blob/v1.0.2/crates/runtime/src/traphandlers/unix.rs#L232
+# when building "cargo build --target=x86_64-linux-android"
+# wasmtime-runtime = "5.0.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.12"

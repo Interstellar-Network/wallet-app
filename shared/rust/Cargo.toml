@@ -33,6 +33,15 @@ opt-level = 3
 # itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
 sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
+[patch.crates-io]
+# SHOULD match https://github.com/paritytech/substrate/blob/master/primitives/wasm-interface/Cargo.toml
+# NOTE: we NEED to patch "wasmtime-runtime" but to avoid error like "note: perhaps two different versions of crate `wasmtime_environ` are being used?"
+# the easiest thing to do is patch the "main lib"
+# NOTE: for the PATCH the work, it MUST be a the correct version(= git tag)
+# wasmtime-runtime = { path = "../../../wasmtime/crates/runtime/" }
+# wasmtime-environ = { path = "../../../wasmtime/crates/environ/" }
+wasmtime = { path = "./deps/wasmtime/crates/wasmtime/" }
+
 ################################################################################
 # local dev
 

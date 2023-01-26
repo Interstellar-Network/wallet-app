@@ -1,3 +1,6 @@
 [submodule "shared/rust/deps/teaclave-sgx-sdk"]
 	path = shared/rust/deps/teaclave-sgx-sdk
 	url = https://github.com/apache/teaclave-sgx-sdk.git
+[submodule "shared/rust/deps/wasmtime"]
+	path = shared/rust/deps/wasmtime
+	url = https://github.com/Interstellar-Network/wasmtime.git
