@@ -44,9 +44,7 @@ var sprite_sampler: sampler;
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    // MUST multiply by 255 b/c circuit outputs are 0/1
-    // TODO is there a better texture format that can avoid the multiply?
-    var color = textureSample(sprite_texture, sprite_sampler, in.uv) * 255.0;
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv);
 // #ifdef COLORED
     // color = in.color * color;
 // #endif
@@ -56,7 +54,7 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
 # ifdef COLORED
     color = mix(BACKGROUND_COLOR, in.color, color.r);
 # else
-    color = mix(BACKGROUND_COLOR, vec4<f32>(255.0, 255.0, 255.0, 255.0), color.r);
+    color = mix(BACKGROUND_COLOR, vec4<f32>(1.0, 1.0, 1.0, 1.0), color.r);
 # endif
     return color;
 }

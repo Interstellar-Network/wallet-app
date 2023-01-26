@@ -77,7 +77,7 @@ fn main() {
     let rects_pinpad = generate_pinpad_rects();
 
     // TODO if NOT offline: use crate substrate-client to DL the circuits
-    if args.is_online {
+    let (display_message_buf, display_pinpad_buf) = if args.is_online {
         let display_stripped_circuits_package_buffers =
             get_latest_pending_display_stripped_circuits_package(
                 "/ip4/127.0.0.1/tcp/5001",
@@ -85,36 +85,28 @@ fn main() {
             )
             .expect("no circuit available");
 
-        renderer::init_app(
-            &mut app,
-            rect_message,
-            rects_pinpad,
-            3,
-            4,
-            bevy::render::color::Color::WHITE,
-            bevy::render::color::Color::WHITE,
-            bevy::render::color::Color::hex("0080FFFF").unwrap(),
-            bevy::render::color::Color::BLACK,
+        (
             display_stripped_circuits_package_buffers.message_pgarbled_buf,
             display_stripped_circuits_package_buffers.pinpad_pgarbled_buf,
-            true,
-        );
+        )
     } else {
-        renderer::init_app(
-            &mut app,
-            rect_message,
-            rects_pinpad,
-            3,
-            4,
-            bevy::render::color::Color::WHITE,
-            bevy::render::color::Color::WHITE,
-            bevy::render::color::Color::hex("0080FFFF").unwrap(),
-            bevy::render::color::Color::BLACK,
-            display_message_buf,
-            display_pinpad_buf,
-            true,
-        );
-    }
+        (display_message_buf, display_pinpad_buf)
+    };
+
+    renderer::init_app(
+        &mut app,
+        rect_message,
+        rects_pinpad,
+        3,
+        4,
+        bevy::render::color::Color::WHITE,
+        bevy::render::color::Color::WHITE,
+        bevy::render::color::Color::hex("0080FFFF").unwrap(),
+        bevy::render::color::Color::BLACK,
+        display_message_buf,
+        display_pinpad_buf,
+        true,
+    );
 
     // MUST be after "renderer::init_app" b/c it adds DefaultPlugins
     // ELSE we FAIL thread 'main' panicked at 'Error adding plugin bevy_window::WindowPlugin in group bevy_internal::default_plugins::DefaultPlugins: plugin was already added in application', /home/xxx/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_app-0.9.1/src/plugin_group.rs:183:25

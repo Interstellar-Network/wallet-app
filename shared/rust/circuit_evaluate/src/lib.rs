@@ -17,6 +17,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use lib_garble_rs::{EncodedGarblerInputs, EvalCache, EvaluatorInput, InterstellarGarbledCircuit};
+use rand::distributions::Distribution;
+use rand::distributions::Uniform;
+use rand::thread_rng;
 
 pub struct EvaluateWrapper {
     garbled: InterstellarGarbledCircuit,
@@ -70,6 +73,16 @@ impl EvaluateWrapper {
     /// inputs are randomized, outputs are externally given
     /// typically outputs points to some kind of "Texture data"
     pub fn EvaluateWithPackmsg(&mut self, outputs: &mut Vec<u8>) {
+        // TODO move those to the struct; but not easy b/c not Sync...
+        let mut rng = thread_rng();
+        let rand_0_1 = Uniform::from(0..=1);
+
+        // for consistency, it SHOULD roughly match the logic in
+        // /lib-garble-rs/lib-garble-rs/tests/common/garble_and_eval_utils.rs
+        for input in self.evaluator_inputs.iter_mut() {
+            *input = rand_0_1.sample(&mut rng);
+        }
+
         // TODO convert/transmute texture data???
         let mut temp_outputs = vec![Some(0u16); self.width * self.height];
 
@@ -80,7 +93,10 @@ impl EvaluateWrapper {
                 &mut temp_outputs,
                 &mut self.eval_cache,
             )
-            .unwrap()
+            .unwrap();
+
+        // TODO avoid copy! MAYBE use some kind of "safe transmute"?
+        *outputs = convert_vec_option_u16_to_u8(&temp_outputs);
     }
 
     pub fn GetWidth(&self) -> usize {
@@ -89,6 +105,21 @@ impl EvaluateWrapper {
     pub fn GetHeight(&self) -> usize {
         self.height
     }
+}
+
+/// cf "fn convert_vec_u16_to_u8" in /lib-garble-rs/png_tests_utils/src/png_utils.rs
+///convert Vec<std::option::Option<u16>> -> Vec<u16>
+// convert Vec<u16> -> Vec<u8>
+pub fn convert_vec_option_u16_to_u8(data: &[Option<u16>]) -> Vec<u8> {
+    let data: Vec<u8> = data
+        .iter()
+        .map(|v| {
+            let pixel_value: u8 = (*v).unwrap().try_into().unwrap();
+            pixel_value * 255
+        })
+        .collect();
+
+    data
 }
 
 #[cfg(test)]

@@ -367,7 +367,6 @@ checksum = "b645a089122eccb6111b4f81cbc1a49f5900ac4666bb93ac027feaecf15607bf"
 [[package]]
 name = "base_conversion"
 version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
 dependencies = [
  "cc",
 ]
@@ -1280,6 +1279,7 @@ name = "circuit-evaluate"
 version = "0.1.0"
 dependencies = [
  "lib-garble-rs",
+ "rand 0.8.5",
 ]
 
 [[package]]
@@ -2132,7 +2132,6 @@ checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 [[package]]
 name = "fancy-garbling"
 version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
 dependencies = [
  "base_conversion",
  "itertools",
@@ -4311,7 +4310,6 @@ dependencies = [
 [[package]]
 name = "ocelot"
 version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
 dependencies = [
  "libc",
  "rand 0.8.5",
@@ -5154,7 +5152,6 @@ checksum = "ddccb15bcce173023b3fedd9436f882a0739b8dfb45e4f6b6002bee5929f61b2"
 [[package]]
 name = "scuttlebutt"
 version = "0.4.0"
-source = "git+https://github.com/Interstellar-Network/swanky.git?branch=interstellar-initial#5853ef077fc2eeb67a80d3c536aabad7be3ff6db"
 dependencies = [
  "aes",
  "auto_ops",

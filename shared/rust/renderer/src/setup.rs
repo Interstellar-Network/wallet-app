@@ -28,12 +28,6 @@ pub fn setup_camera(mut commands: Commands) {
     // TODO TOREMOVE
     // // camera
     // let mut camera = OrthographicCameraBundle::new_2d();
-    // // let proj = OrthographicProjection {
-    // //     near: 0.0,
-    // //     far: 1000.0,
-    // //     window_origin: WindowOrigin::Center,
-    // //     scaling_mode: ScalingMode::FixedVertical,
-    // //     scale: scale,
     // //     depth_calculation: DepthCalculation::ZDifference,
     // //     ..Default::default()
     // // };
@@ -44,8 +38,21 @@ pub fn setup_camera(mut commands: Commands) {
     // let global_transform = camera.global_transform.clone();
 
     // TODO? use proj.get_projection_matrix()?
+    // TODO proper values
     commands.spawn(Camera2dBundle {
-        // projection: OrthographicProjection {}
+        projection: OrthographicProjection {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: 0.0,
+            far: 1000.0,
+            window_origin: WindowOrigin::Center,
+            // scaling_mode: ScalingMode::None,
+            scaling_mode: ScalingMode::FixedVertical(2.0),
+            scale: 1.0,
+            // depth_calculation: DepthCalculation::ZDifference,
+        },
         ..default()
     });
 
