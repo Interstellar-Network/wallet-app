@@ -22,6 +22,10 @@ crate-type = ["cdylib", "staticlib", "lib"]
 # test = false
 # bench = false
 
+[features]
+# TODO if "bevy_winit" is ALSO needed for Android: move it to "dep:bevy" directly
+with_winit = ["bevy/bevy_winit", "bevy/x11"]
+
 [dependencies]
 ndarray = "0.15.4"
 # bevy: removed: "animation",  "bevy_gilrs", "bevy_audio", "vorbis", "png", "hdr", "x11", "filesystem_watcher"
@@ -37,16 +41,16 @@ ndarray = "0.15.4"
 #
 # TODO cleanup features; and also in dev-dependencies
 bevy = { version = "0.9", default-features = false, features = [
-    # https://github.com/bevyengine/bevy/blob/main/Cargo.toml#L29
-    "animation",
+    # https://github.com/bevyengine/bevy/blob/v0.9.1/Cargo.toml#L27
+    # "animation",
     "bevy_asset",
     # "bevy_audio",
-    "bevy_gilrs",
-    "bevy_scene",
+    # "bevy_gilrs",
+    # "bevy_scene",
     # "bevy_winit",
     "bevy_core_pipeline",
     # "bevy_pbr",
-    "bevy_gltf",
+    # "bevy_gltf",
     "bevy_render",
     "bevy_sprite",
     # "bevy_text",
@@ -85,6 +89,6 @@ substrate-client = { path = "../substrate-client" }
 # TODO TOREMOVE
 lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 
-[target.'cfg(unix)'.dev-dependencies]
-# TODO dynamic(ONLY FOR DEBUG/DEV)
-bevy = { version = "0.9", default-features = true}
+[[example]]
+name = "desktop"
+required-features = ["with_winit"]

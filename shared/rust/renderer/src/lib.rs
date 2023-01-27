@@ -128,7 +128,6 @@ pub fn init_app(
     background_color: Color,
     message_pgc_buf: Vec<u8>,
     pinpad_pgc_buf: Vec<u8>,
-    plugin_skip_window: bool,
 ) {
     // cf renderer/data/transparent_sprite.wgsl
     // apparently using WHITE(which is Sprite's default) make COLORED NOT defined and that breaks the shader!
@@ -185,9 +184,6 @@ pub fn init_app(
     app.add_plugin(bevy::hierarchy::HierarchyPlugin { ..default() });
     app.add_plugin(bevy::diagnostic::DiagnosticsPlugin { ..default() });
     app.add_plugin(bevy::input::InputPlugin { ..default() });
-    // if !plugin_skip_window {
-    //     app.add_plugin(bevy::window::WindowPlugin { ..default() });
-    // }
     app.add_plugin(WindowPlugin {
         window: WindowDescriptor {
             title: "renderer demo".to_string(),
@@ -204,11 +200,12 @@ pub fn init_app(
     // #[cfg(feature = "bevy_asset")]
     app.add_plugin(bevy::asset::AssetPlugin { ..default() });
     // #[cfg(feature = "bevy_scene")]
-    app.add_plugin(bevy::scene::ScenePlugin { ..default() });
+    // app.add_plugin(bevy::scene::ScenePlugin { ..default() });
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
     app.add_plugin(bevy::render::RenderPlugin { ..default() });
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
-    #[cfg(not(target_os = "android"))]
+    // #[cfg(not(target_os = "android"))]
+    #[cfg(feature = "with_winit")]
     app.add_plugin(bevy::winit::WinitPlugin { ..default() });
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin { ..default() });

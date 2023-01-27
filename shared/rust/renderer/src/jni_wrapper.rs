@@ -149,7 +149,6 @@ fn init_surface(
         // include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
         message_pgarbled_buf,
         pinpad_pgarbled_buf,
-        true,
     );
 
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else

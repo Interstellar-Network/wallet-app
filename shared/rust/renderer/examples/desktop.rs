@@ -105,7 +105,6 @@ fn main() {
         bevy::render::color::Color::BLACK,
         display_message_buf,
         display_pinpad_buf,
-        true,
     );
 
     // MUST be after "renderer::init_app" b/c it adds DefaultPlugins
