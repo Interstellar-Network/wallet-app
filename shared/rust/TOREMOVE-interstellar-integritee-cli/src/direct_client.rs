@@ -14,9 +14,9 @@
 	limitations under the License.
 */
 
-//! Interface for direct access to a workers rpc.
+/// Interface for direct access to a workers rpc.
 
-use crate::ws_client::{WsClient, WsClientControl};
+use substrate_api_client::rpc::ws_client::{WsClient, WsClientControl};
 use codec::Decode;
 use itp_rpc::{RpcRequest, RpcResponse, RpcReturnValue};
 use itp_types::DirectRequestStatus;
@@ -32,25 +32,7 @@ use std::{
 	thread::JoinHandle,
 };
 use substrate_api_client::RuntimeMetadataPrefixed;
-
-// pub use crate::error::{Error, Result};
-pub type Result<T> = core::result::Result<T, Error>;
-
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-	#[error("{0}")]
-	Codec(#[from] CodecError),
-	#[error("{0}")]
-	SerdeJson(#[from] JsonError),
-	#[error("Validateer returned the following error message: {0}")]
-	Status(String),
-	#[error("Websocket error: {0}")]
-	WsClientError(#[from] WsClientError),
-	#[error("Faulty channel: {0}")]
-	MspcReceiver(#[from] RecvError),
-	#[error("Custom Error: {0}")]
-	Custom(Box<dyn std::error::Error + Sync + Send + 'static>),
-}
+pub use crate::error::{Error, Result};
 
 #[derive(Clone)]
 pub struct DirectClient {

@@ -1,0 +1,36 @@
+[package]
+name = "interstellar-integritee-worker-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base58 = "0.2"
+blake2-rfc = { version = "0.2.18" }
+chrono = "*"
+clap = { version = "3.1.6", features = ["derive"] }
+codec = { version = "3.0.0", package = "parity-scale-codec", features = ["derive"] }
+env_logger = "0.9"
+hdrhistogram = "7.5.0"
+hex = "0.4.2"
+log = "0.4"
+primitive-types = { version = "0.12.1", features = ["codec"] }
+rand = "0.8.5"
+rayon = "1.5.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# https://github.com/apache/incubator-teaclave-sgx-sdk/blob/master/sgx_crypto_helper/Cargo.toml#L15
+sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+ws = { version = "0.9.1", features = ["ssl"] }
+
+# substrate dependencies
+sp-application-crypto = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36", default-features = false, features = ["std"] }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+
+# scs / integritee
+# my-node-runtime = { package = "integritee-node-runtime", git = "https://github.com/integritee-network/integritee-node.git", branch = "master" }
+# pallet-evm = { optional = true, git = "https://github.com/integritee-network/frontier.git", branch = "polkadot-v0.9.36" }
+substrate-api-client = { features = ["ws-client"], git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.36" }
+substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.36" }

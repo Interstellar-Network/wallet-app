@@ -4,3 +4,6 @@
 [submodule "shared/rust/deps/wasmtime"]
 	path = shared/rust/deps/wasmtime
 	url = https://github.com/Interstellar-Network/wasmtime.git
+[submodule "shared/rust/deps/integritee-worker"]
+	path = shared/rust/deps/integritee-worker
+	url = https://github.com/Interstellar-Network/integritee-worker.git
