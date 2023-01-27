@@ -11,11 +11,6 @@ members = [
     "substrate-client",
 ]
 
-# TODO re-add for bevy 0.9
-# NOTE: patch DOES NOT work except at the Workspace level??
-# [patch.crates-io]
-# bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
-
 [profile.release-with-debug]
 inherits = "release"
 debug = true
@@ -24,6 +19,7 @@ debug = true
 # "Enable only a small amount of optimization in debug mode"
 [profile.dev]
 opt-level = 1
+lto = "thin"
 
 # "Enable high optimizations for dependencies (incl. Bevy), but not for our code:"
 [profile.dev.package."*"]
@@ -41,6 +37,9 @@ sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 # wasmtime-runtime = { path = "../../../wasmtime/crates/runtime/" }
 # wasmtime-environ = { path = "../../../wasmtime/crates/environ/" }
 wasmtime = { path = "./deps/wasmtime/crates/wasmtime/" }
+# TODO re-add for bevy 0.9? or not needed anymore
+# NOTE: patch DOES NOT work except at the Workspace level??
+# bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
 
 ################################################################################
 # local dev
