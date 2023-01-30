@@ -17,11 +17,10 @@
 use bevy::prelude::*;
 use clap::Parser;
 use ndarray::Array2;
+use substrate_client::InterstellarIntegriteeWorkerCli;
 
 extern crate renderer;
 use renderer::vertices_utils::Rect;
-extern crate substrate_client;
-use substrate_client::get_latest_pending_display_stripped_circuits_package;
 extern crate lib_garble_rs;
 
 #[derive(Parser, Debug)]
@@ -78,11 +77,10 @@ fn main() {
 
     // TODO if NOT offline: use crate substrate-client to DL the circuits
     let (display_message_buf, display_pinpad_buf) = if args.is_online {
-        let display_stripped_circuits_package_buffers =
-            get_latest_pending_display_stripped_circuits_package(
-                "/ip4/127.0.0.1/tcp/5001",
-                "ws://127.0.0.1:9990",
-            )
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
+        let display_stripped_circuits_package_buffers = worker_cli
+            .get_latest_pending_display_stripped_circuits_package("/ip4/127.0.0.1/tcp/5001")
             .expect("no circuit available");
 
         (

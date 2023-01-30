@@ -34,28 +34,33 @@ pub mod jni_wrapper;
 mod loggers;
 
 /// Return a client for the SUBSTRATE/INTEGRITEE NODE
-fn get_node_api(
-    ws_url: &str,
-) -> Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>> {
-    println!("[+] call_extrinsic: {:?}", ws_url);
-    let from = AccountKeyring::Alice.pair();
-    println!("[+] call_extrinsic: from {:?}", from.public());
-    let client = WsRpcClient::new(&ws_url);
-    println!("[+] call_extrinsic: client {:?}", client);
-    let api = Api::new(client).map(|api| api.set_signer(from)).unwrap();
-    println!("[+] call_extrinsic: api {:?}", api.genesis_hash.to_string());
+// fn get_node_api(
+//     ws_url: &str,
+// ) -> Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>> {
+//     println!("[+] call_extrinsic: {:?}", ws_url);
+//     let from = AccountKeyring::Alice.pair();
+//     println!("[+] call_extrinsic: from {:?}", from.public());
+//     let client = WsRpcClient::new(&ws_url);
+//     println!("[+] call_extrinsic: client {:?}", client);
+//     let api = Api::new(client).map(|api| api.set_signer(from)).unwrap();
+//     println!("[+] call_extrinsic: api {:?}", api.genesis_hash.to_string());
 
-    api
-}
+//     api
+// }
 
-struct InterstellarIntegriteeWorkerCli {
+pub struct InterstellarIntegriteeWorkerCli {
     ws_url: String,
     ws_port: String,
     account: sp_core::sr25519::Pair,
 }
 
 impl InterstellarIntegriteeWorkerCli {
-    fn new(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
+    /// Return a client for the INTEGRITEE WORKER
+    /// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
+    ///
+    /// param: ws_url: default to "wss://127.0.0.1"
+    /// param: ws_port: default to 2000
+    pub fn new(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
         InterstellarIntegriteeWorkerCli {
             ws_url,
             ws_port,
@@ -82,108 +87,115 @@ impl InterstellarIntegriteeWorkerCli {
     fn get_account(&self) -> String {
         self.account.public().to_string()
     }
-}
 
-/// Return a client for the INTEGRITEE WORKER
-/// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
-///
-/// param: ws_url: default to "wss://127.0.0.1"
-/// param: ws_port: default to 2000
-fn get_worker_cli(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
-    InterstellarIntegriteeWorkerCli::new(ws_url, ws_port)
-}
+    // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
+    // TODO replace by ocw-garble garbleAndStripSigned(and update params)
+    pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
+        &self,
+        tx_message: &str,
+    ) -> Hash {
+        // cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
+        // eg:
+        // ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
 
-// https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
-// TODO replace by ocw-garble garbleAndStripSigned(and update params)
-fn extrinsic_garble_and_strip_display_circuits_package_signed(
-    worker_cli: &InterstellarIntegriteeWorkerCli,
-    tx_message: &str,
-) -> Hash {
-    // cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
-    // eg:
-    // ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
+        self.run(&[
+            "trusted",
+            "--direct",
+            "garble-and-strip-display-circuits-package-signed",
+            &self.get_account(),
+            tx_message,
+        ]);
 
-    worker_cli.run(&[
-        "direct",
-        "garble-and-strip-display-circuits-package-signed",
-        &worker_cli.get_account(),
-        tx_message,
-    ]);
+        todo!("extrinsic_garble_and_strip_display_circuits_package_signed tx hash")
+    }
 
-    todo!("extrinsic_garble_and_strip_display_circuits_package_signed tx hash")
-}
+    pub fn extrinsic_register_mobile(&self, pub_key: Vec<u8>) {
+        todo!("TODO extrinsic_register_mobile")
+    }
 
-pub fn extrinsic_register_mobile(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
-    pub_key: Vec<u8>,
-) -> Hash {
-    #[allow(clippy::redundant_clone)]
-    let xt = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "MobileRegistry",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "register_mobile",
-        pub_key
-    );
+    /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
+    pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &str) {
+        self.run(&[
+            "trusted",
+            "--direct",
+            "tx-check-input",
+            &self.get_account(),
+            ipfs_cid,
+            input_digits,
+        ]);
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+        todo!("extrinsic_check_input tx hash")
+    }
 
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+    /// Get the list of pending circuits using an extrinsic
+    /// Then download ONE using IPFS
+    ///
+    /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
+    /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
+    pub fn get_latest_pending_display_stripped_circuits_package(
+        &self,
+        ipfs_server_multiaddr: &str,
+    ) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
+        let pending_circuits = self.get_pending_circuits();
 
-    tx_hash.expect("send_extrinsic failed")
-}
+        // TODO add param for index?
+        // But how are we supposed to choose which circuit to DL? [we can not really exposed the list to the user?]
+        // in that case; remove .last()
+        let circuit = pending_circuits.last().ok_or(
+            "error: get_latest_pending_display_stripped_circuits_package: no circuit available!",
+        )?;
 
-pub fn extrinsic_check_input(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
-    ipfs_cid: Vec<u8>,
-    input_digits: Vec<u8>,
-) -> Hash {
-    #[allow(clippy::redundant_clone)]
-    let xt = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "TxValidation",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "check_input",
-        ipfs_cid,
-        input_digits
-    );
+        // convert Vec<u8> into str
+        let message_pgarbled_cid_str = sp_std::str::from_utf8(&circuit.message_pgarbled_cid)
+            .expect("message_pgarbled_cid utf8");
+        let pinpad_pgarbled_cid_str =
+            sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+        // allow calling ipfs api(ASYNC) from a sync context
+        // TODO can we make jni functions async?
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
+            let message_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+                .cat(message_pgarbled_cid_str)
+                .map_ok(|chunk| chunk.to_vec())
+                .try_concat()
+                .await
+                .unwrap();
+            let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+                .cat(pinpad_pgarbled_cid_str)
+                .map_ok(|chunk| chunk.to_vec())
+                .try_concat()
+                .await
+                .unwrap();
 
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+            log::info!(
+                "get_one_pending_display_stripped_circuits_package: got: {},{}",
+                message_pgarbled_buf.len(),
+                pinpad_pgarbled_buf.len(),
+            );
 
-    tx_hash.expect("send_extrinsic failed")
-}
+            Ok(DisplayStrippedCircuitsPackageBuffers {
+                message_pgarbled_buf: message_pgarbled_buf,
+                message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+                pinpad_pgarbled_buf: pinpad_pgarbled_buf,
+                pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+                package: circuit.clone(),
+            })
+        })
+    }
 
-// https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
-// TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
-fn get_pending_circuits(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
-) -> PendingCircuitsType {
-    let account = AccountKeyring::Alice.public();
-    // let result: AccountInfo = api
-    //     .get_storage_map("System", "Account", account, None)
-    //     .unwrap()
-    //     .or_else(|| Some(AccountInfo::default()))
-    //     .unwrap();
-    // TODO use _proof?
-    let result: PendingCircuitsType = api
-        .get_storage_map("OcwGarble", "AccountToPendingCircuitsMap", account, None)
-        .unwrap()
-        .unwrap_or_default();
-    println!("[+] pending circuits for account = {:?}", result);
+    /// RESULT=$(${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct get-circuits-package "${PLAYER1}" | xargs)
+    fn get_pending_circuits(&self) -> PendingCircuitsType {
+        self.run(&[
+            "trusted",
+            "--direct",
+            "get-circuits-package",
+            &self.get_account(),
+        ]);
 
-    result
+        todo!("get_pending_circuits PendingCircuitsType")
+    }
 }
 
 fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClient> {
@@ -194,65 +206,6 @@ fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClie
             .timeout(Duration::from_millis(5000))
             .build(),
     )
-}
-
-/// Get the list of pending circuits using an extrinsic
-/// Then download ONE using IPFS
-///
-/// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
-/// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
-pub fn get_latest_pending_display_stripped_circuits_package(
-    ipfs_server_multiaddr: &str,
-    ws_url: &str,
-) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
-    let api = get_node_api(ws_url);
-    let pending_circuits = get_pending_circuits(&api);
-
-    // TODO add param for index?
-    // But how are we supposed to choose which circuit to DL? [we can not really exposed the list to the user?]
-    // in that case; remove .last()
-    let circuit = pending_circuits.last().ok_or(
-        "error: get_latest_pending_display_stripped_circuits_package: no circuit available!",
-    )?;
-
-    // convert Vec<u8> into str
-    let message_pgarbled_cid_str =
-        sp_std::str::from_utf8(&circuit.message_pgarbled_cid).expect("message_pgarbled_cid utf8");
-    let pinpad_pgarbled_cid_str =
-        sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
-
-    // allow calling ipfs api(ASYNC) from a sync context
-    // TODO can we make jni functions async?
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
-        let message_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(message_pgarbled_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-        let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(pinpad_pgarbled_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-
-        log::info!(
-            "get_one_pending_display_stripped_circuits_package: got: {},{}",
-            message_pgarbled_buf.len(),
-            pinpad_pgarbled_buf.len(),
-        );
-
-        Ok(DisplayStrippedCircuitsPackageBuffers {
-            message_pgarbled_buf: message_pgarbled_buf,
-            message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
-            pinpad_pgarbled_buf: pinpad_pgarbled_buf,
-            pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
-            package: circuit.clone(),
-        })
-    })
 }
 
 #[cfg(test)]
