@@ -20,6 +20,7 @@ env_logger = "0.10"
 ipfs-api-backend-hyper = { version = "0.6", features = [ "with-send-sync" , "with-builder" ] }
 futures-util = "0.3"
 tokio = { version = "1.20", features = ["rt-multi-thread"] }
+clap = { version = "3.1.6", features = ["derive"] }
 
 # only for Android
 jni = { version = "0.20", optional = true }
@@ -53,8 +54,6 @@ common = { path = "../common" }
 integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 # FIX: force correct features for this dep
 sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
-# TODO TOREMOVE? or at least use local path
-itc-rpc-client = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 
 # TEMP
 # else we hit: https://github.com/bytecodealliance/wasmtime/blob/v1.0.2/crates/runtime/src/traphandlers/unix.rs#L232

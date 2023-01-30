@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use clap::Parser;
 use common::{DisplayStrippedCircuitsPackageBuffers, PendingCircuitsType};
 use core::time::Duration;
 use futures_util::TryStreamExt;
+use integritee_cli::{commands, Cli};
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
-use itc_rpc_client::direct_client::{DirectApi, DirectClient as DirectWorkerApi};
 use log::*;
 use sp_keyring::AccountKeyring;
 use substrate_api_client::{
@@ -47,55 +48,69 @@ fn get_node_api(
     api
 }
 
+struct InterstellarIntegriteeWorkerCli {
+    ws_url: String,
+    ws_port: String,
+    account: sp_core::sr25519::Pair,
+}
+
+impl InterstellarIntegriteeWorkerCli {
+    fn new(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
+        InterstellarIntegriteeWorkerCli {
+            ws_url,
+            ws_port,
+            account: AccountKeyring::Alice.pair(),
+        }
+    }
+
+    fn run(&self, command: &[&str]) {
+        let mut args = vec![
+            // we MUST replace the binary name
+            // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
+            // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
+            "",
+            "--trusted-worker-port",
+            &self.ws_port,
+            "--worker-url",
+            &self.ws_url,
+        ];
+        args.extend_from_slice(command);
+
+        let cli = Cli::parse_from(args);
+    }
+
+    fn get_account(&self) -> String {
+        self.account.public().to_string()
+    }
+}
+
 /// Return a client for the INTEGRITEE WORKER
-fn get_worker_api(ws_url: &str) -> DirectWorkerApi {
-    // cf "get_worker_api_direct"
-    info!(
-        "Connecting to integritee-service-direct-port on '{}'",
-        ws_url
-    );
-    DirectWorkerApi::new(ws_url.to_string())
+/// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
+///
+/// param: ws_url: default to "wss://127.0.0.1"
+/// param: ws_port: default to 2000
+fn get_worker_cli(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
+    InterstellarIntegriteeWorkerCli::new(ws_url, ws_port)
 }
 
 // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
 // TODO replace by ocw-garble garbleAndStripSigned(and update params)
 fn extrinsic_garble_and_strip_display_circuits_package_signed(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>>,
+    worker_cli: &InterstellarIntegriteeWorkerCli,
     tx_message: &str,
 ) -> Hash {
-    ////////////////////////////////////////////////////////////////////////////
-    // // "set the recipient"
-    // let to = AccountKeyring::Bob.to_account_id();
+    // cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
+    // eg:
+    // ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
 
-    // // "the names are given as strings"
-    // #[allow(clippy::redundant_clone)]
-    // let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
-    //     api.clone(),
-    //     "Balances",
-    //     "transfer",
-    //     GenericAddress::Id(to),
-    //     Compact(42_u128)
-    // );
-    ////////////////////////////////////////////////////////////////////////////
-    #[allow(clippy::redundant_clone)]
-    let xt = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "OcwGarble",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "garble_and_strip_display_circuits_package_signed",
-        tx_message.as_bytes().to_vec()
-    );
+    worker_cli.run(&[
+        "direct",
+        "garble-and-strip-display-circuits-package-signed",
+        &worker_cli.get_account(),
+        tx_message,
+    ]);
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
-
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
-
-    tx_hash.expect("send_extrinsic failed")
+    todo!("extrinsic_garble_and_strip_display_circuits_package_signed tx hash")
 }
 
 pub fn extrinsic_register_mobile(
@@ -242,11 +257,7 @@ pub fn get_latest_pending_display_stripped_circuits_package(
 
 #[cfg(test)]
 mod tests {
-    use crate::loggers;
-    use crate::{
-        extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
-        get_node_api, get_pending_circuits,
-    };
+    use super::*;
     static INIT: std::sync::Once = std::sync::Once::new();
 
     fn init() {
@@ -261,7 +272,7 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
-        let api = get_node_api("ws://127.0.0.1:9990");
+        let worker_cli = get_worker_cli("ws://127.0.0.1".to_string(), "9990".to_string());
 
         // IMPORTANT this extrinsic requires IPFS!
         // IPFS_PATH=/tmp/ipfs ipfs init -p test
@@ -271,7 +282,8 @@ mod tests {
         // IMPORTANT also requires a running "api_circuits"
         // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
         // TODO add integration test with SSL
-        let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, "aaa");
+        let tx_hash =
+            extrinsic_garble_and_strip_display_circuits_package_signed(&worker_cli, "aaa");
         println!("[+] tx_hash: {:02X}", tx_hash);
     }
 
@@ -309,4 +321,10 @@ mod tests {
     //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
     //     println!("[+] tx_hash: {:02X}", tx_hash);
     // }
+
+    #[test]
+    fn can_build_integritee_client_ok() {
+        let cli = get_worker_cli("wss://127.0.0.1".to_string(), "2090".to_string());
+        cli.run(&["--help"])
+    }
 }
