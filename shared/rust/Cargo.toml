@@ -29,9 +29,13 @@ opt-level = 3
 
 [patch."https://github.com/apache/teaclave-sgx-sdk.git"]
 # itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
+# TODO ideally we would directly use this patched version from `integritee-cli`
+# but it is quite a mess to make it work both from repo `integritee-worker` and here
 sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
 [patch.crates-io]
+# wasmtime-runtime: we MUST patch to make it compatible with Android Emulator
+# ELSE: wasmtime-runtime-1.0.2/src/traphandlers/unix.rs:232:13 compile_error!("unsupported platform");
 # SHOULD match https://github.com/paritytech/substrate/blob/master/primitives/wasm-interface/Cargo.toml
 # NOTE: we NEED to patch "wasmtime-runtime" but to avoid error like "note: perhaps two different versions of crate `wasmtime_environ` are being used?"
 # the easiest thing to do is patch the "main lib"
@@ -49,5 +53,5 @@ wasmtime = { path = "./deps/wasmtime/crates/wasmtime/" }
 # [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
 # lib-garble-rs = { path = "../../../lib-garble-rs/lib-garble-rs/" }
 
-# [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-# integritee-cli = { path = "../../../integritee-worker/cli" }
+[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+integritee-cli = { path = "../../../integritee-worker/cli" }

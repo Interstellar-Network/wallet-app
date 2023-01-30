@@ -65,7 +65,7 @@ TODO cleanup/rewrite below
     export CMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake
     export ANDROID_PLATFORM=21
     ```
-  - `cargo build --target=aarch64-linux-android` and/or [FAIL for now]`cargo build --target=x86_64-linux-android`
+  - `cargo build --target=aarch64-linux-android --features=with-jni` and/or `cargo build --target=x86_64-linux-android --features=with-jni`
 - [cd to Root of the repo] `.\gradlew cargoBuild --info`
 
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator

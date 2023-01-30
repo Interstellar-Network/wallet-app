@@ -50,7 +50,9 @@ common = { path = "../common" }
 # interstellar-integritee-cli = { path = "../interstellar-integritee-cli" }
 # integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 # interstellar-integritee-worker-cli = { path = "../interstellar-integritee-worker-cli" }
-integritee-cli = { path = "../deps/integritee-worker/cli" }
+integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+# FIX: force correct features for this dep
+sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
 # TODO TOREMOVE? or at least use local path
 itc-rpc-client = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
 
