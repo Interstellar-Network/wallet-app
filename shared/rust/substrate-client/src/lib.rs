@@ -52,6 +52,7 @@ pub struct InterstellarIntegriteeWorkerCli {
     ws_url: String,
     ws_port: String,
     account: sp_core::sr25519::Pair,
+    mrenclave: String,
 }
 
 impl InterstellarIntegriteeWorkerCli {
@@ -65,10 +66,14 @@ impl InterstellarIntegriteeWorkerCli {
             ws_url,
             ws_port,
             account: AccountKeyring::Alice.pair(),
+            // TODO cf /integritee-worker/cli/demo_interstellar.sh
+            // read MRENCLAVE <<< $($CLIENT list-workers | awk '/  MRENCLAVE: / { print $2; exit }')
+            mrenclave: "TODO_MRENCLAVE".to_string(),
         }
     }
 
-    fn run(&self, command: &[&str]) {
+    /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
+    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) {
         let mut args = vec![
             // we MUST replace the binary name
             // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
@@ -78,8 +83,12 @@ impl InterstellarIntegriteeWorkerCli {
             &self.ws_port,
             "--worker-url",
             &self.ws_url,
+            "trusted",
+            "--direct",
+            "--mrenclave",
+            &self.mrenclave,
         ];
-        args.extend_from_slice(command);
+        args.extend_from_slice(trusted_subcommand);
 
         let cli = Cli::parse_from(args);
     }
@@ -88,19 +97,14 @@ impl InterstellarIntegriteeWorkerCli {
         self.account.public().to_string()
     }
 
-    // https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
-    // TODO replace by ocw-garble garbleAndStripSigned(and update params)
+    /// cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
+    /// eg:
+    /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
     pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
         &self,
         tx_message: &str,
     ) -> Hash {
-        // cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
-        // eg:
-        // ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
-
-        self.run(&[
-            "trusted",
-            "--direct",
+        self.run_trusted_direct(&[
             "garble-and-strip-display-circuits-package-signed",
             &self.get_account(),
             tx_message,
@@ -115,9 +119,7 @@ impl InterstellarIntegriteeWorkerCli {
 
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
     pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &str) {
-        self.run(&[
-            "trusted",
-            "--direct",
+        self.run_trusted_direct(&[
             "tx-check-input",
             &self.get_account(),
             ipfs_cid,
@@ -187,12 +189,7 @@ impl InterstellarIntegriteeWorkerCli {
 
     /// RESULT=$(${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct get-circuits-package "${PLAYER1}" | xargs)
     fn get_pending_circuits(&self) -> PendingCircuitsType {
-        self.run(&[
-            "trusted",
-            "--direct",
-            "get-circuits-package",
-            &self.get_account(),
-        ]);
+        self.run_trusted_direct(&["get-circuits-package", &self.get_account()]);
 
         todo!("get_pending_circuits PendingCircuitsType")
     }
