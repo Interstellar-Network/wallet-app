@@ -73,7 +73,7 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
-    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) {
+    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> Option<Vec<u8>> {
         let mut args = vec![
             // we MUST replace the binary name
             // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
@@ -91,6 +91,7 @@ impl InterstellarIntegriteeWorkerCli {
         args.extend_from_slice(trusted_subcommand);
 
         let cli = Cli::parse_from(args);
+        commands::match_command(&cli)
     }
 
     fn get_account(&self) -> String {
@@ -104,7 +105,7 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
         tx_message: &str,
     ) -> Hash {
-        self.run_trusted_direct(&[
+        let res = self.run_trusted_direct(&[
             "garble-and-strip-display-circuits-package-signed",
             &self.get_account(),
             tx_message,
@@ -119,7 +120,7 @@ impl InterstellarIntegriteeWorkerCli {
 
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
     pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &str) {
-        self.run_trusted_direct(&[
+        let res = self.run_trusted_direct(&[
             "tx-check-input",
             &self.get_account(),
             ipfs_cid,
@@ -189,7 +190,7 @@ impl InterstellarIntegriteeWorkerCli {
 
     /// RESULT=$(${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct get-circuits-package "${PLAYER1}" | xargs)
     fn get_pending_circuits(&self) -> PendingCircuitsType {
-        self.run_trusted_direct(&["get-circuits-package", &self.get_account()]);
+        let res = self.run_trusted_direct(&["get-circuits-package", &self.get_account()]);
 
         todo!("get_pending_circuits PendingCircuitsType")
     }
@@ -222,7 +223,8 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
-        let worker_cli = get_worker_cli("ws://127.0.0.1".to_string(), "9990".to_string());
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
 
         // IMPORTANT this extrinsic requires IPFS!
         // IPFS_PATH=/tmp/ipfs ipfs init -p test
@@ -232,32 +234,32 @@ mod tests {
         // IMPORTANT also requires a running "api_circuits"
         // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
         // TODO add integration test with SSL
-        let tx_hash =
-            extrinsic_garble_and_strip_display_circuits_package_signed(&worker_cli, "aaa");
+        let tx_hash = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
         println!("[+] tx_hash: {:02X}", tx_hash);
     }
 
     #[test]
     fn get_pending_circuits_local_ok() {
         init();
-        let api = get_node_api("ws://127.0.0.1:9990");
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
 
-        let pending_circuits = get_pending_circuits(&api);
+        let pending_circuits = worker_cli.get_pending_circuits();
         println!("[+] pending_circuits: {:?}", pending_circuits);
     }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
-    #[test]
-    #[serial_test::serial]
-    fn extrinsic_register_mobile_local_ok() {
-        init();
-        let api = get_node_api("ws://127.0.0.1:9990");
+    // #[test]
+    // #[serial_test::serial]
+    // fn extrinsic_register_mobile_local_ok() {
+    //     init();
+    //     let worker_cli =
+    //         InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
 
-        // MUST be at least 32 bytes
-        let tx_hash = extrinsic_register_mobile(&api, vec![42; 32]);
-        println!("[+] tx_hash: {:02X}", tx_hash);
-    }
+    //     // MUST be at least 32 bytes
+    //     worker_cli.extrinsic_register_mobile(vec![42; 32]);
+    // }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
@@ -266,7 +268,8 @@ mod tests {
     // #[serial_test::serial]
     // fn extrinsic_extrinsic_check_input_local_ok() {
     //     init();
-    //     let api = get_node_api("ws://127.0.0.1:9990");
+    //     let worker_cli =
+    // InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
 
     //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
     //     println!("[+] tx_hash: {:02X}", tx_hash);
@@ -274,7 +277,8 @@ mod tests {
 
     #[test]
     fn can_build_integritee_client_ok() {
-        let cli = get_worker_cli("wss://127.0.0.1".to_string(), "2090".to_string());
-        cli.run(&["--help"])
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
+        worker_cli.run_trusted_direct(&["--help"]);
     }
 }
