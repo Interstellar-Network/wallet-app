@@ -16,7 +16,7 @@
 
 use crate::loggers;
 use crate::InterstellarIntegriteeWorkerCli;
-use common::{DisplayStrippedCircuitsPackageBuffers, SubPackageType};
+use common::{DisplayStrippedCircuitsPackage, DisplayStrippedCircuitsPackageBuffers};
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
 use jni::sys::{jbyteArray, jint, jlong, jstring};
@@ -290,7 +290,8 @@ pub fn ExtrinsicCheckInput(
     inputs: jbyteArray,
 ) -> jstring {
     // USE a Box, that way the pointer is properly cleaned up when exiting this function
-    let package: Box<SubPackageType> = unsafe { Box::from_raw(tx_id_ptr as *mut _) };
+    let package: Box<DisplayStrippedCircuitsPackage> =
+        unsafe { Box::from_raw(tx_id_ptr as *mut _) };
 
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
@@ -302,7 +303,7 @@ pub fn ExtrinsicCheckInput(
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
-    worker_cli.extrinsic_check_input(package.message_pgarbled_cid, &inputs_vec);
+    worker_cli.extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info

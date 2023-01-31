@@ -13,16 +13,17 @@
 // limitations under the License.
 
 use clap::Parser;
-use common::{DisplayStrippedCircuitsPackageBuffers, PendingCircuitsType};
+use common::DisplayStrippedCircuitsPackageBuffers;
+use common::InterstellarErrors;
 use core::time::Duration;
 use futures_util::TryStreamExt;
-use integritee_cli::{commands, Cli, CliResult};
+use integritee_cli::{commands, Cli, CliResult, PalletOcwGarbleDisplayStrippedCircuitsPackage};
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
 use log::*;
+use sp_core::crypto::Pair;
 use sp_keyring::AccountKeyring;
-use substrate_api_client::{Hash, Pair};
 use url::Url;
 
 #[cfg(feature = "with-cwrapper")]
@@ -51,7 +52,7 @@ pub struct InterstellarIntegriteeWorkerCli {
     ws_url: String,
     ws_port: u16,
     account: sp_core::sr25519::Pair,
-    mrenclave: String,
+    mrenclave: Option<String>,
 }
 
 impl InterstellarIntegriteeWorkerCli {
@@ -62,31 +63,50 @@ impl InterstellarIntegriteeWorkerCli {
     pub fn new(ws_url: &str) -> InterstellarIntegriteeWorkerCli {
         let url = Url::parse(ws_url).unwrap();
 
-        InterstellarIntegriteeWorkerCli {
+        // Two steps init:
+        // - First we parse the url etc
+        // - Then we send a query to get the mrenclave
+        let mut worker_cli = InterstellarIntegriteeWorkerCli {
             ws_url: format!("{}://{}", url.scheme(), url.host_str().unwrap()),
             ws_port: url.port().unwrap(),
             account: AccountKeyring::Alice.pair(),
-            // TODO cf /integritee-worker/cli/demo_interstellar.sh
-            // read MRENCLAVE <<< $($CLIENT list-workers | awk '/  MRENCLAVE: / { print $2; exit }')
-            mrenclave: "TODO_MRENCLAVE".to_string(),
+            mrenclave: None,
+        };
+
+        let cli = Cli::parse_from(["", "list-workers"]);
+        let res = commands::match_command(&cli);
+        match res {
+            CliResult::MrEnclaveBase58 { mr_enclaves } => {
+                // TODO which enclave to choose if more than one? Probably random to distribute the clients?
+                worker_cli.mrenclave = Some(mr_enclaves.first().unwrap().to_string());
+            }
+            _ => todo!("InterstellarIntegriteeWorkerCli::new list-workers failed"),
         }
+
+        worker_cli
     }
 
     /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
     fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> CliResult {
+        let port_str = self.ws_port.to_string();
+        let mrenclave_str = self
+            .mrenclave
+            .clone()
+            .expect("run_trusted_direct called but mrenclave not set!");
+
         let mut args = vec![
             // we MUST replace the binary name
             // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
             // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
             "",
             "--trusted-worker-port",
-            &self.ws_port.to_string(),
+            &port_str,
             "--worker-url",
             &self.ws_url,
             "trusted",
             "--direct",
             "--mrenclave",
-            &self.mrenclave,
+            &mrenclave_str,
         ];
         args.extend_from_slice(trusted_subcommand);
 
@@ -104,14 +124,14 @@ impl InterstellarIntegriteeWorkerCli {
     pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
         &self,
         tx_message: &str,
-    ) -> Hash {
-        let res = self.run_trusted_direct(&[
+    ) -> Result<(), InterstellarErrors> {
+        let _res = self.run_trusted_direct(&[
             "garble-and-strip-display-circuits-package-signed",
             &self.get_account(),
             tx_message,
         ]);
 
-        todo!("extrinsic_garble_and_strip_display_circuits_package_signed tx hash")
+        Ok(())
     }
 
     pub fn extrinsic_register_mobile(&self, pub_key: Vec<u8>) {
@@ -119,16 +139,26 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
-    pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &[u8]) {
+    pub fn extrinsic_check_input(
+        &self,
+        ipfs_cid: &[u8],
+        input_digits: Vec<u8>,
+    ) -> Result<(), InterstellarErrors> {
+        // NOTE: the cli expects a list of SPACE-separated integer b/w [0-9]
+        let inputs_prepared = input_digits
+            .iter()
+            .map(|digit| digit.to_string())
+            .collect::<Vec<String>>()
+            .join(" ");
+
         let res = self.run_trusted_direct(&[
             "tx-check-input",
             &self.get_account(),
-            ipfs_cid,
-            // NOTE: the cli expects a list of SPACE-separated integer b/w [0-9]
-            input_digits.join(" "),
+            std::str::from_utf8(ipfs_cid).unwrap(),
+            &inputs_prepared,
         ]);
 
-        todo!("extrinsic_check_input tx hash")
+        Ok(())
     }
 
     /// Get the list of pending circuits using an extrinsic
@@ -139,15 +169,8 @@ impl InterstellarIntegriteeWorkerCli {
     pub fn get_latest_pending_display_stripped_circuits_package(
         &self,
         ipfs_server_multiaddr: &str,
-    ) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
-        let pending_circuits = self.get_pending_circuits();
-
-        // TODO add param for index?
-        // But how are we supposed to choose which circuit to DL? [we can not really exposed the list to the user?]
-        // in that case; remove .last()
-        let circuit = pending_circuits.last().ok_or(
-            "error: get_latest_pending_display_stripped_circuits_package: no circuit available!",
-        )?;
+    ) -> Result<DisplayStrippedCircuitsPackageBuffers, InterstellarErrors> {
+        let circuit = self.get_most_recent_circuit()?;
 
         // convert Vec<u8> into str
         let message_pgarbled_cid_str = sp_std::str::from_utf8(&circuit.message_pgarbled_cid)
@@ -173,7 +196,7 @@ impl InterstellarIntegriteeWorkerCli {
                 .await
                 .unwrap();
 
-            log::info!(
+            info!(
                 "get_one_pending_display_stripped_circuits_package: got: {},{}",
                 message_pgarbled_buf.len(),
                 pinpad_pgarbled_buf.len(),
@@ -190,15 +213,21 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// RESULT=$(${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct get-circuits-package "${PLAYER1}" | xargs)
-    fn get_pending_circuits(&self) -> PendingCircuitsType {
+    /// NOTE: the name is bad: "get-circuits-package" return the MOST recent Circuit(SINGULAR == 1 Circuit)
+    fn get_most_recent_circuit(
+        &self,
+    ) -> Result<PalletOcwGarbleDisplayStrippedCircuitsPackage, InterstellarErrors> {
         let res = self.run_trusted_direct(&["get-circuits-package", &self.get_account()]);
 
-        todo!("get_pending_circuits PendingCircuitsType")
+        match res {
+            CliResult::DisplayStrippedCircuitsPackage { circuit } => Ok(circuit),
+            _ => Err(InterstellarErrors::NoCircuitAvailable {}),
+        }
     }
 }
 
 fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClient> {
-    log::info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
+    info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
     BackendWithGlobalOptions::new(
         ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&ipfs_server_multiaddr).unwrap(),
         GlobalOptions::builder()
@@ -224,8 +253,7 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
+        let worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
 
         // IMPORTANT this extrinsic requires IPFS!
         // IPFS_PATH=/tmp/ipfs ipfs init -p test
@@ -235,18 +263,17 @@ mod tests {
         // IMPORTANT also requires a running "api_circuits"
         // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
         // TODO add integration test with SSL
-        let tx_hash = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
-        println!("[+] tx_hash: {:02X}", tx_hash);
+        let circuit = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
+        assert!(circuit.is_ok());
     }
 
     #[test]
     fn get_pending_circuits_local_ok() {
         init();
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
+        let worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
 
-        let pending_circuits = worker_cli.get_pending_circuits();
-        println!("[+] pending_circuits: {:?}", pending_circuits);
+        let circuit = worker_cli.get_most_recent_circuit().unwrap();
+        assert!(circuit.message_pgarbled_cid.len() == 32);
     }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
@@ -278,8 +305,6 @@ mod tests {
 
     #[test]
     fn can_build_integritee_client_ok() {
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
-        worker_cli.run_trusted_direct(&["--help"]);
+        let _worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
     }
 }

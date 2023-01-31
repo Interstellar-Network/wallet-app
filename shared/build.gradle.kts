@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     android()
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -190,8 +190,6 @@ abstract class CargoTask : DefaultTask () {
 
     @TaskAction
     fun doWork() {
-        // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
-
         // Set a bunch of env vars needed for cross-compiling C++ projects
         // This is needed at least for secp256k1-sys, and possibly other crates
         // https://github.com/rust-lang/cc-rs#external-configuration-via-environment-variables
@@ -252,6 +250,9 @@ abstract class CargoTask : DefaultTask () {
                 cmd.add("+nightly")
             }
             cmd.add("build")
+            // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
+            // NOTE: breakpoints in Rust do not work(historically at least) so not sure if debug build is worth it?
+            cmd.add("--release")
             cmd.add("--target=$cargo_target")
             if (features.get().isNotEmpty()) {
                 cmd.add("--features=${features.get()}")

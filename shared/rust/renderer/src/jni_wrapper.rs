@@ -20,7 +20,7 @@ use bevy::prelude::Color;
 use common::DisplayStrippedCircuitsPackageBuffers;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject, JString, ReleaseMode};
-use jni::sys::{jbyteArray, jfloat, jfloatArray, jint, jlong, jstring};
+use jni::sys::{jfloat, jfloatArray, jint, jlong};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{debug, info, LevelFilter};

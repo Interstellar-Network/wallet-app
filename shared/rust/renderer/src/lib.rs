@@ -54,7 +54,7 @@ mod jni_wrapper;
 
 /// IMPORTANT: if you change it, adjust renderer/src/vertices_utils.rs else it will
 /// not position the message/pinpad correctly
-pub const CameraScalingMode: ScalingMode = ScalingMode::FixedVertical(1.0);
+pub const CAMERA_SCALING_MODE: ScalingMode = ScalingMode::FixedVertical(1.0);
 
 type EvaluateWrapperType = circuit_evaluate::EvaluateWrapper;
 type TextureUpdateCallbackType =
