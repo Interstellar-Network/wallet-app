@@ -21,9 +21,11 @@ ipfs-api-backend-hyper = { version = "0.6", features = [ "with-send-sync" , "wit
 futures-util = "0.3"
 tokio = { version = "1.20", features = ["rt-multi-thread"] }
 clap = { version = "3.1.6", features = ["derive"] }
+url = "2.3.1"
 
 # only for Android
 jni = { version = "0.20", optional = true }
+jni_fn = { version = "0.1", optional = true }
 bytemuck = "1.11.0"
 
 # default-features to disable all std related code?
@@ -71,5 +73,5 @@ serial_test = "1"
 [features]
 default = ["std"]
 std = []
-with-jni = ["jni"]
+with-jni = ["jni", "jni_fn"]
 with-cwrapper = []

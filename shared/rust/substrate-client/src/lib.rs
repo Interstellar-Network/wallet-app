@@ -16,15 +16,14 @@ use clap::Parser;
 use common::{DisplayStrippedCircuitsPackageBuffers, PendingCircuitsType};
 use core::time::Duration;
 use futures_util::TryStreamExt;
-use integritee_cli::{commands, Cli};
+use integritee_cli::{commands, Cli, CliResult};
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
 use log::*;
 use sp_keyring::AccountKeyring;
-use substrate_api_client::{
-    compose_extrinsic, rpc::WsRpcClient, Api, AssetTip, BaseExtrinsicParams, Hash, Pair, XtStatus,
-};
+use substrate_api_client::{Hash, Pair};
+use url::Url;
 
 #[cfg(feature = "with-cwrapper")]
 pub mod c_wrapper;
@@ -50,7 +49,7 @@ mod loggers;
 
 pub struct InterstellarIntegriteeWorkerCli {
     ws_url: String,
-    ws_port: String,
+    ws_port: u16,
     account: sp_core::sr25519::Pair,
     mrenclave: String,
 }
@@ -59,12 +58,13 @@ impl InterstellarIntegriteeWorkerCli {
     /// Return a client for the INTEGRITEE WORKER
     /// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
     ///
-    /// param: ws_url: default to "wss://127.0.0.1"
-    /// param: ws_port: default to 2000
-    pub fn new(ws_url: String, ws_port: String) -> InterstellarIntegriteeWorkerCli {
+    /// param: ws_url: default to "wss://127.0.0.1:2000"
+    pub fn new(ws_url: &str) -> InterstellarIntegriteeWorkerCli {
+        let url = Url::parse(ws_url).unwrap();
+
         InterstellarIntegriteeWorkerCli {
-            ws_url,
-            ws_port,
+            ws_url: format!("{}://{}", url.scheme(), url.host_str().unwrap()),
+            ws_port: url.port().unwrap(),
             account: AccountKeyring::Alice.pair(),
             // TODO cf /integritee-worker/cli/demo_interstellar.sh
             // read MRENCLAVE <<< $($CLIENT list-workers | awk '/  MRENCLAVE: / { print $2; exit }')
@@ -73,14 +73,14 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
-    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> Option<Vec<u8>> {
+    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> CliResult {
         let mut args = vec![
             // we MUST replace the binary name
             // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
             // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
             "",
             "--trusted-worker-port",
-            &self.ws_port,
+            &self.ws_port.to_string(),
             "--worker-url",
             &self.ws_url,
             "trusted",
@@ -119,12 +119,13 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
-    pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &str) {
+    pub fn extrinsic_check_input(&self, ipfs_cid: &str, input_digits: &[u8]) {
         let res = self.run_trusted_direct(&[
             "tx-check-input",
             &self.get_account(),
             ipfs_cid,
-            input_digits,
+            // NOTE: the cli expects a list of SPACE-separated integer b/w [0-9]
+            input_digits.join(" "),
         ]);
 
         todo!("extrinsic_check_input tx hash")

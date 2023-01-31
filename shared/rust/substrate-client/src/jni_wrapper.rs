@@ -14,20 +14,15 @@
 
 // cf https://docs.rs/jni/latest/jni/#the-rust-side
 
+use crate::loggers;
+use crate::InterstellarIntegriteeWorkerCli;
 use common::{DisplayStrippedCircuitsPackageBuffers, SubPackageType};
-use jni::objects::ReleaseMode;
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
 use jni::sys::{jbyteArray, jint, jlong, jstring};
 use jni::{JNIEnv, JavaVM};
+use jni_fn::jni_fn;
 use std::os::raw::c_void;
-
-use crate::{
-    extrinsic_check_input, extrinsic_garble_and_strip_display_circuits_package_signed,
-    extrinsic_register_mobile, get_latest_pending_display_stripped_circuits_package, get_node_api,
-};
-
-use crate::loggers;
 
 static RUNTIME_EXCEPTION_CLASS: &str = "java/lang/RuntimeException";
 
@@ -50,8 +45,8 @@ pub extern "system" fn JNI_OnLoad(vm: JavaVM, _: *mut c_void) -> jint {
 ///
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
-#[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAndStripDisplayCircuitsPackage(
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
     env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
@@ -72,14 +67,14 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicGarbleAn
         .expect("Couldn't get java string[tx_message]!")
         .into();
 
-    let api = get_node_api(&ws_url);
-    let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, &tx_message);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed(&tx_message);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info
     // in the `strings` module."
     let output = env
-        .new_string(tx_hash.to_string())
+        .new_string("TODO TOREMOVE string ExtrinsicGarbleAndStripDisplayCircuitsPackage")
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."
@@ -126,8 +121,8 @@ fn convert_jbytearray_to_vec(env: JNIEnv, byte_arr: jbyteArray) -> Vec<u8> {
 
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
-#[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegisterMobile(
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn ExtrinsicRegisterMobile(
     env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
@@ -145,14 +140,14 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
 
     let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
 
-    let api = get_node_api(&ws_url);
-    let tx_hash = extrinsic_register_mobile(&api, pub_key_vec);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    worker_cli.extrinsic_register_mobile(pub_key_vec);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info
     // in the `strings` module."
     let output = env
-        .new_string(tx_hash.to_string())
+        .new_string("TODO TOREMOVE string ExtrinsicRegisterMobile")
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."
@@ -164,10 +159,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicRegister
 ///
 /// WARNING: returns a POINTER to a Rust struct = common::DisplayStrippedCircuitsPackageBuffers
 ///
-// "This keeps Rust from "mangling" the name and making it unique for this
-// crate."
-#[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn GetCircuits(
     env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
@@ -189,8 +182,10 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
         .into();
 
     log::debug!("before get_latest_pending_display_stripped_circuits_package");
-    let display_stripped_circuits_package_buffers =
-        get_latest_pending_display_stripped_circuits_package(&ipfs_addr, &ws_url).map_err(|_| {
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    let display_stripped_circuits_package_buffers = worker_cli
+        .get_latest_pending_display_stripped_circuits_package(&ipfs_addr)
+        .map_err(|_| {
             env.throw_new(RUNTIME_EXCEPTION_CLASS, "NoCircuitAvailableException")
                 .unwrap()
         });
@@ -245,8 +240,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetCircuits(
     Box::into_raw(Box::new(display_stripped_circuits_package_buffers)) as jlong
 }
 
-#[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetMessageNbDigitsFromPtr(
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn GetMessageNbDigitsFromPtr(
     _env: JNIEnv,
     _class: JClass,
     circuits_package_ptr: jlong,
@@ -266,11 +261,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetMessageNbDigit
 /// renderer/src/jni_wrapper.rs initApp WILL cleanup "circuits_package_ptr"!
 /// So here we just clone the whole "package" field, b/c that should be enough to be used a "tx_id"
 #[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetTxIdPtrFromPtr(
-    _env: JNIEnv,
-    _class: JClass,
-    circuits_package_ptr: jlong,
-) -> jlong {
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn GetTxIdPtrFromPtr(_env: JNIEnv, _class: JClass, circuits_package_ptr: jlong) -> jlong {
     // DO NOT USE A Box; we DO NOT want to cleanup the memory at this time!
     let display_stripped_circuits_package_buffers =
         unsafe { &mut *(circuits_package_ptr as *mut DisplayStrippedCircuitsPackageBuffers) };
@@ -286,8 +278,8 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_GetTxIdPtrFromPtr
 ///
 // "This keeps Rust from "mangling" the name and making it unique for this
 // crate."
-#[no_mangle]
-pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInput(
+#[jni_fn("gg.interstellar.wallet.RustWrapper")]
+pub fn ExtrinsicCheckInput(
     env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
@@ -309,14 +301,16 @@ pub extern "system" fn Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInp
 
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
-    let api = get_node_api(&ws_url);
-    let tx_hash = extrinsic_check_input(&api, package.message_pgarbled_cid.to_vec(), inputs_vec);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    worker_cli.extrinsic_check_input(package.message_pgarbled_cid, &inputs_vec);
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info
     // in the `strings` module."
     let output = env
-        .new_string(tx_hash.to_string())
+        .new_string(
+            "TODO TOREMOVE string Java_gg_interstellar_wallet_RustWrapper_ExtrinsicCheckInput",
+        )
         .expect("Couldn't create java string!");
 
     // "Finally, extract the raw pointer to return."

@@ -174,7 +174,6 @@ fn init_surface(
 /// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
 /// param: circuits_package_ptr: MUST be the returned value from substrate-client/src/jni_wrapper.rs GetCircuits
 ///     NOTE: the pointer is NOT valid after this function returns!
-#[no_mangle]
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn initSurface(
     env: JNIEnv,
@@ -235,7 +234,6 @@ pub unsafe fn initSurface(
     )
 }
 
-#[no_mangle]
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn render(_env: *mut JNIEnv, _: JClass, obj: jlong) {
     // TODO static state?
@@ -248,7 +246,6 @@ pub unsafe fn render(_env: *mut JNIEnv, _: JClass, obj: jlong) {
     app.update();
 }
 
-#[no_mangle]
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn cleanup(_env: *mut JNIEnv, _: JClass, obj: jlong) {
     let _obj: Box<App> = Box::from_raw(obj as *mut _);

@@ -7143,6 +7143,7 @@ dependencies = [
  "integritee-cli",
  "ipfs-api-backend-hyper",
  "jni",
+ "jni_fn",
  "log",
  "openssl",
  "serial_test",
@@ -7152,6 +7153,7 @@ dependencies = [
  "sp-std",
  "substrate-api-client",
  "tokio",
+ "url",
 ]
 
 [[package]]
