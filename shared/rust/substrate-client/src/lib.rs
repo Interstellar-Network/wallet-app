@@ -53,7 +53,8 @@ pub struct InterstellarIntegriteeWorkerCli {
     worker_port: u16,
     node_url: String,
     node_port: u16,
-    account: sp_core::sr25519::Pair,
+    // WARNING: cf "get_account"
+    // account: sp_core::sr25519::Pair,
     mrenclave: Option<String>,
 }
 
@@ -74,7 +75,8 @@ impl InterstellarIntegriteeWorkerCli {
             worker_port: ws_url.port().unwrap(),
             node_url: format!("{}://{}", node_url.scheme(), node_url.host_str().unwrap()),
             node_port: node_url.port().unwrap(),
-            account: AccountKeyring::Alice.pair(),
+            // WARNING: cf "get_account"
+            // account: AccountKeyring::Alice.pair(),
             mrenclave: None,
         };
 
@@ -138,8 +140,11 @@ impl InterstellarIntegriteeWorkerCli {
         commands::match_command(&cli)
     }
 
+    /// CAREFUL! The result of this is indirectly used by "get_pair_from_str" in /xxx/.cargo/git/checkouts/integritee-worker-4df232146e8c8d35/0c9d7cf/cli/src/trusted_command_utils.rs
+    /// When NOT using a hardcoded key(eg //ALICE), it ends up using the filesystem via "TRUSTED_KEYSTORE_PATH"
+    /// which is not really ideal for Android...
     fn get_account(&self) -> String {
-        self.account.public().to_string()
+        "//Alice".to_string()
     }
 
     /// cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
@@ -299,7 +304,10 @@ mod tests {
             InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
 
         let circuit = worker_cli.get_most_recent_circuit().unwrap();
-        assert!(circuit.message_pgarbled_cid.len() == 32);
+        assert!(
+            circuit.message_pgarbled_cid.len()
+                == "QmQMRdg8eCu8bzaBQqdtW26G87XCnX6CAi3oa2vfVx67Lb".len()
+        );
     }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
