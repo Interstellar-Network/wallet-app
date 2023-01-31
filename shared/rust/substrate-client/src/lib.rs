@@ -49,8 +49,10 @@ mod loggers;
 // }
 
 pub struct InterstellarIntegriteeWorkerCli {
-    ws_url: String,
-    ws_port: u16,
+    worker_url: String,
+    worker_port: u16,
+    node_url: String,
+    node_port: u16,
     account: sp_core::sr25519::Pair,
     mrenclave: Option<String>,
 }
@@ -60,20 +62,42 @@ impl InterstellarIntegriteeWorkerCli {
     /// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
     ///
     /// param: ws_url: default to "wss://127.0.0.1:2000"
-    pub fn new(ws_url: &str) -> InterstellarIntegriteeWorkerCli {
-        let url = Url::parse(ws_url).unwrap();
+    pub fn new(ws_url: &str, node_url: &str) -> InterstellarIntegriteeWorkerCli {
+        let ws_url = Url::parse(ws_url).unwrap();
+        let node_url = Url::parse(node_url).unwrap();
 
         // Two steps init:
         // - First we parse the url etc
         // - Then we send a query to get the mrenclave
         let mut worker_cli = InterstellarIntegriteeWorkerCli {
-            ws_url: format!("{}://{}", url.scheme(), url.host_str().unwrap()),
-            ws_port: url.port().unwrap(),
+            worker_url: format!("{}://{}", ws_url.scheme(), ws_url.host_str().unwrap()),
+            worker_port: ws_url.port().unwrap(),
+            node_url: format!("{}://{}", node_url.scheme(), node_url.host_str().unwrap()),
+            node_port: node_url.port().unwrap(),
             account: AccountKeyring::Alice.pair(),
             mrenclave: None,
         };
 
-        let cli = Cli::parse_from(["", "list-workers"]);
+        // TODO DRY with "run_trusted_direct"
+        let worker_port_str = worker_cli.worker_port.to_string();
+        let worker_url_str = worker_cli.worker_url.to_string();
+        let node_port_str = worker_cli.node_port.to_string();
+        let node_url_str = worker_cli.node_url.to_string();
+        let cli = Cli::parse_from([
+            // we MUST replace the binary name
+            // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
+            // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
+            "",
+            "--trusted-worker-port",
+            &worker_port_str,
+            "--worker-url",
+            &worker_url_str,
+            "--node-port",
+            &node_port_str,
+            "--node-url",
+            &node_url_str,
+            "list-workers",
+        ]);
         let res = commands::match_command(&cli);
         match res {
             CliResult::MrEnclaveBase58 { mr_enclaves } => {
@@ -88,7 +112,7 @@ impl InterstellarIntegriteeWorkerCli {
 
     /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
     fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> CliResult {
-        let port_str = self.ws_port.to_string();
+        let port_str = self.worker_port.to_string();
         let mrenclave_str = self
             .mrenclave
             .clone()
@@ -102,7 +126,7 @@ impl InterstellarIntegriteeWorkerCli {
             "--trusted-worker-port",
             &port_str,
             "--worker-url",
-            &self.ws_url,
+            &self.worker_url,
             "trusted",
             "--direct",
             "--mrenclave",
@@ -253,7 +277,8 @@ mod tests {
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         init();
-        let worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
 
         // IMPORTANT this extrinsic requires IPFS!
         // IPFS_PATH=/tmp/ipfs ipfs init -p test
@@ -270,7 +295,8 @@ mod tests {
     #[test]
     fn get_pending_circuits_local_ok() {
         init();
-        let worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
 
         let circuit = worker_cli.get_most_recent_circuit().unwrap();
         assert!(circuit.message_pgarbled_cid.len() == 32);
@@ -305,6 +331,8 @@ mod tests {
 
     #[test]
     fn can_build_integritee_client_ok() {
-        let _worker_cli = InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090");
+        let worker_cli =
+            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
+        assert!(worker_cli.mrenclave.is_some());
     }
 }

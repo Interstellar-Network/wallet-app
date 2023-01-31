@@ -67,7 +67,7 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
         .expect("Couldn't get java string[tx_message]!")
         .into();
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
     worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed(&tx_message);
     // TODO error handling: .unwrap()
 
@@ -140,7 +140,7 @@ pub fn ExtrinsicRegisterMobile(
 
     let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
     worker_cli.extrinsic_register_mobile(pub_key_vec);
     // TODO error handling: .unwrap()
 
@@ -182,7 +182,7 @@ pub fn GetCircuits(
         .into();
 
     log::debug!("before get_latest_pending_display_stripped_circuits_package");
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
     let display_stripped_circuits_package_buffers = worker_cli
         .get_latest_pending_display_stripped_circuits_package(&ipfs_addr)
         .map_err(|_| {
@@ -302,7 +302,7 @@ pub fn ExtrinsicCheckInput(
 
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url);
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
     worker_cli.extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec);
     // TODO error handling: .unwrap()
 
