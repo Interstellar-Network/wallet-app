@@ -7,6 +7,10 @@ jobs:
   # TODO split test and lint; but that REQUIRE caching else recompile from scratch in between
   rust:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: shared/rust/
     steps:
       # install build dependencies
       # MUST match the same step in Dockerfile
@@ -61,13 +65,12 @@ jobs:
           use_toolchain_toml: "true"
           toolchain_components: ""
 
-      - run: rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-unknown-linux-gnu
-
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
-
       # cf https://github.com/android-actions/setup-android
+
+      - run: rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-unknown-linux-gnu
 
       # https://github.com/actions/setup-java
       # TODO cache: "/home/runner/.konan"?
