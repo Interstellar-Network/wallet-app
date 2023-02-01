@@ -2060,7 +2060,6 @@ dependencies = [
 [[package]]
 name = "environmental"
 version = "1.1.3"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 
 [[package]]
 name = "environmental"
@@ -3124,7 +3123,6 @@ dependencies = [
 [[package]]
 name = "integritee-cli"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "base58",
  "blake2-rfc",
@@ -3311,7 +3309,6 @@ dependencies = [
 [[package]]
 name = "ita-sgx-runtime"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3352,7 +3349,6 @@ dependencies = [
 [[package]]
 name = "ita-stf"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "derive_more",
  "frame-support",
@@ -3380,14 +3376,13 @@ dependencies = [
  "sha3",
  "sp-application-crypto",
  "sp-core",
- "sp-io 7.0.0 (git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5)",
+ "sp-io 7.0.0",
  "sp-runtime",
 ]
 
 [[package]]
 name = "itc-rpc-client"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-rpc",
  "itp-types",
@@ -3423,7 +3418,6 @@ checksum = "fad582f4b9e86b6caa621cabeb0963332d92eea04729ab12892c2533951e6440"
 [[package]]
 name = "itp-api-client-extensions"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-types",
  "parity-scale-codec",
@@ -3437,7 +3431,6 @@ dependencies = [
 [[package]]
 name = "itp-api-client-types"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "sp-core",
  "substrate-api-client",
@@ -3446,7 +3439,6 @@ dependencies = [
 [[package]]
 name = "itp-hashing"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "sp-core",
 ]
@@ -3454,7 +3446,6 @@ dependencies = [
 [[package]]
 name = "itp-node-api"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-api-client-extensions",
  "itp-api-client-types",
@@ -3466,7 +3457,6 @@ dependencies = [
 [[package]]
 name = "itp-node-api-factory"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-api-client-types",
  "sp-core",
@@ -3476,7 +3466,6 @@ dependencies = [
 [[package]]
 name = "itp-node-api-metadata"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "derive_more",
  "parity-scale-codec",
@@ -3487,7 +3476,6 @@ dependencies = [
 [[package]]
 name = "itp-node-api-metadata-provider"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-node-api-metadata",
  "thiserror",
@@ -3496,7 +3484,6 @@ dependencies = [
 [[package]]
 name = "itp-rpc"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-types",
  "parity-scale-codec",
@@ -3507,12 +3494,10 @@ dependencies = [
 [[package]]
 name = "itp-settings"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 
 [[package]]
 name = "itp-sgx-crypto"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "aes 0.6.0",
  "derive_more",
@@ -3531,7 +3516,6 @@ dependencies = [
 [[package]]
 name = "itp-sgx-externalities"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "derive_more",
  "environmental 1.1.3",
@@ -3546,12 +3530,10 @@ dependencies = [
 [[package]]
 name = "itp-sgx-io"
 version = "0.8.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 
 [[package]]
 name = "itp-sgx-runtime-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "frame-system",
  "pallet-balances",
@@ -3562,7 +3544,6 @@ dependencies = [
 [[package]]
 name = "itp-stf-interface"
 version = "0.8.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "itp-types",
 ]
@@ -3570,7 +3551,6 @@ dependencies = [
 [[package]]
 name = "itp-stf-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -3580,7 +3560,6 @@ dependencies = [
 [[package]]
 name = "itp-storage"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "derive_more",
  "frame-metadata 15.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3598,12 +3577,10 @@ dependencies = [
 [[package]]
 name = "itp-time-utils"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 
 [[package]]
 name = "itp-types"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "chrono",
  "frame-system",
@@ -3621,7 +3598,6 @@ dependencies = [
 [[package]]
 name = "itp-utils"
 version = "0.9.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "frame-support",
  "hex",
@@ -6644,7 +6620,6 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "7.0.0"
-source = "git+https://github.com/Interstellar-Network/integritee-worker.git?branch=interstellar-M5#0c9d7cfd9c452f14aed8bde1f0999742284f59a9"
 dependencies = [
  "environmental 1.1.3",
  "futures",

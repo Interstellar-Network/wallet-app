@@ -130,9 +130,9 @@ impl InterstellarIntegriteeWorkerCli {
             "--worker-url",
             &self.worker_url,
             "trusted",
-            "--direct",
             "--mrenclave",
             &mrenclave_str,
+            "--direct",
         ];
         args.extend_from_slice(trusted_subcommand);
 
@@ -154,13 +154,21 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
         tx_message: &str,
     ) -> Result<(), InterstellarErrors> {
-        let _res = self.run_trusted_direct(&[
+        let res = self.run_trusted_direct(&[
             "garble-and-strip-display-circuits-package-signed",
             &self.get_account(),
             tx_message,
         ]);
 
-        Ok(())
+        match res {
+            CliResult::TrustedOpRes { res } => match res {
+                Some(_) => Ok(()),
+                None => {
+                    todo!("extrinsic_garble_and_strip_display_circuits_package_signed: FAILED[2]?")
+                }
+            },
+            _ => todo!("extrinsic_garble_and_strip_display_circuits_package_signed: FAILED[1]?"),
+        }
     }
 
     pub fn extrinsic_register_mobile(&self, pub_key: Vec<u8>) {
@@ -187,7 +195,10 @@ impl InterstellarIntegriteeWorkerCli {
             &inputs_prepared,
         ]);
 
-        Ok(())
+        match res {
+            CliResult::TrustedOpRes { res } => Ok(()),
+            _ => todo!("extrinsic_check_input: FAILED?"),
+        }
     }
 
     /// Get the list of pending circuits using an extrinsic
@@ -270,10 +281,20 @@ mod tests {
     use super::*;
     static INIT: std::sync::Once = std::sync::Once::new();
 
-    fn init() {
+    fn init() -> InterstellarIntegriteeWorkerCli {
         INIT.call_once(|| {
             loggers::init_logger();
         });
+
+        InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990")
+    }
+
+    #[test]
+    #[ignore]
+    #[serial_test::serial]
+    fn can_build_integritee_client_ok() {
+        let worker_cli = init();
+        assert!(worker_cli.mrenclave.is_some());
     }
 
     // IMPORTANT: use #[serial_test::serial] when testing extrinsics else:
@@ -281,27 +302,17 @@ mod tests {
     #[test]
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
-        init();
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
+        let worker_cli = init();
 
-        // IMPORTANT this extrinsic requires IPFS!
-        // IPFS_PATH=/tmp/ipfs ipfs init -p test
-        // IPFS_PATH=/tmp/ipfs ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
-        // IPFS_PATH=/tmp/ipfs ipfs daemon --enable-pubsub-experiment
-        //
-        // IMPORTANT also requires a running "api_circuits"
-        // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
-        // TODO add integration test with SSL
-        let circuit = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
-        assert!(circuit.is_ok());
+        let res = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
+        assert!(res.is_ok());
     }
 
     #[test]
+    #[ignore]
+    #[serial_test::serial]
     fn get_pending_circuits_local_ok() {
-        init();
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
+        let worker_cli = init();
 
         let circuit = worker_cli.get_most_recent_circuit().unwrap();
         assert!(
@@ -336,11 +347,4 @@ mod tests {
     //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
     //     println!("[+] tx_hash: {:02X}", tx_hash);
     // }
-
-    #[test]
-    fn can_build_integritee_client_ok() {
-        let worker_cli =
-            InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
-        assert!(worker_cli.mrenclave.is_some());
-    }
 }
