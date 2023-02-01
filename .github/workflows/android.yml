@@ -20,8 +20,9 @@ jobs:
 
       - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
         with:
-          use_toolchain_toml: "true"
-          toolchain_components: ""
+          # ignore the nightly, and use stable for tests and linters
+          use_toolchain_toml: false
+          toolchain_components: "rustfmt,clippy"
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
@@ -65,10 +66,6 @@ jobs:
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
-
-      - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
-
-      - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
 
       # cf https://github.com/android-actions/setup-android
 
