@@ -17,7 +17,9 @@ use common::DisplayStrippedCircuitsPackageBuffers;
 use common::InterstellarErrors;
 use core::time::Duration;
 use futures_util::TryStreamExt;
-use integritee_cli::{commands, Cli, CliResult, PalletOcwGarbleDisplayStrippedCircuitsPackage};
+use integritee_cli::{
+    commands, Cli, CliResult, CliResultOk, PalletOcwGarbleDisplayStrippedCircuitsPackage,
+};
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
@@ -102,7 +104,7 @@ impl InterstellarIntegriteeWorkerCli {
         ]);
         let res = commands::match_command(&cli);
         match res {
-            CliResult::MrEnclaveBase58 { mr_enclaves } => {
+            Ok(CliResultOk::MrEnclaveBase58 { mr_enclaves }) => {
                 // TODO which enclave to choose if more than one? Probably random to distribute the clients?
                 worker_cli.mrenclave = Some(mr_enclaves.first().unwrap().to_string());
             }
@@ -154,21 +156,14 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
         tx_message: &str,
     ) -> Result<(), InterstellarErrors> {
-        let res = self.run_trusted_direct(&[
-            "garble-and-strip-display-circuits-package-signed",
-            &self.get_account(),
-            tx_message,
-        ]);
-
-        match res {
-            CliResult::TrustedOpRes { res } => match res {
-                Some(_) => Ok(()),
-                None => {
-                    todo!("extrinsic_garble_and_strip_display_circuits_package_signed: FAILED[2]?")
-                }
-            },
-            _ => todo!("extrinsic_garble_and_strip_display_circuits_package_signed: FAILED[1]?"),
-        }
+        Ok(self
+            .run_trusted_direct(&[
+                "garble-and-strip-display-circuits-package-signed",
+                &self.get_account(),
+                tx_message,
+            ])
+            .map_err(|err| InterstellarErrors::GarbleAndStrip {})
+            .map(|_| ())?)
     }
 
     pub fn extrinsic_register_mobile(&self, pub_key: Vec<u8>) {
@@ -188,16 +183,18 @@ impl InterstellarIntegriteeWorkerCli {
             .collect::<Vec<String>>()
             .join(" ");
 
-        let res = self.run_trusted_direct(&[
-            "tx-check-input",
-            &self.get_account(),
-            std::str::from_utf8(ipfs_cid).unwrap(),
-            &inputs_prepared,
-        ]);
+        let res = self
+            .run_trusted_direct(&[
+                "tx-check-input",
+                &self.get_account(),
+                std::str::from_utf8(ipfs_cid).unwrap(),
+                &inputs_prepared,
+            ])
+            .map_err(|err| InterstellarErrors::TxCheckInput {})?;
 
         match res {
-            CliResult::TrustedOpRes { res } => Ok(()),
-            _ => todo!("extrinsic_check_input: FAILED?"),
+            CliResultOk::TrustedOpRes { res } => Ok(()),
+            _ => panic!("called tx-check-input but got an unexpected enum variant"),
         }
     }
 
@@ -257,11 +254,13 @@ impl InterstellarIntegriteeWorkerCli {
     fn get_most_recent_circuit(
         &self,
     ) -> Result<PalletOcwGarbleDisplayStrippedCircuitsPackage, InterstellarErrors> {
-        let res = self.run_trusted_direct(&["get-circuits-package", &self.get_account()]);
+        let res = self
+            .run_trusted_direct(&["get-circuits-package", &self.get_account()])
+            .map_err(|err| InterstellarErrors::GetCircuitsPackage {})?;
 
         match res {
-            CliResult::DisplayStrippedCircuitsPackage { circuit } => Ok(circuit),
-            _ => Err(InterstellarErrors::NoCircuitAvailable {}),
+            CliResultOk::DisplayStrippedCircuitsPackage { circuit } => Ok(circuit),
+            _ => panic!("called get-circuits-package but got an unexpected enum variant"),
         }
     }
 }
@@ -290,7 +289,6 @@ mod tests {
     }
 
     #[test]
-    #[serial_test::serial]
     fn can_build_integritee_client_ok() {
         let worker_cli = init();
         assert!(worker_cli.mrenclave.is_some());

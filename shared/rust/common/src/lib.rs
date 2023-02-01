@@ -23,8 +23,12 @@ pub struct DisplayStrippedCircuitsPackageBuffers {
 
 #[derive(Debug, Snafu)]
 pub enum InterstellarErrors {
-    #[snafu(display("No circuit available for this account"))]
-    NoCircuitAvailable {},
+    #[snafu(display("error at get-circuits-package"))]
+    GetCircuitsPackage {},
+    #[snafu(display("error at garble-and-strip-display-circuits-package-signed"))]
+    GarbleAndStrip {},
+    #[snafu(display("error at tx-check-input"))]
+    TxCheckInput {},
 }
 
 #[cfg(test)]
