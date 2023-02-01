@@ -290,7 +290,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     #[serial_test::serial]
     fn can_build_integritee_client_ok() {
         let worker_cli = init();
@@ -304,12 +303,14 @@ mod tests {
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         let worker_cli = init();
 
-        let res = worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed("aaa");
+        // NOTE: we use this tx message b/c that way we can easily compare signatures etc vs /integritee-worker/cli/demo_interstellar.sh
+        // NOTE: when comparing: you MUST restart the worker else the nonce will not match
+        let res = worker_cli
+            .extrinsic_garble_and_strip_display_circuits_package_signed("REPLACEME tx msg");
         assert!(res.is_ok());
     }
 
     #[test]
-    #[ignore]
     #[serial_test::serial]
     fn get_pending_circuits_local_ok() {
         let worker_cli = init();

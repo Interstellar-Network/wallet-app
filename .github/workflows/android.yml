@@ -19,17 +19,56 @@ jobs:
           install_cmake_and_ninja: true
 
       - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
-
-      # TODO? "x86_64-unknown-linux-gnu"
-      - run: rustup target add --toolchain nightly armv7-linux-androideabi aarch64-linux-android
+        with:
+          use_toolchain_toml: "true"
+          toolchain_components: ""
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
 
-      # TODO
-      # - uses: Interstellar-Network/gh-actions/rust-lint@v1.0.0
-      # - uses: Interstellar-Network/gh-actions/rust-build-and-test@v1.0.0
+      - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
+
+      - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
+
+        # TODO move into separate action? ideally into a JS action "post" that setup ccache?
+        # NOTE: remove if using "rust-build-and-test"
+      - name: Print ccache/sccache stats
+        # display stats even if tests failed
+        if: always()
+        run: |
+          ccache --show-stats || true
+          sccache --show-stats || true
+        shell: bash
+
+  # TODO split test and lint; but that REQUIRE caching else recompile from scratch in between
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      # install build dependencies
+      # MUST match the same step in Dockerfile
+      # - name: Install dependencies
+      #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
+
+      - uses: Interstellar-Network/gh-actions/prepare@v3-dev
+        with:
+          ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
+          install_cmake_and_ninja: true
+
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
+        with:
+          use_toolchain_toml: "true"
+          toolchain_components: ""
+
+      - run: rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-unknown-linux-gnu
+
+      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
+
+      ##########################################################################
+
+      - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
+
+      - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
 
       # cf https://github.com/android-actions/setup-android
 
