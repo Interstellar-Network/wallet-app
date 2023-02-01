@@ -108,7 +108,7 @@ jobs:
 
       - name: Build Wallet-App
         # TODO build arm7, and Release only?
-        run: ./gradlew --no-daemon assembleArm64Debug
+        run: ./gradlew --no-daemon assembleArm64Release
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"
@@ -126,4 +126,4 @@ jobs:
         with:
           name: all-apks
           path: |
-            ./androidApp/build/outputs/apk/arm64/debug/androidApp-*.apk
+            ./androidApp/build/outputs/apk/arm64/release/androidApp-*.apk
