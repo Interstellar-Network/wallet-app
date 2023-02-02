@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
-use bevy::{asset::LoadState, prelude::*};
 use ndarray::Array2;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
@@ -42,7 +42,6 @@ const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
 // b/c https://github.com/gfx-rs/naga/pull/1736
 // But we do not need lighting/PBR for now so this is acceptable
 pub use bevy::prelude::App;
-use setup::setup_camera;
 
 pub mod vertices_utils;
 
@@ -78,7 +77,7 @@ pub struct TextureUpdateCallbackPinpad {
 pub struct RectMessage {
     rect: vertices_utils::Rect,
     text_color: Color,
-    background_color: Color,
+    // background_color: Color,
     circuit_dimension: [u32; 2],
 }
 
@@ -115,7 +114,8 @@ pub struct CircuitPinpad {
 /// param message_pgc_buf/pinpad_pgc_buf: buffers containing a STRIPPED circuit.pgarbled.stripped.pb.bin
 /// param message_packmsg_buf/pinpad_packmsg_buf: buffers containing the corresponding PACKMSG
 ///
-/// WARNING: apparently using WHITE(which is Sprite's default) for text colors breaks the shader
+/// WARNING: apparently using WHITE(which is Sprite's default) for text colors breaks the shader.
+#[allow(clippy::too_many_arguments)]
 pub fn init_app(
     app: &mut App,
     rect_message: vertices_utils::Rect,
@@ -151,8 +151,8 @@ pub fn init_app(
         circle_text_color = Color::rgb(0.99, 0.99, 0.99)
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    /// circuits init, via crate ../circuit_evaluate
+    //**************************************************************************
+    // circuits init, via crate ../circuit_evaluate
     let message_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
     let pinpad_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
 
@@ -179,11 +179,11 @@ pub fn init_app(
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::log::LogPlugin { ..default() });
     app.add_plugin(bevy::core::CorePlugin { ..default() });
-    app.add_plugin(bevy::time::TimePlugin { ..default() });
-    app.add_plugin(bevy::transform::TransformPlugin { ..default() });
-    app.add_plugin(bevy::hierarchy::HierarchyPlugin { ..default() });
-    app.add_plugin(bevy::diagnostic::DiagnosticsPlugin { ..default() });
-    app.add_plugin(bevy::input::InputPlugin { ..default() });
+    app.add_plugin(bevy::time::TimePlugin {});
+    app.add_plugin(bevy::transform::TransformPlugin {});
+    app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
+    app.add_plugin(bevy::diagnostic::DiagnosticsPlugin {});
+    app.add_plugin(bevy::input::InputPlugin {});
     app.add_plugin(WindowPlugin {
         window: WindowDescriptor {
             title: "renderer demo".to_string(),
@@ -202,15 +202,15 @@ pub fn init_app(
     // #[cfg(feature = "bevy_scene")]
     // app.add_plugin(bevy::scene::ScenePlugin { ..default() });
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugin(bevy::render::RenderPlugin { ..default() });
+    app.add_plugin(bevy::render::RenderPlugin {});
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
     // #[cfg(not(target_os = "android"))]
     #[cfg(feature = "with_winit")]
-    app.add_plugin(bevy::winit::WinitPlugin { ..default() });
+    app.add_plugin(bevy::winit::WinitPlugin {});
     // #[cfg(feature = "bevy_core_pipeline")]
-    app.add_plugin(bevy::core_pipeline::CorePipelinePlugin { ..default() });
+    app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
-    app.add_plugin(bevy::sprite::SpritePlugin { ..default() });
+    app.add_plugin(bevy::sprite::SpritePlugin {});
 
     // TODO
     // app.add_plugins_with(DefaultPlugins, |group| {
@@ -249,10 +249,10 @@ pub fn init_app(
     app.insert_resource(RectMessage {
         rect: rect_message,
         text_color: message_text_color,
-        background_color: background_color,
+        // background_color,
         circuit_dimension: [
-            message_evaluate_wrapper.GetWidth().try_into().unwrap(),
-            message_evaluate_wrapper.GetHeight().try_into().unwrap(),
+            message_evaluate_wrapper.get_width().try_into().unwrap(),
+            message_evaluate_wrapper.get_height().try_into().unwrap(),
         ],
     });
     app.add_startup_system(setup::setup_message_texture);
@@ -262,10 +262,10 @@ pub fn init_app(
         nb_cols: pinpad_nb_cols,
         nb_rows: pinpad_nb_rows,
         text_color: circle_text_color,
-        circle_color: circle_color,
+        circle_color,
         circuit_dimension: [
-            pinpad_evaluate_wrapper.GetWidth().try_into().unwrap(),
-            pinpad_evaluate_wrapper.GetHeight().try_into().unwrap(),
+            pinpad_evaluate_wrapper.get_width().try_into().unwrap(),
+            pinpad_evaluate_wrapper.get_height().try_into().unwrap(),
         ],
     });
     app.add_startup_system(setup::setup_pinpad_textures);
@@ -312,7 +312,7 @@ fn change_texture_message(
         // };
         // info!("{:?}", size * t.scale.truncate());
 
-        if let Some(mut image) = opt_handle.map(|handle| images.get_mut(handle)).flatten() {
+        if let Some(image) = opt_handle.and_then(|handle| images.get_mut(handle)) {
             log::debug!("change_texture_message images OK");
 
             // IMPORTANT: DO NOT use image.texture_descriptor.size.width/height
@@ -355,12 +355,9 @@ fn change_texture_pinpad(
     log::debug!("change_texture_pinpad BEGIN");
     for (_sprite, _t, opt_handle) in query.iter_mut() {
         log::debug!("change_texture_pinpad query OK");
-        if let Some(texture_atlas) = opt_handle
-            .map(|handle| texture_atlas.get_mut(handle))
-            .flatten()
-        {
+        if let Some(texture_atlas) = opt_handle.and_then(|handle| texture_atlas.get_mut(handle)) {
             log::debug!("change_texture_pinpad texture_atlas OK");
-            if let Some(mut atlas_image) = images.get_mut(&texture_atlas.texture) {
+            if let Some(atlas_image) = images.get_mut(&texture_atlas.texture) {
                 log::debug!("change_texture_pinpad texture_atlas.texture OK");
                 let data_len = atlas_image.data.len();
                 (texture_update_callback.callback.as_mut().unwrap().as_mut())(

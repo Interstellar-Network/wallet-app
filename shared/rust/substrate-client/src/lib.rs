@@ -24,8 +24,6 @@ use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
 use log::*;
-use sp_core::crypto::Pair;
-use sp_keyring::AccountKeyring;
 use url::Url;
 
 #[cfg(feature = "with-cwrapper")]
@@ -156,17 +154,16 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
         tx_message: &str,
     ) -> Result<(), InterstellarErrors> {
-        Ok(self
-            .run_trusted_direct(&[
-                "garble-and-strip-display-circuits-package-signed",
-                &self.get_account(),
-                tx_message,
-            ])
-            .map_err(|err| InterstellarErrors::GarbleAndStrip {})
-            .map(|_| ())?)
+        self.run_trusted_direct(&[
+            "garble-and-strip-display-circuits-package-signed",
+            &self.get_account(),
+            tx_message,
+        ])
+        .map_err(|_err| InterstellarErrors::GarbleAndStrip {})
+        .map(|_| ())
     }
 
-    pub fn extrinsic_register_mobile(&self, pub_key: Vec<u8>) {
+    pub fn extrinsic_register_mobile(&self, _pub_key: Vec<u8>) {
         todo!("TODO extrinsic_register_mobile")
     }
 
@@ -190,10 +187,10 @@ impl InterstellarIntegriteeWorkerCli {
                 std::str::from_utf8(ipfs_cid).unwrap(),
                 &inputs_prepared,
             ])
-            .map_err(|err| InterstellarErrors::TxCheckInput {})?;
+            .map_err(|_err| InterstellarErrors::TxCheckInput {})?;
 
         match res {
-            CliResultOk::TrustedOpRes { res } => Ok(()),
+            CliResultOk::None => Ok(()),
             _ => panic!("called tx-check-input but got an unexpected enum variant"),
         }
     }
@@ -220,13 +217,13 @@ impl InterstellarIntegriteeWorkerCli {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
             // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
-            let message_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            let message_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
                 .cat(message_pgarbled_cid_str)
                 .map_ok(|chunk| chunk.to_vec())
                 .try_concat()
                 .await
                 .unwrap();
-            let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
+            let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
                 .cat(pinpad_pgarbled_cid_str)
                 .map_ok(|chunk| chunk.to_vec())
                 .try_concat()
@@ -240,9 +237,9 @@ impl InterstellarIntegriteeWorkerCli {
             );
 
             Ok(DisplayStrippedCircuitsPackageBuffers {
-                message_pgarbled_buf: message_pgarbled_buf,
+                message_pgarbled_buf,
                 message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
-                pinpad_pgarbled_buf: pinpad_pgarbled_buf,
+                pinpad_pgarbled_buf,
                 pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
                 package: circuit.clone(),
             })
@@ -256,7 +253,7 @@ impl InterstellarIntegriteeWorkerCli {
     ) -> Result<PalletOcwGarbleDisplayStrippedCircuitsPackage, InterstellarErrors> {
         let res = self
             .run_trusted_direct(&["get-circuits-package", &self.get_account()])
-            .map_err(|err| InterstellarErrors::GetCircuitsPackage {})?;
+            .map_err(|_err| InterstellarErrors::GetCircuitsPackage {})?;
 
         match res {
             CliResultOk::DisplayStrippedCircuitsPackage { circuit } => Ok(circuit),
@@ -268,7 +265,7 @@ impl InterstellarIntegriteeWorkerCli {
 fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClient> {
     info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
     BackendWithGlobalOptions::new(
-        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&ipfs_server_multiaddr).unwrap(),
+        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(ipfs_server_multiaddr).unwrap(),
         GlobalOptions::builder()
             .timeout(Duration::from_millis(5000))
             .build(),

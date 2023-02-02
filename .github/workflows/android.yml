@@ -32,6 +32,7 @@ jobs:
       - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
         with:
           working-directory: shared/rust
+          clippy_args: "--all-features -- -D warnings"
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"
@@ -68,9 +69,32 @@ jobs:
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
+
+      # https://github.com/actions/setup-java
+      # TODO cache: "/home/runner/.konan"?
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          cache: "gradle"
+          distribution: "temurin"
+          # cf https://github.com/jni-rs/jni-rs/blob/master/.github/workflows/ci.yml
+          # for the version?
+          # NOTE: "Error: Could not find satisfied version for SemVer '1.8'.
+          # Available versions: 18.0.1+10, 18.0.0+36, 17.0.3+7, 17.0.2+8, 17.0.1+12, 17.0.0+35, 16.0.2+7, 11.0.15+10, 11.0.14+101, 11.0.14+9, 11.0.13+8, 11.0.12+7, 8.0.332+9, 8.0.322+6, 8.0.312+7, 8.0.302+8"
+          # java-version: 8.0
+          #  * What went wrong:
+          # An exception occurred applying plugin request [id: 'com.android.application']
+          # > Failed to apply plugin 'com.android.internal.application'.
+          #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
+          #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
+          # TODO use Java 17(LTS)
+          java-version: 11.0
+
       - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
         with:
           working-directory: shared/rust
+          check_args: "--all-features"
+          test_args: "--all-features"
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"

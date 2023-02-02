@@ -72,7 +72,7 @@ impl EvaluateWrapper {
     /// PROD version
     /// inputs are randomized, outputs are externally given
     /// typically outputs points to some kind of "Texture data"
-    pub fn EvaluateWithPackmsg(&mut self, outputs: &mut Vec<u8>) {
+    pub fn evaluate_with_packmsg(&mut self, outputs: &mut Vec<u8>) {
         // TODO move those to the struct; but not easy b/c not Sync...
         let mut rng = thread_rng();
         let rand_0_1 = Uniform::from(0..=1);
@@ -99,10 +99,10 @@ impl EvaluateWrapper {
         *outputs = convert_vec_option_u16_to_u8(&temp_outputs);
     }
 
-    pub fn GetWidth(&self) -> usize {
+    pub fn get_width(&self) -> usize {
         self.width
     }
-    pub fn GetHeight(&self) -> usize {
+    pub fn get_height(&self) -> usize {
         self.height
     }
 }

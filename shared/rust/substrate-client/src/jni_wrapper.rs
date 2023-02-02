@@ -68,7 +68,9 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
         .into();
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
-    worker_cli.extrinsic_garble_and_strip_display_circuits_package_signed(&tx_message);
+    worker_cli
+        .extrinsic_garble_and_strip_display_circuits_package_signed(&tx_message)
+        .unwrap();
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info
@@ -303,7 +305,9 @@ pub fn ExtrinsicCheckInput(
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
-    worker_cli.extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec);
+    worker_cli
+        .extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec)
+        .unwrap();
     // TODO error handling: .unwrap()
 
     // "Then we have to create a new Java string to return. Again, more info

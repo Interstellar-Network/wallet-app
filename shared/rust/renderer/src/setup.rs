@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use bevy::prelude::*;
-use bevy::render::camera::{CameraProjection, OrthographicProjection, ScalingMode, WindowOrigin};
+use bevy::render::camera::{OrthographicProjection, ScalingMode, WindowOrigin};
 use bevy::render::mesh::shape::Circle;
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
@@ -87,7 +87,7 @@ pub fn setup_pinpad_textures(
     // TODO https://bevy-cheatbook.github.io/features/parent-child.html
     // circle is the parent, Texture is child
 
-    /// WARNING it is assumed that the layout is one row of 10 "cases"
+    // WARNING it is assumed that the layout is one row of 10 "cases"
     let atlas_width = rects_pinpad.circuit_dimension[0];
     let atlas_height = rects_pinpad.circuit_dimension[1];
 
@@ -107,7 +107,7 @@ pub fn setup_pinpad_textures(
             // TODO proper index directly(ie without "if"): exclude lower left(cancel button) and lower right(done button)
             let index = col + row * rects_pinpad.nb_cols;
             if index == 9 {
-                col = col + 1;
+                col += 1;
             } else if index >= 10 {
                 break;
             }
@@ -123,7 +123,7 @@ pub fn setup_pinpad_textures(
                     ..default()
                 },
                 sprite: TextureAtlasSprite {
-                    index: index,
+                    index,
                     custom_size: Some(Vec2::new(
                         current_rect.width() / 2.0,
                         current_rect.height() / 2.0,
@@ -242,7 +242,7 @@ pub fn setup_transparent_shader_for_sprites(
     //     text_color_rgba[0], text_color_rgba[1], text_color_rgba[2], text_color_rgba[3]
     // );
 
-    let shader_str = format!("{}", include_str!("../data/transparent_sprite.wgsl"));
+    let shader_str = include_str!("../data/transparent_sprite.wgsl").to_string();
 
     let new_sprite_shader = Shader::from_wgsl(shader_str);
     shaders.set_untracked(bevy::sprite::SPRITE_SHADER_HANDLE, new_sprite_shader);
@@ -297,8 +297,8 @@ fn uv_debug_texture(width: u32, height: u32) -> Image {
 
     Image::new_fill(
         Extent3d {
-            width: width,
-            height: height,
+            width,
+            height,
             depth_or_array_layers: 1,
         },
         wgpu::TextureDimension::D2,

@@ -20,7 +20,7 @@ use bevy::prelude::Color;
 use common::DisplayStrippedCircuitsPackageBuffers;
 use core::ffi::c_void;
 use jni::objects::{JClass, JObject, JString, ReleaseMode};
-use jni::sys::{jfloat, jfloatArray, jint, jlong};
+use jni::sys::{jfloatArray, jint, jlong};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{debug, info, LevelFilter};
@@ -29,7 +29,7 @@ use raw_window_handle::{AndroidNdkWindowHandle, RawWindowHandle};
 // #[cfg(target_os = "android")]
 use android_logger::FilterBuilder;
 
-use crate::{init_app, update_texture_utils, vertices_utils::Rect, App, TextureUpdateCallbackType};
+use crate::{init_app, vertices_utils::Rect, App};
 
 extern "C" {
     pub fn ANativeWindow_fromSurface(env: JNIEnv, surface: JObject) -> usize;
@@ -46,17 +46,17 @@ pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle,
     let width = unsafe { ANativeWindow_getWidth(a_native_window) };
     let height = unsafe { ANativeWindow_getHeight(a_native_window) };
 
-    return (RawWindowHandle::AndroidNdk(handle), width, height);
+    (RawWindowHandle::AndroidNdk(handle), width, height)
 }
 
 // TODO static state? or return Box<State> in initSurface and store as "long" in Kotlin?
 // static mut state: Option<State> = None;size
-
+#[allow(clippy::too_many_arguments)]
 fn init_surface(
     env: JNIEnv,
     surface: JObject,
-    messageRects: jfloatArray,
-    pinpadRects: jfloatArray,
+    message_rects: jfloatArray,
+    pinpad_rects: jfloatArray,
     pinpad_nb_cols: usize,
     pinpad_nb_rows: usize,
     message_text_color: Color,
@@ -81,7 +81,7 @@ fn init_surface(
             ),
     );
 
-    let (handle, width, height) = get_raw_window_handle(env, surface);
+    let (_handle, width, height) = get_raw_window_handle(env, surface);
     log::debug!(
         "initSurface: got handle! width = {}, height = {}",
         width,
@@ -90,17 +90,18 @@ fn init_surface(
     info!("initSurface before new_native");
 
     let mut message_rects_vec = unsafe {
-        convert_rect_floatArr_to_vec_rect(env, messageRects, width as f32, height as f32)
+        convert_rect_float_arr_to_vec_rect(env, message_rects, width as f32, height as f32)
     };
-    let mut pinpad_rects_vec =
-        unsafe { convert_rect_floatArr_to_vec_rect(env, pinpadRects, width as f32, height as f32) };
+    let pinpad_rects_vec = unsafe {
+        convert_rect_float_arr_to_vec_rect(env, pinpad_rects, width as f32, height as f32)
+    };
     assert!(
         message_rects_vec.len() == 1,
         "should have only ONE message_rects!",
     );
     assert!(
         pinpad_rects_vec.len() == pinpad_nb_cols * pinpad_nb_rows,
-        "pinpadRects length MUST = pinpad_nb_cols * pinpad_nb_rows!"
+        "pinpad_rects length MUST = pinpad_nb_cols * pinpad_nb_rows!"
     );
     // get the only Rect from "message_rects"; owned
     let message_rect = message_rects_vec.swap_remove(0);
@@ -168,8 +169,8 @@ fn init_surface(
     // 0
 }
 
-/// IMPORTANT: pinpadRects is assumed to be given from top->bottom, left->right
-/// ie pinpadRects[0] is top left, pinpadRects[12] is bottom right
+/// IMPORTANT: pinpad_rects is assumed to be given from top->bottom, left->right
+/// ie pinpad_rects[0] is top left, pinpad_rects[12] is bottom right
 ///
 /// param: surface: SHOULD come from "override fun surfaceCreated(holder: SurfaceHolder)" holder.surface
 /// param: circuits_package_ptr: MUST be the returned value from substrate-client/src/jni_wrapper.rs GetCircuits
@@ -179,8 +180,8 @@ pub unsafe fn initSurface(
     env: JNIEnv,
     _: JClass,
     surface: JObject,
-    messageRects: jfloatArray,
-    pinpadRects: jfloatArray,
+    message_rects: jfloatArray,
+    pinpad_rects: jfloatArray,
     pinpad_nb_cols: jint,
     pinpad_nb_rows: jint,
     message_text_color_hex: JString,
@@ -197,8 +198,8 @@ pub unsafe fn initSurface(
     init_surface(
         env,
         surface,
-        messageRects,
-        pinpadRects,
+        message_rects,
+        pinpad_rects,
         pinpad_nb_cols.try_into().unwrap(),
         pinpad_nb_rows.try_into().unwrap(),
         Color::hex::<String>(
@@ -264,14 +265,14 @@ pub unsafe fn cleanup(_env: *mut JNIEnv, _: JClass, obj: jlong) {
 //   3 = {Float@20692} 381.0
 // will be converted to:
 // Rect(left:0.0, top: height - 0.0, right: 1080, bottom: height - 381.0)
-unsafe fn convert_rect_floatArr_to_vec_rect(
+unsafe fn convert_rect_float_arr_to_vec_rect(
     env: JNIEnv,
-    rectsFloatArray: jfloatArray,
+    rects_float_array: jfloatArray,
     width: f32,
     height: f32,
 ) -> Vec<Rect> {
     let rects_floatarr = env
-        .get_float_array_elements(rectsFloatArray, ReleaseMode::NoCopyBack)
+        .get_float_array_elements(rects_float_array, ReleaseMode::NoCopyBack)
         .unwrap();
     assert_ne!(
         rects_floatarr.size().unwrap(),
@@ -286,8 +287,7 @@ unsafe fn convert_rect_floatArr_to_vec_rect(
 
     let mut rects_vec =
         Vec::<Rect>::with_capacity((rects_floatarr.size().unwrap() / 4).try_into().unwrap());
-    let mut idx = 0;
-    for i in (0..rects_floatarr.size().unwrap()).step_by(4) {
+    for (idx, i) in (0..rects_floatarr.size().unwrap()).step_by(4).enumerate() {
         rects_vec.insert(
             idx,
             Rect::new_to_ndc_android(
@@ -303,72 +303,77 @@ unsafe fn convert_rect_floatArr_to_vec_rect(
                 height,
             ),
         );
-        idx += 1;
     }
 
     rects_vec
 }
 
-// https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
 #[cfg(test)]
-#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
-fn jvm() -> &'static std::sync::Arc<jni::JavaVM> {
-    static mut JVM: Option<std::sync::Arc<jni::JavaVM>> = None;
-    static INIT: std::sync::Once = std::sync::Once::new();
+mod tests {
+    use super::*;
+    use jni::sys::jfloat;
 
-    INIT.call_once(|| {
-        let jvm_args = jni::InitArgsBuilder::new()
-            .version(jni::JNIVersion::V8)
-            .option("-Xcheck:jni")
-            .build()
-            .unwrap_or_else(|e| panic!("{:#?}", e));
+    // https://github.com/jni-rs/jni-rs/blob/master/tests/util/mod.rs
 
-        let jvm = jni::JavaVM::new(jvm_args).unwrap_or_else(|e| panic!("{:#?}", e));
+    #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+    fn jvm() -> &'static std::sync::Arc<jni::JavaVM> {
+        static mut JVM: Option<std::sync::Arc<jni::JavaVM>> = None;
+        static INIT: std::sync::Once = std::sync::Once::new();
 
-        unsafe {
-            JVM = Some(std::sync::Arc::new(jvm));
-        }
-    });
+        INIT.call_once(|| {
+            let jvm_args = jni::InitArgsBuilder::new()
+                .version(jni::JNIVersion::V8)
+                .option("-Xcheck:jni")
+                .build()
+                .unwrap_or_else(|e| panic!("{:#?}", e));
 
-    unsafe { JVM.as_ref().unwrap() }
-}
+            let jvm = jni::JavaVM::new(jvm_args).unwrap_or_else(|e| panic!("{:#?}", e));
 
-#[cfg(test)]
-#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
-#[allow(dead_code)]
-pub fn attach_current_thread() -> jni::AttachGuard<'static> {
-    jvm()
-        .attach_current_thread()
-        .expect("failed to attach jvm thread")
-}
+            unsafe {
+                JVM = Some(std::sync::Arc::new(jvm));
+            }
+        });
 
-// cf https://github.com/jni-rs/jni-rs/blob/master/tests/jni_api.rs
-#[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
-#[test]
-pub fn test_convert_rect_floatArr_to_vec_rect() {
-    let env = attach_current_thread();
+        unsafe { JVM.as_ref().unwrap() }
+    }
 
-    //     result = {Rect[1]@20529}
-    //  0 = {Rect@20731} Rect.fromLTRB(0.0, 0.0, 1080.0, 381.0)
-    // message_rects_flattened = {ArrayList@20533}  size = 4
-    //  0 = {Float@20689} 0.0
-    //  1 = {Float@20690} 0.0
-    //  2 = {Float@20691} 1080.0
-    //  3 = {Float@20692} 381.0
-    let buf: &[jfloat] = &[
-        0.0 as jfloat,
-        0.0 as jfloat,
-        1080.0 as jfloat,
-        381.0 as jfloat,
-    ];
-    let java_array = env
-        .new_float_array(4)
-        .expect("JNIEnv#new_float_array must create a Java jfloat array with given size");
+    #[cfg(test)]
+    #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+    #[allow(dead_code)]
+    pub fn attach_current_thread() -> jni::AttachGuard<'static> {
+        jvm()
+            .attach_current_thread()
+            .expect("failed to attach jvm thread")
+    }
 
-    // Insert array elements
-    let _ = env.set_float_array_region(java_array, 0, buf);
+    // cf https://github.com/jni-rs/jni-rs/blob/master/tests/jni_api.rs
+    #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
+    #[test]
+    pub fn test_convert_rect_float_arr_to_vec_rect() {
+        let env = attach_current_thread();
 
-    let res = unsafe { convert_rect_floatArr_to_vec_rect(*env, java_array, 1080., 1920.) };
+        //     result = {Rect[1]@20529}
+        //  0 = {Rect@20731} Rect.fromLTRB(0.0, 0.0, 1080.0, 381.0)
+        // message_rects_flattened = {ArrayList@20533}  size = 4
+        //  0 = {Float@20689} 0.0
+        //  1 = {Float@20690} 0.0
+        //  2 = {Float@20691} 1080.0
+        //  3 = {Float@20692} 381.0
+        let buf: &[jfloat] = &[
+            0.0 as jfloat,
+            0.0 as jfloat,
+            1080.0 as jfloat,
+            381.0 as jfloat,
+        ];
+        let java_array = env
+            .new_float_array(4)
+            .expect("JNIEnv#new_float_array must create a Java jfloat array with given size");
 
-    assert_eq!(res[0], Rect::new(-0.5625, 1.0, 0.5625, 0.603125))
+        // Insert array elements
+        let _ = env.set_float_array_region(java_array, 0, buf);
+
+        let res = unsafe { convert_rect_float_arr_to_vec_rect(*env, java_array, 1080., 1920.) };
+
+        assert_eq!(res[0], Rect::new(-0.5625, 1.0, 0.5625, 0.603125))
+    }
 }
