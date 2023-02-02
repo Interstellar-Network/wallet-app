@@ -7,10 +7,6 @@ jobs:
   # TODO split test and lint; but that REQUIRE caching else recompile from scratch in between
   rust:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: shared/rust/
     steps:
       # install build dependencies
       # MUST match the same step in Dockerfile
@@ -33,6 +29,8 @@ jobs:
       ##########################################################################
 
       - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
+        with:
+          working-directory: shared/rust/
 
       - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
 
