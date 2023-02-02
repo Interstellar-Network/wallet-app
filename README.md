@@ -126,10 +126,10 @@ command = /bin/bash -c 'chown root:kvm /dev/kvm && chmod 660 /dev/kvm'
 
 #### FIX: "error while loading shared libraries: libjvm.so: cannot open shared object file: No such file or directory"
 
-- install JDK eg `sudo apt-get install openjdk-8-jdk`
+- install JDK eg `sudo apt-get install openjdk-11-jre-headless`
     - NOTE: this is needed only to **run** some tests, NOT for compiling
-
-`export LD_LIBRARY_PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/`
+- CHECK path with eg `find /usr/lib/jvm/ -type f -name libjvm.so`
+- `export LD_LIBRARY_PATH=/usr/lib/jvm/java-11-openjdk-amd64/lib/server/`
 
 #### FIX: "[2022-06-01T12:39:18Z WARN  wgpu_hal::vulkan::instance] Unable to find layer: VK_LAYER_KHRONOS_validation"
 
