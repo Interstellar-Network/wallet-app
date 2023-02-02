@@ -103,6 +103,7 @@ jobs:
           working-directory: shared/rust
           check_args: "--all-features"
           test_args: "--all-features"
+        timeout-minutes: 60
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"
