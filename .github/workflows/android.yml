@@ -93,19 +93,32 @@ jobs:
         # WTF is "find" not printing without piping through "cat"??
         run: |
           echo "DEBUG JAVA_HOME .so"
-          find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!"
+          find $JAVA_HOME -type f -name "*.so*" -print0
           echo "1"
-          echo $(find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!")
+          echo $(find $JAVA_HOME -type f -name "*.so*" -print0)
           echo "2"
-          echo $(find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!") | cat
+          echo $(find $JAVA_HOME -type f -name "*.so*" -print0) | cat
           echo "3"
           echo "DEBUG JAVA_HOME all files"
-          find $JAVA_HOME -type f -print0 | echo "nothing!"
+          find $JAVA_HOME -type f -print0
           echo "1"
-          echo $(find $JAVA_HOME -type f -print0 | echo "nothing!")
+          echo $(find $JAVA_HOME -type f -print0)
           echo "2"
-          echo $(find $JAVA_HOME -type f -print0 | echo "nothing!") | cat
+          echo $(find $JAVA_HOME -type f -print0) | cat
           echo "3"
+          echo "DEBUG JAVA_HOME all files [2]"
+          find $JAVA_HOME/../.. -type f -print0
+          echo "1"
+          echo $(find $JAVA_HOME/../.. -type f -print0)
+          echo "2"
+          echo $(find $JAVA_HOME/../.. -type f -print0) | cat
+          echo "3"
+          echo "DEBUG ls -al $JAVA_HOME"
+          ls -al $JAVA_HOME
+          echo "DEBUG ls -al $JAVA_HOME/.."
+          ls -al $JAVA_HOME/..
+          echo "DEBUG ls -al $JAVA_HOME/../.."
+          ls -al $JAVA_HOME/../..
           echo "done!"
         shell: bash      
       - name: update LD_LIBRARY_PATH for Rust+Java
