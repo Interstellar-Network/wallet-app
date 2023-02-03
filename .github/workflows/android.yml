@@ -89,15 +89,14 @@ jobs:
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
           # TODO use Java 17(LTS)
           java-version: 11.0
-      - name: DEBUG cat /home/runner/.m2/settings.xml
-        run: cat /home/runner/.m2/settings.xml || echo "nothing here!"
-        shell: bash
       - name: DEBUG JAVA_HOME .so
-        run: find $JAVA_HOME -type f -name "*.so*" || echo "nothing here!"
-        shell: bash
-      - name: DEBUG JAVA_HOME all files
-        run: find $JAVA_HOME -type f
-        shell: bash
+        run: |
+          echo "DEBUG JAVA_HOME .so"
+          find $JAVA_HOME -type f -name "*.so*" || echo "nothing here!"
+          echo "DEBUG JAVA_HOME all files"
+          find $JAVA_HOME -type f
+          echo "done!"
+        shell: bash      
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
