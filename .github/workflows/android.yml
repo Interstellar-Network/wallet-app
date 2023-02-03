@@ -92,9 +92,9 @@ jobs:
       - name: DEBUG JAVA_HOME .so
         run: |
           echo "DEBUG JAVA_HOME .so"
-          find $JAVA_HOME -type f -name "*.so*" || echo "nothing here!"
+          find $JAVA_HOME -type f -name "*.so*" -print0 && echo "found something!" || echo "nothing here!"
           echo "DEBUG JAVA_HOME all files"
-          find $JAVA_HOME -type f
+          find $JAVA_HOME -type f -print0 && echo "found something!" || echo "nothing here!"
           echo "done!"
         shell: bash      
       - name: update LD_LIBRARY_PATH for Rust+Java
