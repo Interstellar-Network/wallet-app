@@ -88,44 +88,19 @@ jobs:
           #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
           # TODO use Java 17(LTS)
-          java-version: 11.0
-      - name: DEBUG JAVA_HOME .so
-        # WTF is "find" not printing without piping through "cat"??
-        run: |
-          echo "DEBUG JAVA_HOME .so"
-          find $JAVA_HOME -type f -name "*.so*" -print0
-          echo "1"
-          echo $(find $JAVA_HOME -type f -name "*.so*" -print0)
-          echo "2"
-          echo $(find $JAVA_HOME -type f -name "*.so*" -print0) | cat
-          echo "3"
-          echo "DEBUG JAVA_HOME all files"
-          find $JAVA_HOME -type f -print0
-          echo "1"
-          echo $(find $JAVA_HOME -type f -print0)
-          echo "2"
-          echo $(find $JAVA_HOME -type f -print0) | cat
-          echo "3"
-          echo "DEBUG JAVA_HOME all files [2]"
-          find $JAVA_HOME/../.. -type f -print0
-          echo "1"
-          echo $(find $JAVA_HOME/../.. -type f -print0)
-          echo "2"
-          echo $(find $JAVA_HOME/../.. -type f -print0) | cat
-          echo "3"
-          echo "DEBUG ls -al $JAVA_HOME"
-          ls -al $JAVA_HOME
-          echo "DEBUG ls -al $JAVA_HOME/.."
-          ls -al $JAVA_HOME/..
-          echo "DEBUG ls -al $JAVA_HOME/../.."
-          ls -al $JAVA_HOME/../..
-          echo "done!"
-        shell: bash      
+          java-version: 11.0      
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
         # -> FAIL: no libjvm.so in JAVA_HOME?? [in CI: JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64]
-        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*11.*\)' -printf "%h:")" >> $GITHUB_ENV
+        # -> NO FAIL: it works, but JAVA_HOME is a symlink eg: 2023-02-03T20:51:07.9904868Z lrwxrwxrwx 1 runner root 33 Jan 29 21:52 /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64 -> /usr/lib/jvm/temurin-11-jdk-amd64
+        #    so for "find" to work we MUST pass "-L"
+        run: |
+          echo "ls -al $JAVA_HOME"
+          ls -al $JAVA_HOME
+          echo 'find -L $JAVA_HOME -type f -name "*.so*"'
+          find -L $JAVA_HOME -type f -name "*.so*"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find -L $JAVA_HOME -type f -name libjvm.so -printf "%h:")" >> $GITHUB_ENV
 
       - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
         with:
