@@ -93,9 +93,19 @@ jobs:
         # WTF is "find" not printing without piping through "cat"??
         run: |
           echo "DEBUG JAVA_HOME .so"
-          $(find $JAVA_HOME -type f -name "*.so*" -print0 || echo "something!") | cat
+          find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!"
+          echo "1"
+          echo $(find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!")
+          echo "2"
+          echo $(find $JAVA_HOME -type f -name "*.so*" -print0 | echo "nothing!") | cat
+          echo "3"
           echo "DEBUG JAVA_HOME all files"
-          $(find $JAVA_HOME -type f -print0 || echo "something!") | cat
+          find $JAVA_HOME -type f -print0 | echo "nothing!"
+          echo "1"
+          echo $(find $JAVA_HOME -type f -print0 | echo "nothing!")
+          echo "2"
+          echo $(find $JAVA_HOME -type f -print0 | echo "nothing!") | cat
+          echo "3"
           echo "done!"
         shell: bash      
       - name: update LD_LIBRARY_PATH for Rust+Java
