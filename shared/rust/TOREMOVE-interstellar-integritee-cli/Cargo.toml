@@ -47,15 +47,15 @@ sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "polka
 # sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.32" }
 
 # local dependencies
-# ita-stf = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+# ita-stf = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
 # itc-rpc-client = { path = "../core/rpc-client" }
-itp-node-api = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-itp-rpc = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-# itp-sgx-crypto = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-itp-stf-primitives = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+itp-node-api = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
+itp-rpc = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
+# itp-sgx-crypto = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
+itp-stf-primitives = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
 # itp-time-utils = { path = "../core-primitives/time-utils" }
-itp-types = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
-itp-utils = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar-M5" }
+itp-types = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
+itp-utils = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar" }
 
 # https://github.com/apache/incubator-teaclave-sgx-sdk/blob/master/sgx_crypto_helper/Cargo.toml#L44
 sgx_types   = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git" }

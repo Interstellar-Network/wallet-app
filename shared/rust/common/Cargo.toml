@@ -12,4 +12,4 @@ codec = { package = "parity-scale-codec", version = "3", default-features = fals
 frame-support = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36"}
 snafu = { version = "0.7" }
 
-circuits-storage-common = { default-features = false, git = "https://github.com/Interstellar-Network/pallets", branch = "interstellar-M5" }
+circuits-storage-common = { default-features = false, git = "https://github.com/Interstellar-Network/pallets", branch = "main" }
