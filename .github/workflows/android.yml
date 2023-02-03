@@ -92,6 +92,9 @@ jobs:
       - name: DEBUG cat /home/runner/.m2/settings.xml
         run: cat /home/runner/.m2/settings.xml || echo "nothing here!"
         shell: bash
+      - name: DEBUG JAVA_HOME .so
+        run: find $JAVA_HOME -type f -name "*.so*" || echo "nothing here!"
+        shell: bash
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
