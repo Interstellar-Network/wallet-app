@@ -457,13 +457,13 @@ tasks.whenTaskAdded {
     //    if (name == "mergeDebugJniLibFolders" || name == "mergeReleaseJniLibFolders") {
     // TODO is there a better target? cf // https://github.com/mozilla/rust-android-gradle
     // TODO Release variants
-    if(name == "javaPreCompileArmv7Debug") {
+    if(name in arrayOf("javaPreCompileArmv7Debug", "javaPreCompileArmv7Release")) {
         dependsOn(tasks.named("cargoBuildAndroidArm"))
     }
-    if(name == "javaPreCompileArm64Debug") {
+    if(name in arrayOf("javaPreCompileArm64Debug","javaPreCompileArm64Release")) {
         dependsOn(tasks.named("cargoBuildAndroidArm64"))
     }
-    if(name == "javaPreCompileX86_64Debug") {
+    if(name in arrayOf("javaPreCompileX86_64Debug", "javaPreCompileX86_64Release")) {
         dependsOn(tasks.named("cargoBuildAndroidX86"))
     }
 
