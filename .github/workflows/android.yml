@@ -108,6 +108,9 @@ jobs:
           check_args: "--all-features"
           test_args: "--all-features"
         timeout-minutes: 60
+        # TODO? add/remove once we can start the full stack using containers?
+        # or keep #[ignore]ing tests that depends on worker or node?
+        # continue-on-error: false
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"

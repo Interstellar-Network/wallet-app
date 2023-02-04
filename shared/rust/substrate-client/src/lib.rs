@@ -286,6 +286,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
     fn can_build_integritee_client_ok() {
         let worker_cli = init();
         assert!(worker_cli.mrenclave.is_some());
@@ -294,6 +295,7 @@ mod tests {
     // IMPORTANT: use #[serial_test::serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
         let worker_cli = init();
@@ -306,6 +308,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
     #[serial_test::serial]
     fn get_pending_circuits_local_ok() {
         let worker_cli = init();
