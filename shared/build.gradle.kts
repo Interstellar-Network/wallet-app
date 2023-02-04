@@ -155,6 +155,11 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val project_dir: Property<File>
 
+    // debug or release?
+    // We need this to know which compiled .so we will copy into jniLibs/
+    @get:Input
+    abstract val build_type: Property<String>
+
     @get:Input
     abstract val use_nightly: Property<Boolean>
 
@@ -265,7 +270,7 @@ abstract class CargoTask : DefaultTask () {
             //        inputs.files(fileTree("./rust/src"))
             //            .withPropertyName("sourceFiles")
             //            .withPathSensitivity(PathSensitivity.RELATIVE)
-            //        outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
+            //        outputs.files(File("./shared/rust/target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
             // TODO? CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER etc
             // WARNING: if you change any env var, CLEAN EVERYTHING: cargo clean + gradle clean
@@ -336,7 +341,7 @@ abstract class CargoTask : DefaultTask () {
 
         project.copy {
             // TODO debug/release
-            from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/debug/"))
+            from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/${build_type.get()}/"))
             // TODO project.android or project.kotlin.
             // TODO NOTE sourceSets["main"].jniLibs.srcDirs = [/.../shared/src/main/jniLibs, /.../shared/src/androidMain/jniLibs]
             // which one should we use
@@ -365,20 +370,44 @@ abstract class CargoTask : DefaultTask () {
 val cargo_use_nightly = false
 val cargo_project_dir = projectDir.absoluteFile.resolve("./rust")
 val cargo_features_android = "with-jni"
-tasks.register<CargoTask>("cargoBuildAndroidArm") {
+tasks.register<CargoTask>("cargoBuildAndroidArmDebug") {
     project_dir.set(cargo_project_dir)
+    build_type.set("debug")
     target.set("armv7-linux-androideabi")
     use_nightly.set(cargo_use_nightly)
     features.set(cargo_features_android)
 }
-tasks.register<CargoTask>("cargoBuildAndroidArm64") {
+tasks.register<CargoTask>("cargoBuildAndroidArm64Debug") {
     project_dir.set(cargo_project_dir)
+    build_type.set("debug")
     target.set("aarch64-linux-android")
     use_nightly.set(cargo_use_nightly)
     features.set(cargo_features_android)
 }
-tasks.register<CargoTask>("cargoBuildAndroidX86") {
+tasks.register<CargoTask>("cargoBuildAndroidX86Debug") {
     project_dir.set(cargo_project_dir)
+    build_type.set("debug")
+    target.set("x86_64-linux-android")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
+}
+tasks.register<CargoTask>("cargoBuildAndroidArmRelease") {
+    project_dir.set(cargo_project_dir)
+    build_type.set("release")
+    target.set("armv7-linux-androideabi")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
+}
+tasks.register<CargoTask>("cargoBuildAndroidArm64Release") {
+    project_dir.set(cargo_project_dir)
+    build_type.set("release")
+    target.set("aarch64-linux-android")
+    use_nightly.set(cargo_use_nightly)
+    features.set(cargo_features_android)
+}
+tasks.register<CargoTask>("cargoBuildAndroidX86Release") {
+    project_dir.set(cargo_project_dir)
+    build_type.set("release")
     target.set("x86_64-linux-android")
     use_nightly.set(cargo_use_nightly)
     features.set(cargo_features_android)
@@ -404,6 +433,7 @@ tasks.register<CargoTask>("cargoBuildAndroidX86") {
 //    commandLine("cargo", "+nightly", "build", "--target=x86_64-apple-ios")
 //}
 // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
+/*
 task("cargoBuildIosSimulator") {
     onlyIf {
         (System.getenv()["PLATFORM_NAME"] == "iphonesimulator") && (System.getenv()["PLATFORM_PREFERRED_ARCH"] == "x86_64")
@@ -412,7 +442,7 @@ task("cargoBuildIosSimulator") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
+    outputs.files(File("./shared/rust/target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -423,12 +453,14 @@ task("cargoBuildIosSimulator") {
         }
     }
 }
+*/
 //task<Exec>("cargoBuildIosDevice") {
 //    workingDir = projectDir.absoluteFile.resolve("./rust")
 //    println("### workingDir: $workingDir")
 //    // 64 bit targets (real device)
 //    commandLine("cargo", "+nightly", "build", "--target=aarch64-apple-ios")
 //}
+/*
 task("cargoBuildIosDevice") {
     onlyIf {
         // TODO check the values with a real iPhone
@@ -438,7 +470,7 @@ task("cargoBuildIosDevice") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/aarch64-apple-ios/debug/libshared_substrate_client.a"))
+    outputs.files(File("./shared/rust/target/aarch64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -449,6 +481,7 @@ task("cargoBuildIosDevice") {
         }
     }
 }
+*/
 // TODO if needed add for "iOs simulator on ARM MACs"
 
 
@@ -457,14 +490,23 @@ tasks.whenTaskAdded {
     //    if (name == "mergeDebugJniLibFolders" || name == "mergeReleaseJniLibFolders") {
     // TODO is there a better target? cf // https://github.com/mozilla/rust-android-gradle
     // TODO Release variants
-    if(name in arrayOf("javaPreCompileArmv7Debug", "javaPreCompileArmv7Release")) {
-        dependsOn(tasks.named("cargoBuildAndroidArm"))
+    if(name in arrayOf("javaPreCompileArmv7Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidArmDebug"))
     }
-    if(name in arrayOf("javaPreCompileArm64Debug","javaPreCompileArm64Release")) {
-        dependsOn(tasks.named("cargoBuildAndroidArm64"))
+    if(name in arrayOf("javaPreCompileArmv7Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidArmRelease"))
     }
-    if(name in arrayOf("javaPreCompileX86_64Debug", "javaPreCompileX86_64Release")) {
-        dependsOn(tasks.named("cargoBuildAndroidX86"))
+    if(name in arrayOf("javaPreCompileArm64Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidArm64Debug"))
+    }
+    if(name in arrayOf("javaPreCompileArm64Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidArm64Release"))
+    }
+    if(name in arrayOf("javaPreCompileX86_64Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidX86Debug"))
+    }
+    if(name in arrayOf("javaPreCompileX86_64Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidX86Release"))
     }
 
     // TODO cf https://kotlinlang.org/docs/multiplatform-dsl-reference.html#targets
