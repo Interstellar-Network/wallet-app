@@ -88,7 +88,7 @@ jobs:
           #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
           # TODO use Java 17(LTS)
-          java-version: 11.0      
+          java-version: 11.0
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
@@ -105,22 +105,7 @@ jobs:
       - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
         with:
           working-directory: "${{ github.workspace }}/shared/rust"
-          check_args: "--all-features"
           test_args: "--all-features"
-        timeout-minutes: 60
-        # TODO? add/remove once we can start the full stack using containers?
-        # or keep #[ignore]ing tests that depends on worker or node?
-        # continue-on-error: false
-
-        # TODO move into separate action? ideally into a JS action "post" that setup ccache?
-        # NOTE: remove if using "rust-build-and-test"
-      - name: Print ccache/sccache stats
-        # display stats even if tests failed
-        if: success() || failure()
-        run: |
-          ccache --show-stats || true
-          sccache --show-stats || true
-        shell: bash
 
   ##########################################################################
   ##########################################################################
