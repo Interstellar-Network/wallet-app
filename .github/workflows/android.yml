@@ -34,16 +34,6 @@ jobs:
           working-directory: "${{ github.workspace }}/shared/rust"
           clippy_args: "--all-features -- -D warnings"
 
-        # TODO move into separate action? ideally into a JS action "post" that setup ccache?
-        # NOTE: remove if using "rust-build-and-test"
-      - name: Print ccache/sccache stats
-        # display stats even if tests failed
-        if: success() || failure()
-        run: |
-          ccache --show-stats || true
-          sccache --show-stats || true
-        shell: bash
-
   ##########################################################################
   ##########################################################################
   rust_test:
@@ -158,6 +148,7 @@ jobs:
           toolchain_toml_path: ${{ github.workspace }}/rust-toolchain.toml
           toolchain_components: ""
           working-directory: "${{ github.workspace }}/shared/rust"
+          rust-cache-key: "${{ matrix.android-target.cargo_target }}"
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
