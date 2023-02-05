@@ -503,21 +503,27 @@ tasks.whenTaskAdded {
     // NOTE: the dependsOn name come from the "for (cargo_target in arrayOf" above
     if(name in arrayOf("javaPreCompileArmv7Debug")) {
         dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabidebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabidebug"))
     }
     if(name in arrayOf("javaPreCompileArmv7Release")) {
         dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabirelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabirelease"))
     }
     if(name in arrayOf("javaPreCompileArm64Debug")) {
         dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androiddebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androiddebug"))
     }
     if(name in arrayOf("javaPreCompileArm64Release")) {
         dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androidrelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androidrelease"))
     }
     if(name in arrayOf("javaPreCompileX86_64Debug")) {
         dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androiddebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androiddebug"))
     }
     if(name in arrayOf("javaPreCompileX86_64Release")) {
         dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androidrelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androidrelease"))
     }
 
     // TODO cf https://kotlinlang.org/docs/multiplatform-dsl-reference.html#targets
