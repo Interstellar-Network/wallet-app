@@ -266,7 +266,9 @@ abstract class CargoTask : DefaultTask () {
             cmd.add("build")
             // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
             // NOTE: breakpoints in Rust do not work(historically at least) so not sure if debug build is worth it?
-            cmd.add("--release")
+            if (build_type.get() == "release"){
+                cmd.add("--release")
+            }
             cmd.add("--target=$cargo_target")
             if (features.get().isNotEmpty()) {
                 cmd.add("--features=${features.get()}")
