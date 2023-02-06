@@ -164,7 +164,7 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     pub fn extrinsic_register_mobile(&self, _pub_key: Vec<u8>) {
-        todo!("TODO extrinsic_register_mobile")
+        warn!("TODO extrinsic_register_mobile");
     }
 
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
