@@ -75,10 +75,13 @@ fn main() {
         renderer::vertices_utils::Rect::new_to_ndc_android(0., 0., 1080.0, 381.0, 1080., 1920.);
     let rects_pinpad = generate_pinpad_rects();
 
-    // TODO if NOT offline: use crate substrate-client to DL the circuits
+    // if NOT offline: use crate substrate-client to generate then DL the circuits
     let (display_message_buf, display_pinpad_buf) = if args.is_online {
         let worker_cli =
             InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
+        worker_cli
+            .extrinsic_garble_and_strip_display_circuits_package_signed("hello\nworld")
+            .expect("extrinsic_garble_and_strip_display_circuits_package_signed failed!");
         let display_stripped_circuits_package_buffers = worker_cli
             .get_latest_pending_display_stripped_circuits_package("/ip4/127.0.0.1/tcp/5001")
             .expect("no circuit available");

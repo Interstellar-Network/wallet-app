@@ -71,7 +71,7 @@ TODO cleanup/rewrite below
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
 NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = Dual
 
-- `adb reverse tcp:5001 tcp:5001` and `adb reverse tcp:9990 tcp:9990`
+- `adb reverse tcp:5001 tcp:5001` and `adb reverse tcp:9990 tcp:9990` and `adb reverse tcp:2090 tcp:2090`
 - CHECK by opening [a front-end](https://substrate-developer-hub.github.io/substrate-front-end-template/?rpc=ws://localhost:9990) on the Device or Emulator
 
 ### iOs

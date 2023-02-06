@@ -22,15 +22,18 @@ class RustWrapper : RustInterface {
 
     external override fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(
         ws_url: String,
+        node_url: String,
         tx_message: String
     ): String?
-    external override fun ExtrinsicRegisterMobile(ws_url: String, pub_key: ByteArray): String?
+    external override fun ExtrinsicRegisterMobile(ws_url: String, node_url: String, pub_key: ByteArray): String?
     external override fun GetCircuits(
         ws_url: String,
+        node_url: String,
         ipfs_addr: String,
     ): Long
     external override fun ExtrinsicCheckInput(
         ws_url: String,
+        node_url: String,
         circuits_package_ptr: Long,
         inputs: ByteArray,
     )

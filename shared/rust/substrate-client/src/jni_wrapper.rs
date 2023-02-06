@@ -53,13 +53,18 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
     // native method."
     _class: JClass,
     ws_url: JString,
+    node_url: JString,
     tx_message: JString,
 ) -> jstring {
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
         .get_string(ws_url)
-        .expect("Couldn't get java string[url]!")
+        .expect("Couldn't get java string[ws_url]!")
+        .into();
+    let node_url: String = env
+        .get_string(node_url)
+        .expect("Couldn't get java string[node_url]!")
         .into();
 
     let tx_message: String = env
@@ -67,7 +72,7 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
         .expect("Couldn't get java string[tx_message]!")
         .into();
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli
         .extrinsic_garble_and_strip_display_circuits_package_signed(&tx_message)
         .unwrap();
@@ -131,18 +136,23 @@ pub fn ExtrinsicRegisterMobile(
     // native method."
     _class: JClass,
     ws_url: JString,
+    node_url: JString,
     pub_key: jbyteArray,
 ) -> jstring {
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
         .get_string(ws_url)
-        .expect("Couldn't get java string[url]!")
+        .expect("Couldn't get java string[ws_url]!")
+        .into();
+    let node_url: String = env
+        .get_string(node_url)
+        .expect("Couldn't get java string[node_url]!")
         .into();
 
     let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli.extrinsic_register_mobile(pub_key_vec);
     // TODO error handling: .unwrap()
 
@@ -169,6 +179,7 @@ pub fn GetCircuits(
     // native method."
     _class: JClass,
     ws_url: JString,
+    node_url: JString,
     ipfs_addr: JString,
 ) -> jlong {
     // "First, we have to get the string out of Java. Check out the `strings`
@@ -177,6 +188,10 @@ pub fn GetCircuits(
         .get_string(ws_url)
         .expect("Couldn't get java string[ws_url]!")
         .into();
+    let node_url: String = env
+        .get_string(node_url)
+        .expect("Couldn't get java string[node_url]!")
+        .into();
 
     let ipfs_addr: String = env
         .get_string(ipfs_addr)
@@ -184,7 +199,7 @@ pub fn GetCircuits(
         .into();
 
     log::debug!("before get_latest_pending_display_stripped_circuits_package");
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     let display_stripped_circuits_package_buffers = worker_cli
         .get_latest_pending_display_stripped_circuits_package(&ipfs_addr)
         .map_err(|_| {
@@ -288,6 +303,7 @@ pub fn ExtrinsicCheckInput(
     // native method."
     _class: JClass,
     ws_url: JString,
+    node_url: JString,
     tx_id_ptr: jlong,
     inputs: jbyteArray,
 ) -> jstring {
@@ -299,12 +315,16 @@ pub fn ExtrinsicCheckInput(
     // module for more info on how this works."
     let ws_url: String = env
         .get_string(ws_url)
-        .expect("Couldn't get java string[url]!")
+        .expect("Couldn't get java string[ws_url]!")
+        .into();
+    let node_url: String = env
+        .get_string(node_url)
+        .expect("Couldn't get java string[node_url]!")
         .into();
 
     let inputs_vec = convert_jbytearray_to_vec(env, inputs);
 
-    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, "ws://127.0.0.1:9990");
+    let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli
         .extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec)
         .unwrap();

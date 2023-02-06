@@ -23,7 +23,8 @@ open class WGPUSurfaceView(
     SurfaceHolder.Callback2 {
     private var rustBridge = RustWrapper()
     private var rustPtr: Long? = null
-    val WS_URL = "ws://127.0.0.1:9990"
+    val WS_URL = "wss://127.0.0.1:2090"
+    val NODE_URL = "ws://127.0.0.1:9990"
     val IPFS_ADDR = "/ip4/127.0.0.1/tcp/5001"
     private var circuitsPackagePtr: Long? = null
     private var packagePtr: Long? = null
@@ -49,10 +50,10 @@ open class WGPUSurfaceView(
         // - add fn in substrate_client: is_registered()
         val pub_key = rustBridge.getMobilePublicKey()
         Log.i("interstellar", "pub_key : $pub_key")
-        rustBridge.ExtrinsicRegisterMobile(WS_URL, pub_key)
+        rustBridge.ExtrinsicRegisterMobile(WS_URL, NODE_URL, pub_key)
         Toast.makeText(context, "Registered", Toast.LENGTH_SHORT).show()
 
-        rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, "0.13 ETH to REPLACEME")
+        rustBridge.ExtrinsicGarbleAndStripDisplayCircuitsPackage(WS_URL, NODE_URL,"0.13 ETH to REPLACEME")
 
         // wait in a loop until CircuitsPackage is valid
         // TODO SHOULD use Events
@@ -61,6 +62,7 @@ open class WGPUSurfaceView(
             try {
                 circuitsPackagePtr = rustBridge.GetCircuits(
                     WS_URL,
+                    NODE_URL,
                     IPFS_ADDR,
                 )
                 message_nb_digts = rustBridge.GetMessageNbDigitsFromPtr(circuitsPackagePtr!!)
@@ -111,7 +113,7 @@ open class WGPUSurfaceView(
         // if we have enough inputs, try to validate
         if(inputDigits.size >= message_nb_digts) {
             Toast.makeText(context, "Validating transaction...", Toast.LENGTH_SHORT).show()
-            rustBridge.ExtrinsicCheckInput(WS_URL, packagePtr!!, inputDigits.toByteArray())
+            rustBridge.ExtrinsicCheckInput(WS_URL, NODE_URL, packagePtr!!, inputDigits.toByteArray())
             Toast.makeText(context, "Transaction done!", Toast.LENGTH_SHORT).show()
 
             // not valid after ExtrinsicCheckInput, so reset it
