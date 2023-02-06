@@ -1,8 +1,6 @@
 // Will be deprecated in Grable 8, but there is no public replacement...
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import groovy.lang.Closure
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeFirstWord
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -148,14 +146,9 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val target: Property<String>
 
-    // will default to "target/"; RELATIVE to project_dir
-//    @Input
-//    var target_dir = "./target"
+    // DirectoryProperty FAIL with "Cannot fingerprint input property 'myWorkingDir' [...] cannot be serialized." ???
     @get:Input
-    abstract val target_dir: Property<String>
-
-    @get:Input
-    abstract val project_dir: Property<File>
+    abstract val myWorkingDir: Property<File>
 
     // debug or release?
     // We need this to know which compiled .so we will copy into jniLibs/
@@ -169,8 +162,12 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val features: Property<String>
 
-    init {
-        target_dir.convention("./target")
+    init {}
+
+    // Return the path eg "target/x86_64-linux-android/debug/"
+    @OutputDirectory
+    fun getBuildDir(): File {
+        return myWorkingDir.get().toPath().resolve("target/${target.get()}/${build_type.get()}").toFile()
     }
 
     fun ndkToolchainHostTag(): File {
@@ -254,7 +251,7 @@ abstract class CargoTask : DefaultTask () {
         println("### target_ar: $target_ar")
 
         project.exec {
-            workingDir = project_dir.get()
+            workingDir = myWorkingDir.get()
             println("### workingDir: $workingDir")
 
             // TODO? use args and executable? but that result in empty commandLine?
@@ -333,7 +330,7 @@ abstract class CargoTask : DefaultTask () {
             // that is the same "fix" than in https://github.com/rust-windowing/android-ndk-rs/pull/189
             // or the last comment of: https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
             if(ndk_major >= 23){
-                val target_dir_resolved = project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/WORKAROUND-RUST-LANG-85806")
+                val target_dir_resolved = getBuildDir().absoluteFile.toPath().resolve("WORKAROUND-RUST-LANG-85806").toFile().absolutePath
                 println("### target_dir_resolved: $target_dir_resolved")
                 project.file(target_dir_resolved).mkdirs()
                 File(target_dir_resolved, "libgcc.a").writeText("INPUT(-lunwind)")
@@ -362,15 +359,16 @@ abstract class CargoTask : DefaultTask () {
 // cf https://github.com/mozilla/rust-android-gradle/issues/106 for inspiration
 abstract class CopyJniLibs : CargoTask () {
 
+//    @get:InputFiles
+//    abstract val libsToCopy: Property<Files>
+
     @TaskAction
     override fun doWork() {
         val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(androidAbi())
 
         project.copy {
-            // dependsOn(tasks.named("cargoBuildAndroidArm64Release"))
-
             // TODO debug/release
-            from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${target.get()}/${build_type.get()}/"))
+            from(getBuildDir())
             // TODO project.android or project.kotlin.
             // TODO NOTE sourceSets["main"].jniLibs.srcDirs = [/.../shared/src/main/jniLibs, /.../shared/src/androidMain/jniLibs]
             // which one should we use
@@ -397,25 +395,34 @@ abstract class CopyJniLibs : CargoTask () {
 // else: eg "toolchain 'nightly-x86_64-unknown-linux-gnu' is not installed"
 //
 val cargo_use_nightly = false
-val cargo_project_dir = projectDir.absoluteFile.resolve("./rust")
+val cargo_project_dir = projectDir.toPath().resolve("rust").toFile()
 val cargo_features_android = "with-jni"
 for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","x86_64-linux-android")) {
     for (cargo_build_type in arrayOf("debug","release")) {
         val cargo_task = tasks.register<CargoTask>("cargoBuildAndroid${cargo_target}${cargo_build_type}") {
-            project_dir.set(cargo_project_dir)
+            myWorkingDir.set(cargo_project_dir)
             build_type.set(cargo_build_type)
             target.set(cargo_target)
             use_nightly.set(cargo_use_nightly)
             features.set(cargo_features_android)
+
+            // TODO replace by
+            // https://stackoverflow.com/questions/57653597/i-want-to-use-different-library-in-debug-and-release-mode-in-android
+            // sourceSets["debug"].jniLibs.srcDirs(tasks.named("cargoBuildAndroidarmv7-linux-androideabidebug"))
+            // and add "InputFiles" to CopyJniLibs
+            outputs.upToDateWhen { false }
         }
         // print("new custom CargoTask : $cargo_task")
 
         val copy_jnilibs_task = tasks.register<CopyJniLibs>("copyJniLibsAndroid${cargo_target}${cargo_build_type}") {
-            project_dir.set(cargo_project_dir)
+            myWorkingDir.set(cargo_project_dir)
             build_type.set(cargo_build_type)
             target.set(cargo_target)
             use_nightly.set(cargo_use_nightly)
             features.set(cargo_features_android)
+
+            // TODO cf upToDateWhen above
+            outputs.upToDateWhen { false }
         }
         copy_jnilibs_task.dependsOn(cargo_task)
         // print("new custom CopyJniLibs : $copy_jnilibs_task")
