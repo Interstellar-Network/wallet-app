@@ -24,14 +24,12 @@ jobs:
           # ignore the nightly, and use stable for tests and linters
           use_toolchain_toml: false
           toolchain_components: "rustfmt,clippy"
-          working-directory: "${{ github.workspace }}/shared/rust"
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
       - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
         with:
-          working-directory: "${{ github.workspace }}/shared/rust"
           clippy_args: "--all-features -- -D warnings"
 
   ##########################################################################
@@ -54,7 +52,6 @@ jobs:
           # ignore the nightly, and use stable for tests and linters
           use_toolchain_toml: false
           toolchain_components: "rustfmt,clippy"
-          working-directory: "${{ github.workspace }}/shared/rust"
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
@@ -94,7 +91,6 @@ jobs:
 
       - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
         with:
-          working-directory: "${{ github.workspace }}/shared/rust"
           test_args: "--all-features"
 
   ##########################################################################
@@ -147,7 +143,6 @@ jobs:
           use_toolchain_toml: "true"
           toolchain_toml_path: ${{ github.workspace }}/rust-toolchain.toml
           toolchain_components: ""
-          working-directory: "${{ github.workspace }}/shared/rust"
           rust-cache-key: "${{ matrix.android-target.cargo_target }}"
 
       - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev

@@ -1,16 +1,25 @@
+# NOTE: technically all Rust code in in shared/rust/ directory but:
+# - for VSCode it is simpler to make the top folder a Rust workspace else not discovered automatically
+# - for CI(namely Swatinem/rust-cache) in cleanup we get:
+#       Warning:  Command failed: cargo metadata --all-features --format-version 1
+#       Warning:  error: could not find `Cargo.toml` in `/home/runner/work/wallet-app/wallet-app` or any parent directory
+#       ... Cleaning /home/runner/work/wallet-app/wallet-app/target ...
+#       Warning:  Error: ENOENT: no such file or directory, opendir '/home/runner/work/wallet-app/wallet-app/target'
+#   (it still works just fine, but still...)
+
 [workspace]
 # needed for wgpu; else:
 # error: Metal API enabled on non-Apple OS. If your project is not using resolver="2" in Cargo.toml, it should.
 resolver = "2"
 
 members = [
-    "circuit_evaluate",
-    "common",
-    "renderer",
+    "shared/rust/circuit_evaluate",
+    "shared/rust/common",
+    "shared/rust/renderer",
     # "interstellar-integritee-cli",
     # "interstellar-integritee-worker-cli",
     # "deps/integritee-worker/cli",
-    "substrate-client",
+    "shared/rust/substrate-client",
 ]
 
 [profile.release-with-debug]
@@ -30,10 +39,10 @@ opt-level = 3
 lto = "thin"
 
 [patch."https://github.com/apache/teaclave-sgx-sdk.git"]
-# itc-rpc-client = { path = "../../../integritee-worker/core/rpc-client/" }
+# itc-rpc-client = { path = "../integritee-worker/core/rpc-client/" }
 # TODO ideally we would directly use this patched version from `integritee-cli`
 # but it is quite a mess to make it work both from repo `integritee-worker` and here
-sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
+sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
 [patch.crates-io]
 # wasmtime-runtime: we MUST patch to make it compatible with Android Emulator
@@ -42,21 +51,21 @@ sgx_crypto_helper = { path = "./deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 # NOTE: we NEED to patch "wasmtime-runtime" but to avoid error like "note: perhaps two different versions of crate `wasmtime_environ` are being used?"
 # the easiest thing to do is patch the "main lib"
 # NOTE: for the PATCH the work, it MUST be a the correct version(= git tag)
-# wasmtime-runtime = { path = "../../../wasmtime/crates/runtime/" }
-# wasmtime-environ = { path = "../../../wasmtime/crates/environ/" }
-wasmtime = { path = "./deps/wasmtime/crates/wasmtime/" }
+# wasmtime-runtime = { path = "../wasmtime/crates/runtime/" }
+# wasmtime-environ = { path = "../wasmtime/crates/environ/" }
+wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
 # TODO re-add for bevy 0.9? or not needed anymore
 # NOTE: patch DOES NOT work except at the Workspace level??
-# bevy_render = { path = './renderer/patch/bevy_render-0.7.0' }
+# bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
 
 ################################################################################
 # local dev
 
 # [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
-# lib-garble-rs = { path = "../../../lib-garble-rs/lib-garble-rs/" }
+# lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
 
 # [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-# integritee-cli = { path = "../../../integritee-worker/cli" }
+# integritee-cli = { path = "../integritee-worker/cli" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
-# circuits-storage-common = { path = "../../../pallets/circuits-storage-common" }
+# circuits-storage-common = { path = "../pallets/circuits-storage-common" }

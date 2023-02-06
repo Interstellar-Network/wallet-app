@@ -451,7 +451,7 @@ task("cargoBuildIosSimulator") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
+    outputs.files(File("./target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -479,7 +479,7 @@ task("cargoBuildIosDevice") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/aarch64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
+    outputs.files(File("./target/aarch64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
