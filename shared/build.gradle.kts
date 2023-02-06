@@ -146,6 +146,8 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val target: Property<String>
 
+    // SHOULD point to the root(ie the workspace's Cargo.toml directory)
+    //
     // DirectoryProperty FAIL with "Cannot fingerprint input property 'myWorkingDir' [...] cannot be serialized." ???
     @get:Input
     abstract val myWorkingDir: Property<File>
@@ -329,15 +331,16 @@ abstract class CargoTask : DefaultTask () {
             // TEMP WORKAROUND for "note: ld: error: unable to find library -lgcc"
             // that is the same "fix" than in https://github.com/rust-windowing/android-ndk-rs/pull/189
             // or the last comment of: https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
+            // NOTE: this is just a text file so NO need to have a dir per ABI, or for debug vs release
             if(ndk_major >= 23){
-                val target_dir_resolved = getBuildDir().absoluteFile.toPath().resolve("WORKAROUND-RUST-LANG-85806").toFile().absolutePath
-                println("### target_dir_resolved: $target_dir_resolved")
-                project.file(target_dir_resolved).mkdirs()
-                File(target_dir_resolved, "libgcc.a").writeText("INPUT(-lunwind)")
+                val temp_link_dir = getBuildDir().absoluteFile.toPath().resolve("WORKAROUND-RUST-LANG-85806").toFile().absolutePath
+                println("### temp_link_dir: $temp_link_dir")
+                project.file(temp_link_dir).mkdirs()
+                File(temp_link_dir, "libgcc.a").writeText("INPUT(-lunwind)")
 
                 // TODO can we use CARGO_TARGET_<triple>_RUSTFLAGS instead of -L?
                 // cmd.add("-L$target_dir_resolved") // error: Found argument '-L' which wasn't expected, or isn't valid in this context
-                environment("CARGO_TARGET_${target_triple_upper}_RUSTFLAGS", "-L$target_dir_resolved")
+                environment("CARGO_TARGET_${target_triple_upper}_RUSTFLAGS", "-L$temp_link_dir")
             }
 
             // useful to debug why we keep recompiling from scratch when switching from host build to Android target
@@ -365,6 +368,7 @@ abstract class CopyJniLibs : CargoTask () {
     @TaskAction
     override fun doWork() {
         val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(androidAbi())
+        print("CopyJniLibs: from: ${getBuildDir()}")
 
         project.copy {
             // TODO debug/release
@@ -395,7 +399,7 @@ abstract class CopyJniLibs : CargoTask () {
 // else: eg "toolchain 'nightly-x86_64-unknown-linux-gnu' is not installed"
 //
 val cargo_use_nightly = false
-val cargo_project_dir = projectDir.toPath().resolve("rust").toFile()
+val cargo_project_dir = rootDir.toPath().toFile()
 val cargo_features_android = "with-jni"
 for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","x86_64-linux-android")) {
     for (cargo_build_type in arrayOf("debug","release")) {
