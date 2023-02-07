@@ -81,11 +81,12 @@ fn init_surface(
             ),
     );
 
-    let (_handle, width, height) = get_raw_window_handle(env, surface);
+    let (handle, width, height) = get_raw_window_handle(env, surface);
     log::debug!(
-        "initSurface: got handle! width = {}, height = {}",
+        "initSurface: got handle! width = {}, height = {}, handle = {:?}",
         width,
-        height
+        height,
+        handle,
     );
     info!("initSurface before new_native");
 
@@ -145,22 +146,16 @@ fn init_surface(
         background_color,
         // DEV/DEBUG: offline
         // include_bytes!("../examples/data/message_224x96.pgarbled.stripped.pb.bin").to_vec(),
-        // include_bytes!("../examples/data/message_224x96.packmsg.pb.bin").to_vec(),
         // include_bytes!("../examples/data/pinpad_590x50.pgarbled.stripped.pb.bin").to_vec(),
-        // include_bytes!("../examples/data/pinpad_590x50.packmsg.pb.bin").to_vec(),
         message_pgarbled_buf,
         pinpad_pgarbled_buf,
+        #[cfg(target_os = "android")]
+        width,
+        #[cfg(target_os = "android")]
+        height,
+        #[cfg(target_os = "android")]
+        handle,
     );
-
-    // NOTE: MUST be after init_app(or rather DefaultPlugins) else
-    // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
-    // #[cfg(target_os = "android")]
-    // crate::init_window(
-    //     &mut app,
-    //     width,
-    //     height,
-    //     my_raw_window_handle::MyRawWindowHandleWrapper::new(handle),
-    // );
 
     info!("init_app ok!");
 
