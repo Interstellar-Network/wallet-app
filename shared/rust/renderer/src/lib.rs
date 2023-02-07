@@ -211,6 +211,25 @@ pub fn init_app(
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
     #[cfg(feature = "with_winit")]
     app.add_plugin(bevy::winit::WinitPlugin {});
+    // Init the Window with our CUSTOM winit
+    // Only needed for Android; this replaces "WinitPlugin"
+    //
+    // NOTE: MUST be after init_app(or rather DefaultPlugins) else
+    // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
+    #[cfg(target_os = "android")]
+    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
+        physical_width,
+        physical_height,
+        1.0,
+        // TODO?raw_window_handle,
+        // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
+        bevy::window::RawHandleWrapper {
+            window_handle: raw_window_handle,
+            display_handle: raw_window_handle::RawDisplayHandle::Android(
+                raw_window_handle::AndroidDisplayHandle::empty(),
+            ),
+        },
+    ));
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
@@ -286,26 +305,6 @@ pub fn init_app(
         app.add_plugin(LogDiagnosticsPlugin::default());
         app.add_plugin(FrameTimeDiagnosticsPlugin::default());
     }
-
-    // Init the Window with our CUSTOM winit
-    // Only needed for Android; this replaces "WinitPlugin"
-    //
-    // NOTE: MUST be after init_app(or rather DefaultPlugins) else
-    // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
-    #[cfg(target_os = "android")]
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-        physical_width,
-        physical_height,
-        1.0,
-        // TODO?raw_window_handle,
-        // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-        bevy::window::RawHandleWrapper {
-            window_handle: raw_window_handle,
-            display_handle: raw_window_handle::RawDisplayHandle::Android(
-                raw_window_handle::AndroidDisplayHandle::empty(),
-            ),
-        },
-    ));
 }
 
 // https://github.com/bevyengine/bevy/pull/3139/files#diff-aded320ea899c7a8c225f19639c8aaab1d9d74c37920f1a415697262d6744d54
