@@ -57,12 +57,12 @@ kotlin {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         // Compose Jetpack: requires >= 21?
         minSdk = 21
-        targetSdk = 31
+        targetSdk = 33
 
         // TODO? used by our own CargoTask NOT by externalNativeBuild
         ndk {
