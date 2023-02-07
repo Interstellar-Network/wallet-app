@@ -64,6 +64,9 @@ wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
 # [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
 # lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
 
+# [patch."https://github.com/Interstellar-Network/swanky.git"]
+# fancy-garbling = { path = "../swanky/fancy-garbling/" }
+
 # [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
 # integritee-cli = { path = "../integritee-worker/cli" }
 
