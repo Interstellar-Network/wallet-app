@@ -326,7 +326,7 @@ pub fn ExtrinsicCheckInput(
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli
-        .extrinsic_check_input(&package.message_pgarbled_cid, inputs_vec)
+        .extrinsic_check_input(&package.message_pgarbled_cid, &inputs_vec)
         .unwrap();
     // TODO error handling: .unwrap()
 

@@ -113,8 +113,7 @@ impl InterstellarIntegriteeWorkerCli {
     }
 
     /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
-    fn run_trusted_direct(&self, trusted_subcommand: &[&str]) -> CliResult {
-        let port_str = self.worker_port.to_string();
+    fn run_trusted_direct(&self, mut trusted_subcommand: Vec<String>) -> CliResult {
         let mrenclave_str = self
             .mrenclave
             .clone()
@@ -124,17 +123,17 @@ impl InterstellarIntegriteeWorkerCli {
             // we MUST replace the binary name
             // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
             // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
-            "",
-            "--trusted-worker-port",
-            &port_str,
-            "--worker-url",
-            &self.worker_url,
-            "trusted",
-            "--mrenclave",
-            &mrenclave_str,
-            "--direct",
+            "".to_string(),
+            "--trusted-worker-port".to_string(),
+            self.worker_port.to_string(),
+            "--worker-url".to_string(),
+            self.worker_url.clone(),
+            "trusted".to_string(),
+            "--mrenclave".to_string(),
+            mrenclave_str,
+            "--direct".to_string(),
         ];
-        args.extend_from_slice(trusted_subcommand);
+        args.append(&mut trusted_subcommand);
 
         let cli = Cli::parse_from(args);
         commands::match_command(&cli)
@@ -154,10 +153,10 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
         tx_message: &str,
     ) -> Result<(), InterstellarErrors> {
-        self.run_trusted_direct(&[
-            "garble-and-strip-display-circuits-package-signed",
-            &self.get_account(),
-            tx_message,
+        self.run_trusted_direct(vec![
+            "garble-and-strip-display-circuits-package-signed".to_string(),
+            self.get_account(),
+            tx_message.to_string(),
         ])
         .map_err(|_err| InterstellarErrors::GarbleAndStrip {})
         .map(|_| ())
@@ -171,22 +170,30 @@ impl InterstellarIntegriteeWorkerCli {
     pub fn extrinsic_check_input(
         &self,
         ipfs_cid: &[u8],
-        input_digits: Vec<u8>,
+        input_digits: &[u8],
     ) -> Result<(), InterstellarErrors> {
-        // NOTE: the cli expects a list of SPACE-separated integer b/w [0-9]
-        let inputs_prepared = input_digits
+        // the cli expects a list of SPACE-separated integer b/w [0-9]
+        // NOTE: run_trusted_direct is using Clap::parse_from; which means here we MUST have a "list" of parameter for last argument
+        // Then eg "0 1 2" will be parsed as [0,1,2] in `integritee-cli`
+        // DO NOT join with spaces here!
+        let inputs_str = input_digits
             .iter()
             .map(|digit| digit.to_string())
-            .collect::<Vec<String>>()
-            .join(" ");
+            .collect::<Vec<String>>();
 
         let res = self
-            .run_trusted_direct(&[
-                "tx-check-input",
-                &self.get_account(),
-                std::str::from_utf8(ipfs_cid).unwrap(),
-                &inputs_prepared,
-            ])
+            .run_trusted_direct(
+                // cf comment above: WE MUST pass every char from "inputs_str" on its own!
+                [
+                    vec![
+                        "tx-check-input".to_string(),
+                        self.get_account(),
+                        std::str::from_utf8(ipfs_cid).unwrap().to_string(),
+                    ],
+                    inputs_str,
+                ]
+                .concat(),
+            )
             .map_err(|_err| InterstellarErrors::TxCheckInput {})?;
 
         match res {
@@ -252,7 +259,7 @@ impl InterstellarIntegriteeWorkerCli {
         &self,
     ) -> Result<PalletOcwGarbleDisplayStrippedCircuitsPackage, InterstellarErrors> {
         let res = self
-            .run_trusted_direct(&["get-circuits-package", &self.get_account()])
+            .run_trusted_direct(vec!["get-circuits-package".to_string(), self.get_account()])
             .map_err(|_err| InterstellarErrors::GetCircuitsPackage {})?;
 
         match res {
@@ -336,14 +343,15 @@ mod tests {
     // IMPORTANT: use #[serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     // TODO this requires a setup: ie calling "extrinsic_garble_and_strip_display_circuits_package_signed"
-    // #[test]
-    // #[serial_test::serial]
-    // fn extrinsic_extrinsic_check_input_local_ok() {
-    //     init();
-    //     let worker_cli =
-    // InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
+    #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
+    #[serial_test::serial]
+    fn extrinsic_extrinsic_check_input_local_ok() {
+        let worker_cli = init();
 
-    //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
-    //     println!("[+] tx_hash: {:02X}", tx_hash);
-    // }
+        let circuit = worker_cli.get_most_recent_circuit().unwrap();
+        let inputs = vec![0, 0];
+        let res = worker_cli.extrinsic_check_input(&circuit.message_pgarbled_cid, &inputs);
+        assert!(res.is_ok());
+    }
 }
