@@ -28,6 +28,7 @@ pub struct EvaluateWrapper {
     evaluator_inputs: Vec<EvaluatorInput>,
     width: usize,
     height: usize,
+    temp_outputs: Vec<Option<u16>>,
 }
 
 impl EvaluateWrapper {
@@ -66,6 +67,7 @@ impl EvaluateWrapper {
             evaluator_inputs,
             width,
             height,
+            temp_outputs: vec![Some(0u16); width * height],
         }
     }
 
@@ -84,19 +86,19 @@ impl EvaluateWrapper {
         }
 
         // TODO convert/transmute texture data???
-        let mut temp_outputs = vec![Some(0u16); self.width * self.height];
+        // cf branch "wip unsafe" in Swanky
 
         self.garbled
             .eval_with_prealloc(
                 &self.encoded_garbler_inputs,
                 &self.evaluator_inputs,
-                &mut temp_outputs,
+                &mut self.temp_outputs,
                 &mut self.eval_cache,
             )
             .unwrap();
 
         // TODO avoid copy! MAYBE use some kind of "safe transmute"?
-        *outputs = convert_vec_option_u16_to_u8(&temp_outputs);
+        *outputs = convert_vec_option_u16_to_u8(&self.temp_outputs);
     }
 
     pub fn get_width(&self) -> usize {
