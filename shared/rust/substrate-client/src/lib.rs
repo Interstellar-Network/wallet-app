@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use common::{DisplayStrippedCircuitsPackageBuffers, PendingCircuitsType};
+use clap::Parser;
+use common::DisplayStrippedCircuitsPackageBuffers;
+use common::InterstellarErrors;
 use core::time::Duration;
 use futures_util::TryStreamExt;
+use integritee_cli::{
+    commands, Cli, CliResult, CliResultOk, PalletOcwGarbleDisplayStrippedCircuitsPackage,
+};
 use ipfs_api_backend_hyper::{
     BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
-use sp_keyring::AccountKeyring;
-use substrate_api_client::{
-    compose_extrinsic, rpc::WsRpcClient, Api, Hash, Pair, UncheckedExtrinsicV4, XtStatus,
-};
+use log::*;
+use url::Url;
 
 #[cfg(feature = "with-cwrapper")]
 pub mod c_wrapper;
@@ -30,284 +33,325 @@ pub mod jni_wrapper;
 
 mod loggers;
 
-fn get_api(ws_url: &str) -> Api<sp_core::sr25519::Pair, WsRpcClient> {
-    println!("[+] call_extrinsic: {:?}", ws_url);
-    let from = AccountKeyring::Alice.pair();
-    println!("[+] call_extrinsic: from {:?}", from.public());
-    let client = WsRpcClient::new(&ws_url);
-    println!("[+] call_extrinsic: client {:?}", client);
-    let api = Api::new(client).map(|api| api.set_signer(from)).unwrap();
-    println!("[+] call_extrinsic: api {:?}", api.genesis_hash.to_string());
+/// Return a client for the SUBSTRATE/INTEGRITEE NODE
+// fn get_node_api(
+//     ws_url: &str,
+// ) -> Api<sp_core::sr25519::Pair, WsRpcClient, BaseExtrinsicParams<AssetTip>> {
+//     println!("[+] call_extrinsic: {:?}", ws_url);
+//     let from = AccountKeyring::Alice.pair();
+//     println!("[+] call_extrinsic: from {:?}", from.public());
+//     let client = WsRpcClient::new(&ws_url);
+//     println!("[+] call_extrinsic: client {:?}", client);
+//     let api = Api::new(client).map(|api| api.set_signer(from)).unwrap();
+//     println!("[+] call_extrinsic: api {:?}", api.genesis_hash.to_string());
 
-    api
+//     api
+// }
+
+pub struct InterstellarIntegriteeWorkerCli {
+    worker_url: String,
+    worker_port: u16,
+    node_url: String,
+    node_port: u16,
+    // WARNING: cf "get_account"
+    // account: sp_core::sr25519::Pair,
+    mrenclave: Option<String>,
 }
 
-// https://github.com/scs/substrate-api-client/blob/master/examples/example_generic_extrinsic.rs
-// TODO replace by ocw-garble garbleAndStripSigned(and update params)
-fn extrinsic_garble_and_strip_display_circuits_package_signed(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
-    tx_message: &str,
-) -> Hash {
-    ////////////////////////////////////////////////////////////////////////////
-    // // "set the recipient"
-    // let to = AccountKeyring::Bob.to_account_id();
+impl InterstellarIntegriteeWorkerCli {
+    /// Return a client for the INTEGRITEE WORKER
+    /// NOTE: it is a bit ugly but `integritee-cli` is NOT made to be a lib; and it only exposes a clap Parse...
+    ///
+    /// param: ws_url: default to "wss://127.0.0.1:2000"
+    pub fn new(ws_url: &str, node_url: &str) -> InterstellarIntegriteeWorkerCli {
+        let ws_url = Url::parse(ws_url).unwrap();
+        let node_url = Url::parse(node_url).unwrap();
 
-    // // "the names are given as strings"
-    // #[allow(clippy::redundant_clone)]
-    // let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
-    //     api.clone(),
-    //     "Balances",
-    //     "transfer",
-    //     GenericAddress::Id(to),
-    //     Compact(42_u128)
-    // );
-    ////////////////////////////////////////////////////////////////////////////
-    #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "OcwGarble",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "garble_and_strip_display_circuits_package_signed",
-        tx_message.as_bytes().to_vec()
-    );
+        // Two steps init:
+        // - First we parse the url etc
+        // - Then we send a query to get the mrenclave
+        let mut worker_cli = InterstellarIntegriteeWorkerCli {
+            worker_url: format!("{}://{}", ws_url.scheme(), ws_url.host_str().unwrap()),
+            worker_port: ws_url.port().unwrap(),
+            node_url: format!("{}://{}", node_url.scheme(), node_url.host_str().unwrap()),
+            node_port: node_url.port().unwrap(),
+            // WARNING: cf "get_account"
+            // account: AccountKeyring::Alice.pair(),
+            mrenclave: None,
+        };
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+        // TODO DRY with "run_trusted_direct"
+        let worker_port_str = worker_cli.worker_port.to_string();
+        let worker_url_str = worker_cli.worker_url.to_string();
+        let node_port_str = worker_cli.node_port.to_string();
+        let node_url_str = worker_cli.node_url.to_string();
+        let cli = Cli::parse_from([
+            // we MUST replace the binary name
+            // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
+            // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
+            "",
+            "--trusted-worker-port",
+            &worker_port_str,
+            "--worker-url",
+            &worker_url_str,
+            "--node-port",
+            &node_port_str,
+            "--node-url",
+            &node_url_str,
+            "list-workers",
+        ]);
+        let res = commands::match_command(&cli);
+        match res {
+            Ok(CliResultOk::MrEnclaveBase58 { mr_enclaves }) => {
+                // TODO which enclave to choose if more than one? Probably random to distribute the clients?
+                worker_cli.mrenclave = Some(mr_enclaves.first().unwrap().to_string());
+            }
+            _ => todo!("InterstellarIntegriteeWorkerCli::new list-workers failed"),
+        }
 
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+        worker_cli
+    }
 
-    tx_hash.expect("send_extrinsic failed")
-}
+    /// Wrap: integritee-cli trusted [OPTIONS] --mrenclave <MRENCLAVE> <SUBCOMMAND>
+    fn run_trusted_direct(&self, mut trusted_subcommand: Vec<String>) -> CliResult {
+        let mrenclave_str = self
+            .mrenclave
+            .clone()
+            .expect("run_trusted_direct called but mrenclave not set!");
 
-pub fn extrinsic_register_mobile(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
-    pub_key: Vec<u8>,
-) -> Hash {
-    #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "MobileRegistry",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "register_mobile",
-        pub_key
-    );
+        let mut args = vec![
+            // we MUST replace the binary name
+            // else we end up with eg "error: Found argument '2090' which wasn't expected, or isn't valid in this context"
+            // https://stackoverflow.com/questions/74465951/how-to-parse-custom-string-with-clap-derive
+            "".to_string(),
+            "--trusted-worker-port".to_string(),
+            self.worker_port.to_string(),
+            "--worker-url".to_string(),
+            self.worker_url.clone(),
+            "trusted".to_string(),
+            "--mrenclave".to_string(),
+            mrenclave_str,
+            "--direct".to_string(),
+        ];
+        args.append(&mut trusted_subcommand);
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+        let cli = Cli::parse_from(args);
+        commands::match_command(&cli)
+    }
 
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+    /// CAREFUL! The result of this is indirectly used by "get_pair_from_str" in /xxx/.cargo/git/checkouts/integritee-worker-4df232146e8c8d35/0c9d7cf/cli/src/trusted_command_utils.rs
+    /// When NOT using a hardcoded key(eg //ALICE), it ends up using the filesystem via "TRUSTED_KEYSTORE_PATH"
+    /// which is not really ideal for Android...
+    fn get_account(&self) -> String {
+        "//Alice".to_string()
+    }
 
-    tx_hash.expect("send_extrinsic failed")
-}
+    /// cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
+    /// eg:
+    /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
+    pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
+        &self,
+        tx_message: &str,
+    ) -> Result<(), InterstellarErrors> {
+        self.run_trusted_direct(vec![
+            "garble-and-strip-display-circuits-package-signed".to_string(),
+            self.get_account(),
+            tx_message.to_string(),
+        ])
+        .map_err(|_err| InterstellarErrors::GarbleAndStrip {})
+        .map(|_| ())
+    }
 
-pub fn extrinsic_check_input(
-    api: &Api<sp_core::sr25519::Pair, WsRpcClient>,
-    ipfs_cid: Vec<u8>,
-    input_digits: Vec<u8>,
-) -> Hash {
-    #[allow(clippy::redundant_clone)]
-    let xt: UncheckedExtrinsicV4<_> = compose_extrinsic!(
-        api.clone(),
-        // MUST match the name in /substrate-offchain-worker-demo/runtime/src/lib.rs
-        "TxValidation",
-        // MUST match the call in /substrate-offchain-worker-demo/pallets/ocw-circuits/src/lib.rs
-        "check_input",
-        ipfs_cid,
-        input_digits
-    );
+    pub fn extrinsic_register_mobile(&self, _pub_key: Vec<u8>) {
+        warn!("TODO extrinsic_register_mobile");
+    }
 
-    println!("[+] Composed Extrinsic:\n {:?}\n", xt);
+    /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct tx-check-input "${PLAYER1}" "${IPFS_CID}" ${USER_INPUTS}
+    pub fn extrinsic_check_input(
+        &self,
+        ipfs_cid: &[u8],
+        input_digits: &[u8],
+    ) -> Result<(), InterstellarErrors> {
+        // the cli expects a list of SPACE-separated integer b/w [0-9]
+        // NOTE: run_trusted_direct is using Clap::parse_from; which means here we MUST have a "list" of parameter for last argument
+        // Then eg "0 1 2" will be parsed as [0,1,2] in `integritee-cli`
+        // DO NOT join with spaces here!
+        let inputs_str = input_digits
+            .iter()
+            .map(|digit| digit.to_string())
+            .collect::<Vec<String>>();
 
-    // "send and watch extrinsic until InBlock"
-    let tx_hash = api
-        .send_extrinsic(xt.hex_encode(), XtStatus::InBlock)
-        .unwrap();
-    println!("[+] Transaction got included. Hash: {:?}", tx_hash);
+        let res = self
+            .run_trusted_direct(
+                // cf comment above: WE MUST pass every char from "inputs_str" on its own!
+                [
+                    vec![
+                        "tx-check-input".to_string(),
+                        self.get_account(),
+                        std::str::from_utf8(ipfs_cid).unwrap().to_string(),
+                    ],
+                    inputs_str,
+                ]
+                .concat(),
+            )
+            .map_err(|_err| InterstellarErrors::TxCheckInput {})?;
 
-    tx_hash.expect("send_extrinsic failed")
-}
+        match res {
+            CliResultOk::None => Ok(()),
+            _ => panic!("called tx-check-input but got an unexpected enum variant"),
+        }
+    }
 
-// https://github.com/scs/substrate-api-client/blob/master/examples/example_get_storage.rs
-// TODO use get Account form passed "api"?(ie DO NOT hardcode Alice)
-fn get_pending_circuits(api: &Api<sp_core::sr25519::Pair, WsRpcClient>) -> PendingCircuitsType {
-    let account = AccountKeyring::Alice.public();
-    // let result: AccountInfo = api
-    //     .get_storage_map("System", "Account", account, None)
-    //     .unwrap()
-    //     .or_else(|| Some(AccountInfo::default()))
-    //     .unwrap();
-    // TODO use _proof?
-    let result: PendingCircuitsType = api
-        .get_storage_map("OcwGarble", "AccountToPendingCircuitsMap", account, None)
-        .unwrap()
-        .unwrap_or_default();
-    println!("[+] pending circuits for account = {:?}", result);
+    /// Get the list of pending circuits using an extrinsic
+    /// Then download ONE using IPFS
+    ///
+    /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
+    /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
+    pub fn get_latest_pending_display_stripped_circuits_package(
+        &self,
+        ipfs_server_multiaddr: &str,
+    ) -> Result<DisplayStrippedCircuitsPackageBuffers, InterstellarErrors> {
+        let circuit = self.get_most_recent_circuit()?;
 
-    result
+        // convert Vec<u8> into str
+        let message_pgarbled_cid_str = sp_std::str::from_utf8(&circuit.message_pgarbled_cid)
+            .expect("message_pgarbled_cid utf8");
+        let pinpad_pgarbled_cid_str =
+            sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
+
+        // allow calling ipfs api(ASYNC) from a sync context
+        // TODO can we make jni functions async?
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
+            let message_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
+                .cat(message_pgarbled_cid_str)
+                .map_ok(|chunk| chunk.to_vec())
+                .try_concat()
+                .await
+                .unwrap();
+            let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
+                .cat(pinpad_pgarbled_cid_str)
+                .map_ok(|chunk| chunk.to_vec())
+                .try_concat()
+                .await
+                .unwrap();
+
+            info!(
+                "get_one_pending_display_stripped_circuits_package: got: {},{}",
+                message_pgarbled_buf.len(),
+                pinpad_pgarbled_buf.len(),
+            );
+
+            Ok(DisplayStrippedCircuitsPackageBuffers {
+                message_pgarbled_buf,
+                message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+                pinpad_pgarbled_buf,
+                pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+                package: circuit.clone(),
+            })
+        })
+    }
+
+    /// RESULT=$(${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct get-circuits-package "${PLAYER1}" | xargs)
+    /// NOTE: the name is bad: "get-circuits-package" return the MOST recent Circuit(SINGULAR == 1 Circuit)
+    fn get_most_recent_circuit(
+        &self,
+    ) -> Result<PalletOcwGarbleDisplayStrippedCircuitsPackage, InterstellarErrors> {
+        let res = self
+            .run_trusted_direct(vec!["get-circuits-package".to_string(), self.get_account()])
+            .map_err(|_err| InterstellarErrors::GetCircuitsPackage {})?;
+
+        match res {
+            CliResultOk::DisplayStrippedCircuitsPackage { circuit } => Ok(circuit),
+            _ => panic!("called get-circuits-package but got an unexpected enum variant"),
+        }
+    }
 }
 
 fn ipfs_client(ipfs_server_multiaddr: &str) -> BackendWithGlobalOptions<IpfsClient> {
-    log::info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
+    info!("ipfs_client: starting with: {}", ipfs_server_multiaddr);
     BackendWithGlobalOptions::new(
-        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&ipfs_server_multiaddr).unwrap(),
+        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(ipfs_server_multiaddr).unwrap(),
         GlobalOptions::builder()
             .timeout(Duration::from_millis(5000))
             .build(),
     )
 }
 
-/// Get the list of pending circuits using an extrinsic
-/// Then download ONE using IPFS
-///
-/// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
-/// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
-pub fn get_latest_pending_display_stripped_circuits_package(
-    ipfs_server_multiaddr: &str,
-    ws_url: &str,
-) -> Result<DisplayStrippedCircuitsPackageBuffers, String> {
-    let api = get_api(ws_url);
-    let pending_circuits = get_pending_circuits(&api);
-
-    // TODO add param for index?
-    // But how are we supposed to choose which circuit to DL? [we can not really exposed the list to the user?]
-    // in that case; remove .last()
-    let circuit = pending_circuits.last().ok_or(
-        "error: get_latest_pending_display_stripped_circuits_package: no circuit available!",
-    )?;
-
-    // convert Vec<u8> into str
-    let message_pgarbled_cid_str =
-        sp_std::str::from_utf8(&circuit.message_pgarbled_cid).expect("message_pgarbled_cid utf8");
-    let message_packmsg_cid_str =
-        sp_std::str::from_utf8(&circuit.message_packmsg_cid).expect("message_packmsg_cid utf8");
-    let pinpad_pgarbled_cid_str =
-        sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
-    let pinpad_packmsg_cid_str =
-        sp_std::str::from_utf8(&circuit.pinpad_packmsg_cid).expect("pinpad_packmsg_cid utf8");
-
-    // allow calling ipfs api(ASYNC) from a sync context
-    // TODO can we make jni functions async?
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
-        let message_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(message_pgarbled_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-        let message_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(message_packmsg_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-        let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(pinpad_pgarbled_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-        let pinpad_packmsg_buf: Vec<u8> = ipfs_client(&ipfs_server_multiaddr)
-            .cat(pinpad_packmsg_cid_str)
-            .map_ok(|chunk| chunk.to_vec())
-            .try_concat()
-            .await
-            .unwrap();
-
-        log::info!(
-            "get_one_pending_display_stripped_circuits_package: got: {},{},{},{},",
-            message_pgarbled_buf.len(),
-            message_packmsg_buf.len(),
-            pinpad_pgarbled_buf.len(),
-            pinpad_packmsg_buf.len()
-        );
-
-        Ok(DisplayStrippedCircuitsPackageBuffers {
-            message_pgarbled_buf: message_pgarbled_buf,
-            message_packmsg_buf: message_packmsg_buf,
-            pinpad_pgarbled_buf: pinpad_pgarbled_buf,
-            pinpad_packmsg_buf: pinpad_packmsg_buf,
-            package: circuit.clone(),
-        })
-    })
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::loggers;
-    use crate::{
-        extrinsic_garble_and_strip_display_circuits_package_signed, extrinsic_register_mobile,
-        get_api, get_pending_circuits,
-    };
+    use super::*;
     static INIT: std::sync::Once = std::sync::Once::new();
 
-    fn init() {
+    fn init() -> InterstellarIntegriteeWorkerCli {
         INIT.call_once(|| {
             loggers::init_logger();
         });
+
+        InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990")
+    }
+
+    #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
+    fn can_build_integritee_client_ok() {
+        let worker_cli = init();
+        assert!(worker_cli.mrenclave.is_some());
     }
 
     // IMPORTANT: use #[serial_test::serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
     #[serial_test::serial]
     fn extrinsic_garble_and_strip_display_circuits_package_signed_local_ok() {
-        init();
-        let api = get_api("ws://127.0.0.1:9944");
+        let worker_cli = init();
 
-        // IMPORTANT this extrinsic requires IPFS!
-        // IPFS_PATH=/tmp/ipfs ipfs init -p test
-        // IPFS_PATH=/tmp/ipfs ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
-        // IPFS_PATH=/tmp/ipfs ipfs daemon --enable-pubsub-experiment
-        //
-        // IMPORTANT also requires a running "api_circuits"
-        // Seems to be OK with wss eg "wss://polkadot.api.onfinality.io/public-ws"
-        // TODO add integration test with SSL
-        let tx_hash = extrinsic_garble_and_strip_display_circuits_package_signed(&api, "aaa");
-        println!("[+] tx_hash: {:02X}", tx_hash);
+        // NOTE: we use this tx message b/c that way we can easily compare signatures etc vs /integritee-worker/cli/demo_interstellar.sh
+        // NOTE: when comparing: you MUST restart the worker else the nonce will not match
+        let res = worker_cli
+            .extrinsic_garble_and_strip_display_circuits_package_signed("REPLACEME tx msg");
+        assert!(res.is_ok());
     }
 
     #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
+    #[serial_test::serial]
     fn get_pending_circuits_local_ok() {
-        init();
-        let api = get_api("ws://127.0.0.1:9944");
+        let worker_cli = init();
 
-        let pending_circuits = get_pending_circuits(&api);
-        println!("[+] pending_circuits: {:?}", pending_circuits);
+        let circuit = worker_cli.get_most_recent_circuit().unwrap();
+        assert!(
+            circuit.message_pgarbled_cid.len()
+                == "QmQMRdg8eCu8bzaBQqdtW26G87XCnX6CAi3oa2vfVx67Lb".len()
+        );
     }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
-    #[test]
-    #[serial_test::serial]
-    fn extrinsic_register_mobile_local_ok() {
-        init();
-        let api = get_api("ws://127.0.0.1:9944");
+    // #[test]
+    // #[serial_test::serial]
+    // fn extrinsic_register_mobile_local_ok() {
+    //     init();
+    //     let worker_cli =
+    //         InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1".to_string(), "2090".to_string());
 
-        // MUST be at least 32 bytes
-        let tx_hash = extrinsic_register_mobile(&api, vec![42; 32]);
-        println!("[+] tx_hash: {:02X}", tx_hash);
-    }
+    //     // MUST be at least 32 bytes
+    //     worker_cli.extrinsic_register_mobile(vec![42; 32]);
+    // }
 
     // IMPORTANT: use #[serial] when testing extrinsics else:
     // "WS Error <Custom(Extrinsic("extrinsic error code 1014: Priority is too low: (35746 vs 19998): The transaction has too low priority to replace another transaction already in the pool."))>"
     // TODO this requires a setup: ie calling "extrinsic_garble_and_strip_display_circuits_package_signed"
-    // #[test]
-    // #[serial_test::serial]
-    // fn extrinsic_extrinsic_check_input_local_ok() {
-    //     init();
-    //     let api = get_api("ws://127.0.0.1:9944");
+    #[test]
+    #[ignore = "TODO requires integritee-worker either/or integritee-node"]
+    #[serial_test::serial]
+    fn extrinsic_extrinsic_check_input_local_ok() {
+        let worker_cli = init();
 
-    //     let tx_hash = extrinsic_check_input(&api, vec![0; 32], vec![0, 0]);
-    //     println!("[+] tx_hash: {:02X}", tx_hash);
-    // }
+        let circuit = worker_cli.get_most_recent_circuit().unwrap();
+        let inputs = vec![0, 0];
+        let res = worker_cli.extrinsic_check_input(&circuit.message_pgarbled_cid, &inputs);
+        assert!(res.is_ok());
+    }
 }

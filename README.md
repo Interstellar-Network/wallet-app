@@ -2,7 +2,7 @@
 
 ## Dev Details
 
-NOTE: for now compiling on windows is not supported b/c of poor support of Rust cross-compiling wrt to Android NDK  
+NOTE: for now compiling on windows is not supported b/c of poor support of Rust cross-compiling wrt to Android NDK
 It can probably be fixed but setting up Windows as dev env is a pain; it requires at least: Perl, Python, Rust, C++ Dev Tools, etc
 
 Uses:
@@ -12,37 +12,78 @@ Uses:
 
 NOTE: the Rust dependencies only compile on **nightly**
 
+### DEV
+
+MAYBE: `apt remove vulkan-tools libvulkan-dev vulkan-validationlayers-dev spirv-tools`
+https://vulkan-tutorial.com/Development_environment#page_Vulkan-Packages
+NOT needed to dev/compile, but can be useful to debug? Maybe needed for the shaders? vulkan validation?
+
+#### VSCode
+
+see https://github.com/bevyengine/bevy/issues/86#issuecomment-766100761
+
+- if you have modified `rustflags` or `linker` in eg `~/.cargo/config.toml` make sure the desktop one and the on used for Android Emulator match
+    - else it will recompile from scratch when switching target...
+    - the easiest way to do it is to NOT set `rustflags` or `linker`
+        - if you use mold; set it as global linker by symlinking to `ld`
+
 ### Android
 
 TODO cleanup/rewrite below
-- install Python
-- install Perl?
+- <del>?</del> install Python
+- <del>?</del> install Perl?
   -[windows] FAIL: "This perl implementation doesn't produce Unix like paths"
     Probably b/c https://github.com/alexcrichton/openssl-src-rs/blob/main/src/lib.rs#L226 hardcoded all Android NDK to match Linux...
   -[windows] W/A: alias "perl=wsl perl" `${env:PERL} = 'wsl perl'`
     eg `Set-Alias -Name perl -Value 'C:\Users\nat\Documents\programs\wsl_perl.bat'`
     with wsl_perl.bat: `wsl perl %*`
     CHECK: `perl -v`
-- `rustup toolchain install nightly`
-- `rustup target add armv7-linux-androideabi --toolchain nightly`
-- `rustup target add aarch64-linux-android --toolchain nightly`
-- `rustup target add x86_64-linux-android --toolchain nightly`
-- CHECK:
+- [FAIL for now] `rustup target add armv7-linux-androideabi`
+- `rustup target add aarch64-linux-android`
+- [FAIL for now] `rustup target add x86_64-linux-android`
+- CHECK if it cross-compiles directly(ie without gradle):
+  - NOTE: you can check for the correct env vars in [CI of other projects eg](https://github.com/Interstellar-Network/lib-garble-rs/blob/initial/.github/workflows/rust.yml#L88)
   - `cd shared/rust`
-  - `export NDK_ROOT=~/Android/Sdk/ndk/24.0.8215888`
-  - `CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi31-clang AR_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$CC_armv7_linux_androideabi cargo build --verbose --target=armv7-linux-androideabi` 
-  - TODO `cargo build --verbose --target=aarch64-linux-android`
-- [in Root=InterstellarWallet] .\gradlew cargoBuild --info
+  - `export NDK_ROOT=~/Android/Sdk/ndk/25.1.8937393`
+  -
+    ```bash
+    export CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang
+    export CXX_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang++
+    export AR_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang
+
+    export CC_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+    export CXX_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang++
+    export AR_aarch64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+
+    export CC_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang
+    export CXX_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang++
+    export AR_x86_64_linux_android=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+    export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android33-clang
+
+    export CMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake
+    export ANDROID_PLATFORM=21
+    ```
+  - `cargo build --release --target=aarch64-linux-android --features=with-jni` and/or `cargo build --release --target=x86_64-linux-android --features=with-jni`
+- [cd to Root of the repo] `./gradlew cargoBuild --info`
 
 NOTE: see https://github.com/mozilla/rust-android-gradle#specifying-local-targets to compile only for the emulator
 NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = Dual
+
+- `adb reverse tcp:5001 tcp:5001` and `adb reverse tcp:9990 tcp:9990` and `adb reverse tcp:2090 tcp:2090`
+- CHECK by opening [a front-end](https://substrate-developer-hub.github.io/substrate-front-end-template/?rpc=ws://localhost:9990) on the Device or Emulator
+
+#### About release builds
+
+You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"` and then eg `adb install path/to/app.apk`.
+That is because the CI is directly signing with an [action](https://github.com/ilharp/sign-android-release) and we want to avoid messing with keys etc from inside the build scripts.
 
 ### iOs
 
 cf https://kotlinlang.org/docs/multiplatform-mobile-integrate-in-existing-app.html#connect-the-framework-to-your-ios-project
 
-- `rustup toolchain install nightly`
-- `rustup target add aarch64-apple-ios x86_64-apple-ios --toolchain nightly`
+- `rustup target add aarch64-apple-ios x86_64-apple-ios`
 - Install Android Studio
 - Android Studio: open the project "wallet-app"; this is needed to download the SDK etc else iOs can not compile
   - NOTE: you will have to download eg the NDK using the SDK Manager, and anything else that is required until you can Build on this machine
@@ -86,6 +127,32 @@ command = /bin/bash -c 'chown root:kvm /dev/kvm && chmod 660 /dev/kvm'
 ```
 
 `sudo usermod -a -G kvm <username>`
+
+
+#### FIX: "error while loading shared libraries: libjvm.so: cannot open shared object file: No such file or directory"
+
+- install JDK eg `sudo apt-get install openjdk-11-jre-headless`
+    - NOTE: this is needed only to **run** some tests, NOT for compiling
+- CHECK path with eg `find /usr/lib/jvm/ -type f -name libjvm.so`
+- `export LD_LIBRARY_PATH=/usr/lib/jvm/java-11-openjdk-amd64/lib/server/`
+
+#### FIX: "[2022-06-01T12:39:18Z WARN  wgpu_hal::vulkan::instance] Unable to find layer: VK_LAYER_KHRONOS_validation"
+
+`sudo apt install vulkan-validationlayers`
+
+#### W/A: "[2022-06-01T12:58:49Z ERROR wgpu::backend::direct] Error in Adapter::request_device: Limit 'max_compute_workgroups_per_dimension' value 65535 is better than allowed 0"
+
+set env var `WGPU_BACKEND=vulkan`
+
+NOTE: "WARNING: lavapipe is not a conformant vulkan implementation, testing use only"
+
+#### W/A crash at startup; "Segmentation fault"
+
+NOTE: even a breakpoint at "Rust Panic" is not reached
+
+FIX: install vulkan drivers eg `sudo apt-get install mesa-vulkan-drivers`
+cf https://github.com/bevyengine/bevy/blob/main/docs/linux_dependencies.md#installing-linux-dependencies
+MAYBE see https://github.com/bevyengine/bevy/issues/2661
 
 #### ARCHIVE alternative tested: cargo ndk
 

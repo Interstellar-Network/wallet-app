@@ -2,21 +2,12 @@
 name = "circuit-evaluate"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cxx = "1.0"
-aes = "0.8.1"
-
-[build-dependencies]
-cxx-build = "1.0"
-prost-build = "0.10.4"
-# we need cmake only b/c we MUST compile libprotobuf ourself
-# "prost-build" compiles it if needed, but only for HOST arch, in order to build protoc
-# But we MUST link our final Rust package with a TARGET libprotobuf
-cmake = "0.1"
+lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
+rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
 
 [lib]
 name = "circuit_evaluate"

@@ -5,7 +5,7 @@ struct ContentView: View {
 	let greet = Greeting().greeting()
 
 	var body: some View {
-	    let txhash = RustWrapper().CallExtrinsic(url: "ws://127.0.0.1:9944")!
+	    let txhash = RustWrapper().CallExtrinsic(url: "ws://127.0.0.1:9990")!
 		Text(txhash)
 	}
 }

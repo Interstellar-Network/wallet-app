@@ -49,10 +49,10 @@ impl Rect {
         }
 
         Rect {
-            bottom: bottom,
-            left: left,
-            right: right,
-            top: top,
+            bottom,
+            left,
+            right,
+            top,
         }
     }
 
@@ -74,9 +74,9 @@ impl Rect {
         //
         // convert to range [0,1.0]; but what we WANT is [-1,1]
         // also MUST invert y axis
-        left = left / width;
+        left /= width;
         top = (height - top) / height;
-        right = right / width;
+        right /= width;
         bottom = (height - bottom) / height;
         // then convert [0.0,1.0] -> [-1.0,1.0]
         left = left * 2.0 - 1.0;
@@ -86,18 +86,22 @@ impl Rect {
         // finally, adjust for aspect ratio and scaling mode
         // eg with ScalingMode::FixedVertical: the y axis is [-1,1]
         // but the horizontal axis is [-1 / (16/9), 1 / (16/9)] == [-0.5625, 0.5625]
-        match crate::CameraScalingMode {
+        match crate::CAMERA_SCALING_MODE {
             bevy::render::camera::ScalingMode::None => todo!("ScalingMode::None not yet supported"),
+            bevy::render::camera::ScalingMode::Auto {
+                min_width: _,
+                min_height: _,
+            } => todo!("ScalingMode::Auto not yet supported"),
             bevy::render::camera::ScalingMode::WindowSize => {
                 todo!("ScalingMode::WindowSize not yet supported")
             }
-            bevy::render::camera::ScalingMode::FixedVertical => {
-                left = left * (width / height);
-                right = right * (width / height);
+            bevy::render::camera::ScalingMode::FixedVertical(_viewport_height_world) => {
+                left *= width / height;
+                right *= width / height;
             }
-            bevy::render::camera::ScalingMode::FixedHorizontal => {
-                top = top * (width / height);
-                bottom = bottom * (width / height);
+            bevy::render::camera::ScalingMode::FixedHorizontal(_viewport_width_world) => {
+                top *= width / height;
+                bottom *= width / height;
             }
         }
 
@@ -105,17 +109,17 @@ impl Rect {
     }
 
     pub fn center(&self) -> [f32; 2] {
-        return [
+        [
             self.left + self.width() / 2.0,
             self.bottom + self.height() / 2.0,
-        ];
+        ]
     }
 
     pub fn width(&self) -> f32 {
-        return self.right - self.left;
+        self.right - self.left
     }
 
     pub fn height(&self) -> f32 {
-        return self.top - self.bottom;
+        self.top - self.bottom
     }
 }

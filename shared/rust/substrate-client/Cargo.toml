@@ -14,55 +14,61 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib", "lib"]
 
 [dependencies]
+log = "0.4"
+# NOTE: this is a dep of "android_logger" so no point in putting it behind a "cfg"
+env_logger = "0.10"
+ipfs-api-backend-hyper = { version = "0.6", features = [ "with-send-sync" , "with-builder" ] }
+futures-util = "0.3"
+tokio = { version = "1.20", features = ["rt-multi-thread"] }
+clap = { version = "3.1.6", features = ["derive"] }
+url = "2.3.1"
+
+# only for Android
+jni = { version = "0.20", optional = true }
+jni_fn = { version = "0.1", optional = true }
+bytemuck = "1.11.0"
+
 # default-features to disable all std related code?
 # "you can basically only use the compose_extrinsic_offline macro."
 # maybe see https://github.com/scs/substrate-api-client/issues/166 ?
-substrate-api-client = { version = "~0.6.0",  git = "https://github.com/scs/substrate-api-client.git", default-features = false, branch = "polkadot-v0.9.19" }
+# substrate-api-client = { git = "https://github.com/scs/substrate-api-client.git", default-features = false, branch = "polkadot-v0.9.36" }
 # [windows] error: failed to run custom build command for `openssl-sys v0.9.73
 # Still fails even with Perl(strawberry) cf README
 # So for now install Android Studio inside WSL2...
 openssl = { version = '0.10', features = ["vendored"] }
-
 # those are for the examples cf https://github.com/scs/substrate-api-client/blob/master/Cargo.toml
 # but here need them as part of our public API
 # TODO cleanup eg MAYBE we need sp-core NOT the full node-template-runtime
 # env_logger = "0.9.0"
 # node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-keyring = { version = "6.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
+sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
 # clap = { version = "2.33", features = ["yaml"] }
 # wabt = "0.10.0"
 
-sp-std = { default-features = false, version = "4.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
-sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
-
-log = "0.4"
-# NOTE: this is a dep of "android_logger" so no point in putting it behind a "cfg"
-env_logger = "0.9.0"
-ipfs-api-backend-hyper = { version = "0.4.0", features = [ "with-send-sync" , "with-builder" ] }
-futures-util = "0.3"
-tokio = { version = "1.20", features = ["rt-multi-thread"] }
-
-# only for Android
-jni = { version = "0.19.0", optional = true }
-bytemuck = "1.11.0"
+sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
 
 # local
 common = { path = "../common" }
+integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar", features = ["sidechain"] }
+# FIX: force correct features for this dep
+sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
+
+# TEMP
+# else we hit: https://github.com/bytecodealliance/wasmtime/blob/v1.0.2/crates/runtime/src/traphandlers/unix.rs#L232
+# when building "cargo build --target=x86_64-linux-android"
+# wasmtime-runtime = "5.0.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.11"
+android_logger = "0.12"
 
 [dev-dependencies]
 # features "invocation" needed for tests(to create a JVM)
-jni = { version = "0.19.0", features = ["invocation"] }
-serial_test = "0.8.0"
+jni = { version = "0.20", features = ["invocation"] }
+serial_test = "1"
 
 [features]
 default = ["std"]
-std = [
-	"sp-core/std",
-    "substrate-api-client/std",
-    "substrate-api-client/ws-client",
-]
-with-jni = ["jni"]
+std = []
+with-jni = ["jni", "jni_fn"]
 with-cwrapper = []

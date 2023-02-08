@@ -4,8 +4,9 @@ on:
   push:
 
 jobs:
-  # TODO split test and lint; but that REQUIRE caching else recompile from scratch in between
-  rust:
+  ##########################################################################
+  ##########################################################################
+  rust_lint:
     runs-on: ubuntu-latest
     steps:
       # install build dependencies
@@ -13,59 +14,48 @@ jobs:
       # - name: Install dependencies
       #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
 
-      - uses: Interstellar-Network/gh-actions/prepare@v1.0.0
+      - uses: Interstellar-Network/gh-actions/prepare@v3-dev
         with:
           ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
           install_cmake_and_ninja: true
 
-      - uses: Interstellar-Network/gh-actions/prepare_rust@v1.0.0
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
         with:
-          toolchain_toolchain: nightly
-      # for now https://github.com/actions-rs/toolchain only support one "target"...
-      # TODO? "x86_64-unknown-linux-gnu"
-      - run: rustup target add --toolchain nightly armv7-linux-androideabi aarch64-linux-android
+          # ignore the nightly, and use stable for tests and linters
+          use_toolchain_toml: false
+          toolchain_components: "rustfmt,clippy"
+
+      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
-      # NOTE: only needed in CI, local builds are OK?
-      # Need BOTH "protoc-3.19.4-linux-x86_64.zip"(contains protoc itself)
-      # and "protobuf-cpp-3.19.4.tar.gz" for eg "src/google/protobuf/port_def.inc"
-      # What we download in CI, and what prost_build downloads SHOULD MATCH!
-      # DO NOT change the structure, else shared/rust/circuit_evaluate/build.rs will fail!
-      # when using prost_build vendored(ie compiling from sources):
-      #   prost_build::protoc_include() : /home/AAA/.cargo/registry/src/github.com-XXX/prost-build-0.10.4/third-party/include
-      #   prost_build::protoc() : /BBB/wallet-app/shared/rust/target/debug/build/prost-build-YYY/out/bin/protoc
-      # ie: protoc_include() is in .cargo/registry/ BUT protoc() is in build dir(= .../target/)
-      # IMPORTANT: "prebuilt.zip" already contains include/ with eg empty.proto etc
-      # we MUST rm it, and point include/ to src/(which contains the same eg empty.proto AND port_def.inc)
-      # DO NOT remove the ls statements, it can be useful to know if the setup is borked
-      - name: Install protoc custom prebuilt binary
-        run: |
-          mkdir /home/runner/protoc
-          cd /home/runner/protoc
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip -O prebuilt.zip
-          unzip prebuilt.zip
-          rm prebuilt.zip
-          rm -rf include/
-          wget -c https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protobuf-cpp-3.19.4.tar.gz -O - | tar -xz --one-top-level=protobuf --strip-components=1
-          ln -s protobuf/src include
-          export PROTOC_INCLUDE=/home/runner/protoc/include
-          echo "PROTOC=/home/runner/protoc/bin/protoc" >> $GITHUB_ENV
-          eval echo "PROTOC_INCLUDE=$PROTOC_INCLUDE" >> $GITHUB_ENV
-          echo "PROTOC_NO_VENDOR=" >> $GITHUB_ENV
-          echo CHECK PROTOC_INCLUDE include path
-          ls -al ${PROTOC_INCLUDE}
-          ls -al ${PROTOC_INCLUDE}/google
-          ls -al ${PROTOC_INCLUDE}/google/protobuf
-          ls -al ${PROTOC_INCLUDE}/google/protobuf/port_def.inc
-        shell: bash
+      - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
+        with:
+          clippy_args: "--all-features -- -D warnings"
+
+  ##########################################################################
+  ##########################################################################
+  rust_test:
+    runs-on: ubuntu-latest
+    steps:
+      # install build dependencies
+      # MUST match the same step in Dockerfile
+      # - name: Install dependencies
+      #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
+
+      - uses: Interstellar-Network/gh-actions/prepare@v3-dev
+        with:
+          ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
+          install_cmake_and_ninja: true
+
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
+        with:
+          # ignore the nightly, and use stable for tests and linters
+          use_toolchain_toml: false
+          toolchain_components: "rustfmt,clippy"
+
+      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
-
-      # TODO
-      # - uses: Interstellar-Network/gh-actions/rust-lint@v1.0.0
-      # - uses: Interstellar-Network/gh-actions/rust-build-and-test@v1.0.0
-
-      # cf https://github.com/android-actions/setup-android
 
       # https://github.com/actions/setup-java
       # TODO cache: "/home/runner/.konan"?
@@ -86,6 +76,116 @@ jobs:
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
           # TODO use Java 17(LTS)
           java-version: 11.0
+      - name: update LD_LIBRARY_PATH for Rust+Java
+        # careful with this "find"; usually in CI there are multiple versions installed
+        # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
+        # -> FAIL: no libjvm.so in JAVA_HOME?? [in CI: JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64]
+        # -> NO FAIL: it works, but JAVA_HOME is a symlink eg: 2023-02-03T20:51:07.9904868Z lrwxrwxrwx 1 runner root 33 Jan 29 21:52 /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64 -> /usr/lib/jvm/temurin-11-jdk-amd64
+        #    so for "find" to work we MUST pass "-L"
+        run: |
+          echo "ls -al $JAVA_HOME"
+          ls -al $JAVA_HOME
+          echo 'find -L $JAVA_HOME -type f -name "*.so*"'
+          find -L $JAVA_HOME -type f -name "*.so*"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find -L $JAVA_HOME -type f -name libjvm.so -printf "%h:")" >> $GITHUB_ENV
+
+      - uses: Interstellar-Network/gh-actions/rust-build-and-test@v3-dev
+        with:
+          test_args: "--all-features"
+
+  ##########################################################################
+  ##########################################################################
+  android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # cf https://stackoverflow.com/questions/66025220/paired-values-in-github-actions-matrix
+        # list of pairs:
+        # - cargo target
+        # - gradle_task: eg "assembleXXXRelease"
+        # - experimental: a flag passed to "continue-on-error"
+        # NOT GET the gradle targets with eg `./gradlew --no-daemon tasks | grep assemble`
+        # eg build outputs:
+        #   ./androidApp/build/outputs/apk/arm64/release/androidApp-arm64-release-unsigned.apk
+        #   ./androidApp/build/outputs/apk/arm64/debug/androidApp-arm64-debug.apk
+        #   ./androidApp/build/outputs/apk/x86_64/debug/androidApp-x86_64-debug.apk
+        android-target: [
+            {
+              cargo_target: "aarch64-linux-android",
+              gradle_task: "assembleArm64Release",
+              apk_artifact_name: "apk-Arm64Release",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "arm64/release/",
+              experimental: false,
+            },
+            {
+              cargo_target: "armv7-linux-androideabi",
+              gradle_task: "assembleArmv7Release",
+              apk_artifact_name: "apk-Armv7Release",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "armv7/release/",
+              # TODO? it (was supposed to fail, cf `lib-garble-rs)` b/c of pointer size difference, at least in Scuttlebut
+              # but as we are still not in PROD/GA, we only care about aarch64 for now
+              experimental: true,
+            },
+            {
+              cargo_target: "x86_64-linux-android",
+              gradle_task: "assembleX86_64Debug",
+              apk_artifact_name: "apk-X86_64Debug",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "x86_64/debug/",
+              experimental: false,
+            },
+          ]
+    steps:
+      # install build dependencies
+      # MUST match the same step in Dockerfile
+      # - name: Install dependencies
+      #   run: sudo apt-get update && sudo apt-get install -y libboost-dev
+
+      - uses: Interstellar-Network/gh-actions/prepare@v3-dev
+        with:
+          ssh_key_input: ${{ secrets.SSH_KEY_MACHINE_USER_INTERSTELLAR_CI }}
+          install_cmake_and_ninja: true
+
+      - uses: Interstellar-Network/gh-actions/prepare_rust@v3-dev
+        with:
+          use_toolchain_toml: "true"
+          toolchain_toml_path: ${{ github.workspace }}/rust-toolchain.toml
+          toolchain_components: ""
+          rust-cache-key: "${{ matrix.android-target.cargo_target }}"
+
+      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
+
+      ##########################################################################
+      # cf https://github.com/android-actions/setup-android
+
+      - run: rustup target add ${{ matrix.android-target.cargo_target }}
+
+      # https://github.com/actions/setup-java
+      # TODO cache: "/home/runner/.konan"?
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          cache: "gradle"
+          distribution: "temurin"
+          # cf https://github.com/jni-rs/jni-rs/blob/master/.github/workflows/ci.yml
+          # for the version?
+          # NOTE: "Error: Could not find satisfied version for SemVer '1.8'.
+          # Available versions: 18.0.1+10, 18.0.0+36, 17.0.3+7, 17.0.2+8, 17.0.1+12, 17.0.0+35, 16.0.2+7, 11.0.15+10, 11.0.14+101, 11.0.14+9, 11.0.13+8, 11.0.12+7, 8.0.332+9, 8.0.322+6, 8.0.312+7, 8.0.302+8"
+          # java-version: 8.0
+          #  * What went wrong:
+          # An exception occurred applying plugin request [id: 'com.android.application']
+          # > Failed to apply plugin 'com.android.internal.application'.
+          #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
+          #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
+          # TODO use Java 17(LTS)
+          java-version: 11.0
+      - name: update LD_LIBRARY_PATH for Rust+Java
+        # careful with this "find"; usually in CI there are multiple versions installed
+        # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
+        # -> FAIL: no libjvm.so in JAVA_HOME?? [in CI: JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64]
+        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*11.*\)' -printf "%h:")" >> $GITHUB_ENV
 
       # TODO apparently this is not cached?
       # if not: cache the whole "Setup Android SDK"+"Delete old NDK v23"+"Install NDK v24"
@@ -96,19 +196,23 @@ jobs:
       - name: Delete old NDK v23
         # version required else: "Warning: Failed to find package 'ndk'"
         run: sdkmanager --uninstall "ndk;23.2.8568313"
-      - name: Install NDK v24
+      - name: Install NDK v25
         # version required else: "Warning: Failed to find package 'ndk'"
-        run: sdkmanager "ndk;24.0.8215888"
+        # MUST match version used at NDK_ROOT below! Careful when updating!
+        run: sdkmanager "ndk;25.1.8937393"
 
       - name: Build Wallet-App
-        # TODO build arm7, and Release only?
-        run: ./gradlew --no-daemon assembleArm64Debug
+        id: build-app
+        run: ./gradlew --no-daemon ${{ matrix.android-target.gradle_task }}
+        # TODO it fails b/c of pointer size difference, at least in Scuttlebut
+        # but as we are still not in PROD/GA, we only care about aarch64 for now
+        continue-on-error: ${{ matrix.android-target.experimental }}
 
         # TODO move into separate action? ideally into a JS action "post" that setup ccache?
         # NOTE: remove if using "rust-build-and-test"
       - name: Print ccache/sccache stats
         # display stats even if tests failed
-        if: always()
+        if: success() || failure()
         run: |
           ccache --show-stats || true
           sccache --show-stats || true
@@ -117,7 +221,32 @@ jobs:
       # TODO on main/master: it SHOULD be a Release instead of Artifact
       - name: Upload APKs
         uses: actions/upload-artifact@v3
+        if: steps.build-app.outcome == 'success'
         with:
-          name: all-apks
-          path: |
-            ./androidApp/build/outputs/apk/arm64/debug/androidApp-*.apk
+          name: ${{ matrix.android-target.apk_artifact_name }}-unsigned
+          path: ./androidApp/build/outputs/apk/**/**/*.apk
+          retention-days: 7
+
+      # https://github.com/ilharp/sign-android-release
+      # TODO do we need this if using signingConfig in gradle?
+      # With it set eg "assembleArm64Release" already generates a signed apk so what is the point?
+      # and without it we CAN NOT deploy release apk from Android Studio which is not ideal?
+      - uses: ilharp/sign-android-release@v1 # Or use @nightly
+        name: Sign app APK
+        id: sign_app
+        if: steps.build-app.outcome == 'success'
+        with:
+          releaseDir: androidApp/build/outputs/apk/${{ matrix.android-target.apk_dir_name }}
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # TODO? set this?
+          # buildToolsVersion: 33.0.0
+
+      # Upload your signed file if you want
+      - uses: actions/upload-artifact@v3
+        if: steps.build-app.outcome == 'success' && steps.sign_app.outcome == 'success'
+        with:
+          name: ${{ matrix.android-target.apk_artifact_name }}
+          path: ${{steps.sign_app.outputs.signedFile}}

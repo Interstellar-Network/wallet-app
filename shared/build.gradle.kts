@@ -1,5 +1,5 @@
 // Will be deprecated in Grable 8, but there is no public replacement...
-import groovy.lang.Closure
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     android()
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -57,12 +57,12 @@ kotlin {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         // Compose Jetpack: requires >= 21?
         minSdk = 21
-        targetSdk = 31
+        targetSdk = 33
 
         // TODO? used by our own CargoTask NOT by externalNativeBuild
         ndk {
@@ -72,7 +72,7 @@ android {
     namespace = "gg.interstellar.wallet"
 
     // MUST match the version installed with SDK Manager
-    ndkVersion = "24.0.8215888"
+    ndkVersion = "25.1.8937393"
 
     flavorDimensions += listOf("abi")
     productFlavors {
@@ -146,14 +146,16 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val target: Property<String>
 
-    // will default to "target/"; RELATIVE to project_dir
-//    @Input
-//    var target_dir = "./target"
+    // SHOULD point to the root(ie the workspace's Cargo.toml directory)
+    //
+    // DirectoryProperty FAIL with "Cannot fingerprint input property 'myWorkingDir' [...] cannot be serialized." ???
     @get:Input
-    abstract val target_dir: Property<String>
+    abstract val myWorkingDir: Property<File>
 
+    // debug or release?
+    // We need this to know which compiled .so we will copy into jniLibs/
     @get:Input
-    abstract val project_dir: Property<File>
+    abstract val build_type: Property<String>
 
     @get:Input
     abstract val use_nightly: Property<Boolean>
@@ -162,39 +164,15 @@ abstract class CargoTask : DefaultTask () {
     @get:Input
     abstract val features: Property<String>
 
-    // cargo target -> NDK ABI(ie /.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/$NDk_ABI31-clang
-    @get:Input
-    abstract val map_cargo_target_to_ndk: MapProperty<String,String>
+    init {}
 
-    // cargo target -> ndkFilters(eg "x86_64", "armeabi-v7a", "arm64-v8a")
-    // "android_abi" SHOULD match jniLibs/
-    @get:Input
-    abstract val map_cargo_target_to_android_abi: MapProperty<String,String>
-
-    init {
-        target_dir.convention("./target")
-        // https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/RustAndroidPlugin.kt
-        // except armv7-linux-androideabi, those should be the identity function
-        // armv7-linux-androideabi -> armv7a-linux-androideabi
-        map_cargo_target_to_ndk.convention(mapOf(
-            "armv7-linux-androideabi" to "armv7a-linux-androideabi",
-            "aarch64-linux-android" to "aarch64-linux-android",
-            "x86_64-linux-android" to "x86_64-linux-android"
-        ))
-        map_cargo_target_to_android_abi.convention(mapOf(
-            "armv7-linux-androideabi" to "armeabi-v7a",
-            "aarch64-linux-android" to "arm64-v8a",
-            "x86_64-linux-android" to "x86_64"
-        ))
+    // Return the path eg "target/x86_64-linux-android/debug/"
+    @OutputDirectory
+    fun getBuildDir(): File {
+        return myWorkingDir.get().toPath().resolve("target/${target.get()}/${build_type.get()}").toFile()
     }
 
-    @TaskAction
-    fun doWork() {
-        // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
-
-        // Set a bunch of env vars needed for cross-compiling C++ projects
-        // This is needed at least for secp256k1-sys, and possibly other crates
-        // https://github.com/rust-lang/cc-rs#external-configuration-via-environment-variables
+    fun ndkToolchainHostTag(): File {
         println("### android.ndkDirectory: ${project.android.ndkDirectory}")
 
         // That is the same logic as: https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/CargoBuildTask.kt#L176
@@ -212,6 +190,40 @@ abstract class CargoTask : DefaultTask () {
             "linux-x86_64"
         }
 
+        return File("${project.android.ndkDirectory}/toolchains/llvm/prebuilt", hostTag)
+    }
+
+    // cargo target -> NDK ABI(ie /.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/$NDk_ABI31-clang
+    fun ndkTarget(): String {
+        // https://github.com/mozilla/rust-android-gradle/blob/master/plugin/src/main/kotlin/com/nishtahir/RustAndroidPlugin.kt
+        // except armv7-linux-androideabi, those should be the identity function
+        // armv7-linux-androideabi -> armv7a-linux-androideabi
+        val map_cargo_target_to_ndk = mapOf(
+        "armv7-linux-androideabi" to "armv7a-linux-androideabi",
+        "aarch64-linux-android" to "aarch64-linux-android",
+        "x86_64-linux-android" to "x86_64-linux-android"
+        )
+        return map_cargo_target_to_ndk[target.get()]!!
+    }
+
+    // cargo target -> ndkFilters(eg "x86_64", "armeabi-v7a", "arm64-v8a")
+    // "android_abi" SHOULD match jniLibs/
+    fun androidAbi(): String {
+        val map_cargo_target_to_android_abi =mapOf(
+            "armv7-linux-androideabi" to "armeabi-v7a",
+            "aarch64-linux-android" to "arm64-v8a",
+            "x86_64-linux-android" to "x86_64"
+        )
+
+        return map_cargo_target_to_android_abi[target.get()]!!
+    }
+
+    @TaskAction
+    open fun doWork() {
+        // Set a bunch of env vars needed for cross-compiling C++ projects
+        // This is needed at least for secp256k1-sys, and possibly other crates
+        // https://github.com/rust-lang/cc-rs#external-configuration-via-environment-variables
+
         // TODO? https://github.com/rust-lang/cc-rs/blob/f2e1b1c9ff92ad063957382ec445bc54e9570c71/src/lib.rs#L2296
         // just call clang --target=$TARGET instead of this messy env var settings?
         // FAIL: it works for MOST projects in Rust; ie all that use "rust-cc"
@@ -224,25 +236,24 @@ abstract class CargoTask : DefaultTask () {
         val ndk_major = VersionNumber.parse(project.android.ndkVersion!!).major
         println("### ndk major: ${ndk_major}")
         val cargo_target = target.get()
-        val ndk_target = map_cargo_target_to_ndk.get().get(cargo_target)
         println("### cargo_target: $cargo_target")
-        println("### ndk_target: $ndk_target")
-        val toolchains_prebuilt_path = "${project.android.ndkDirectory}/toolchains/llvm/prebuilt/$hostTag/bin"
+        println("### ndk_target: ${ndkTarget()}")
+        val toolchains_prebuilt_bin_path = ndkToolchainHostTag().absolutePath + "/bin"
         // eg with "--target=x86_64-linux-android" we want:
         // CC eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang"
         // CXX eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang++"
         // BUT AR is NOT versionned:
         // eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
-        val target_cc = "${toolchains_prebuilt_path}/$ndk_target${project.android.compileSdk!!}-clang"
-//        val target_cc = "${toolchains_prebuilt_path}/clang"
+        val target_cc = "${toolchains_prebuilt_bin_path}/${ndkTarget()}${project.android.compileSdk!!}-clang"
+//        val target_cc = "${toolchains_prebuilt_bin_path}/clang"
         val target_cxx = "${target_cc}++"
-        val target_ar = "${toolchains_prebuilt_path}/llvm-ar"
+        val target_ar = "${toolchains_prebuilt_bin_path}/llvm-ar"
         println("### target_cc: $target_cc")
         println("### target_cxx: $target_cxx")
         println("### target_ar: $target_ar")
 
         project.exec {
-            workingDir = project_dir.get()
+            workingDir = myWorkingDir.get()
             println("### workingDir: $workingDir")
 
             // TODO? use args and executable? but that result in empty commandLine?
@@ -252,6 +263,11 @@ abstract class CargoTask : DefaultTask () {
                 cmd.add("+nightly")
             }
             cmd.add("build")
+            // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
+            // NOTE: breakpoints in Rust do not work(historically at least) so not sure if debug build is worth it?
+            if (build_type.get() == "release"){
+                cmd.add("--release")
+            }
             cmd.add("--target=$cargo_target")
             if (features.get().isNotEmpty()) {
                 cmd.add("--features=${features.get()}")
@@ -264,7 +280,7 @@ abstract class CargoTask : DefaultTask () {
             //        inputs.files(fileTree("./rust/src"))
             //            .withPropertyName("sourceFiles")
             //            .withPathSensitivity(PathSensitivity.RELATIVE)
-            //        outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
+            //        outputs.files(File("./shared/rust/target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
             // TODO? CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER etc
             // WARNING: if you change any env var, CLEAN EVERYTHING: cargo clean + gradle clean
@@ -295,7 +311,7 @@ abstract class CargoTask : DefaultTask () {
             //            ...
             //            ld: error: cannot open crtbegin_dynamic.o: No such file or directory
             //            ld: error: cannot open crtend_android.o: No such file or directory
-            environment("ANDROID_ABI", map_cargo_target_to_android_abi.get().get(target.get())!!)
+            environment("ANDROID_ABI", androidAbi())
 
             environment("ANDROID_PLATFORM", project.android.defaultConfig.minSdk)
 
@@ -315,27 +331,48 @@ abstract class CargoTask : DefaultTask () {
             // TEMP WORKAROUND for "note: ld: error: unable to find library -lgcc"
             // that is the same "fix" than in https://github.com/rust-windowing/android-ndk-rs/pull/189
             // or the last comment of: https://github.com/rust-lang/rust/pull/85806#issuecomment-1096266946
+            // NOTE: this is just a text file so NO need to have a dir per ABI, or for debug vs release
             if(ndk_major >= 23){
-                val target_dir_resolved = project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/WORKAROUND-RUST-LANG-85806")
-                println("### target_dir_resolved: $target_dir_resolved")
-                project.file(target_dir_resolved).mkdirs()
-                File(target_dir_resolved, "libgcc.a").writeText("INPUT(-lunwind)")
+                val temp_link_dir = getBuildDir().absoluteFile.toPath().resolve("WORKAROUND-RUST-LANG-85806").toFile().absolutePath
+                println("### temp_link_dir: $temp_link_dir")
+                project.file(temp_link_dir).mkdirs()
+                File(temp_link_dir, "libgcc.a").writeText("INPUT(-lunwind)")
 
                 // TODO can we use CARGO_TARGET_<triple>_RUSTFLAGS instead of -L?
                 // cmd.add("-L$target_dir_resolved") // error: Found argument '-L' which wasn't expected, or isn't valid in this context
-                environment("CARGO_TARGET_${target_triple_upper}_RUSTFLAGS", "-L$target_dir_resolved")
+                environment("CARGO_TARGET_${target_triple_upper}_RUSTFLAGS", "-L$temp_link_dir")
             }
 
             // useful to debug why we keep recompiling from scratch when switching from host build to Android target
             // TODO remove
             environment("CARGO_LOG", "cargo::core::compiler::fingerprint=info")
         }
+    }
+}
 
-        val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(map_cargo_target_to_android_abi.get().get(target.get())!!)
+// Copy the .so from Cargo's target/ into jniLibs/ (into proper target dir arm64, etc)
+//
+// NOTE: originally it was inside "project.exec" of CargoTask above
+// but it WAS NOT copying the .so during the first run after a clean:
+// eg first compile: first "./gradlew assembleArm64Release": final .apk is around 18MB
+// and then subsquent calls generate a 36MB apk!
+// Which was not a catastrophe locally(but not ideal b/c the .so under test WAS NOT the last compiled one)
+// but completely broken CI.
+//
+// cf https://github.com/mozilla/rust-android-gradle/issues/106 for inspiration
+abstract class CopyJniLibs : CargoTask () {
+
+//    @get:InputFiles
+//    abstract val libsToCopy: Property<Files>
+
+    @TaskAction
+    override fun doWork() {
+        val output_jnilibs_dir = project.android.sourceSets["main"].jniLibs.srcDirs.elementAt(1).resolve(androidAbi())
+        print("CopyJniLibs: from: ${getBuildDir()}")
 
         project.copy {
             // TODO debug/release
-            from(project_dir.get().absoluteFile.resolve("${target_dir.get()}/${cargo_target}/debug/"))
+            from(getBuildDir())
             // TODO project.android or project.kotlin.
             // TODO NOTE sourceSets["main"].jniLibs.srcDirs = [/.../shared/src/main/jniLibs, /.../shared/src/androidMain/jniLibs]
             // which one should we use
@@ -350,35 +387,50 @@ abstract class CargoTask : DefaultTask () {
         // else "java.lang.UnsatisfiedLinkError: dlopen failed: library "libc++_shared.so" not found: needed by /data/app/~~OsRL7kQNuWmABqVyljXr9Q==/gg.interstellar.wallet.android-TLjOrv0NMAhDKJ2LSBX4Fw==/lib/x86_64/librenderer.so in namespace classloader-namespace"
         // even when using "protobuf_cmake_config.define("ANDROID_STL", "c++_static");"??
         project.copy {
-            from(project.android.ndkDirectory.resolve("toolchains/llvm/prebuilt/$hostTag/sysroot/usr/lib/$ndk_target/libc++_shared.so"))
+            from(project.android.ndkDirectory.resolve("${ndkToolchainHostTag()}/sysroot/usr/lib/${ndkTarget()}/libc++_shared.so"))
             into(output_jnilibs_dir)
             include("*.so")
         }
     }
-
 }
 
-// https://github.com/scs/substrate-api-client only supports nightly, cf README
-val cargo_use_nightly = true
-val cargo_project_dir = projectDir.absoluteFile.resolve("./rust")
+// cargo_use_nightly: https://github.com/scs/substrate-api-client only supports nightly, cf README
+// BUT we use a rust-toolchain.toml file so we MUST NOT set it
+// else: eg "toolchain 'nightly-x86_64-unknown-linux-gnu' is not installed"
+//
+val cargo_use_nightly = false
+val cargo_project_dir = rootDir.toPath().toFile()
 val cargo_features_android = "with-jni"
-tasks.register<CargoTask>("cargoBuildAndroidArm") {
-    project_dir.set(cargo_project_dir)
-    target.set("armv7-linux-androideabi")
-    use_nightly.set(cargo_use_nightly)
-    features.set(cargo_features_android)
-}
-tasks.register<CargoTask>("cargoBuildAndroidArm64") {
-    project_dir.set(cargo_project_dir)
-    target.set("aarch64-linux-android")
-    use_nightly.set(cargo_use_nightly)
-    features.set(cargo_features_android)
-}
-tasks.register<CargoTask>("cargoBuildAndroidX86") {
-    project_dir.set(cargo_project_dir)
-    target.set("x86_64-linux-android")
-    use_nightly.set(cargo_use_nightly)
-    features.set(cargo_features_android)
+for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","x86_64-linux-android")) {
+    for (cargo_build_type in arrayOf("debug","release")) {
+        val cargo_task = tasks.register<CargoTask>("cargoBuildAndroid${cargo_target}${cargo_build_type}") {
+            myWorkingDir.set(cargo_project_dir)
+            build_type.set(cargo_build_type)
+            target.set(cargo_target)
+            use_nightly.set(cargo_use_nightly)
+            features.set(cargo_features_android)
+
+            // TODO replace by
+            // https://stackoverflow.com/questions/57653597/i-want-to-use-different-library-in-debug-and-release-mode-in-android
+            // sourceSets["debug"].jniLibs.srcDirs(tasks.named("cargoBuildAndroidarmv7-linux-androideabidebug"))
+            // and add "InputFiles" to CopyJniLibs
+            outputs.upToDateWhen { false }
+        }
+        // print("new custom CargoTask : $cargo_task")
+
+        val copy_jnilibs_task = tasks.register<CopyJniLibs>("copyJniLibsAndroid${cargo_target}${cargo_build_type}") {
+            myWorkingDir.set(cargo_project_dir)
+            build_type.set(cargo_build_type)
+            target.set(cargo_target)
+            use_nightly.set(cargo_use_nightly)
+            features.set(cargo_features_android)
+
+            // TODO cf upToDateWhen above
+            outputs.upToDateWhen { false }
+        }
+        copy_jnilibs_task.dependsOn(cargo_task)
+        // print("new custom CopyJniLibs : $copy_jnilibs_task")
+    }
 }
 
 // CUSTOM task for iOs <-> cargo
@@ -401,6 +453,7 @@ tasks.register<CargoTask>("cargoBuildAndroidX86") {
 //    commandLine("cargo", "+nightly", "build", "--target=x86_64-apple-ios")
 //}
 // TODO add "--release" based on CONFIGURATION env var?(adjust outputs if needed)
+/*
 task("cargoBuildIosSimulator") {
     onlyIf {
         (System.getenv()["PLATFORM_NAME"] == "iphonesimulator") && (System.getenv()["PLATFORM_PREFERRED_ARCH"] == "x86_64")
@@ -409,7 +462,7 @@ task("cargoBuildIosSimulator") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/x86_64-apple-ios/debug/libshared_substrate_client.a"))
+    outputs.files(File("./target/x86_64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -420,12 +473,14 @@ task("cargoBuildIosSimulator") {
         }
     }
 }
+*/
 //task<Exec>("cargoBuildIosDevice") {
 //    workingDir = projectDir.absoluteFile.resolve("./rust")
 //    println("### workingDir: $workingDir")
 //    // 64 bit targets (real device)
 //    commandLine("cargo", "+nightly", "build", "--target=aarch64-apple-ios")
 //}
+/*
 task("cargoBuildIosDevice") {
     onlyIf {
         // TODO check the values with a real iPhone
@@ -435,7 +490,7 @@ task("cargoBuildIosDevice") {
     inputs.files(fileTree("./rust/src"))
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.files(File("./shared/rust/target/aarch64-apple-ios/debug/libshared_substrate_client.a"))
+    outputs.files(File("./target/aarch64-apple-ios/${build_type.get()}/libshared_substrate_client.a"))
 
     doLast {
         exec {
@@ -446,6 +501,7 @@ task("cargoBuildIosDevice") {
         }
     }
 }
+*/
 // TODO if needed add for "iOs simulator on ARM MACs"
 
 
@@ -453,15 +509,32 @@ tasks.whenTaskAdded {
     // TODO? https://github.com/mozilla/rust-android-gradle/issues/85
     //    if (name == "mergeDebugJniLibFolders" || name == "mergeReleaseJniLibFolders") {
     // TODO is there a better target? cf // https://github.com/mozilla/rust-android-gradle
-    // TODO Release variants
-    if(name == "javaPreCompileArmv7Debug") {
-        dependsOn(tasks.named("cargoBuildAndroidArm"))
+    //
+    //
+    // NOTE: the dependsOn name come from the "for (cargo_target in arrayOf" above
+    if(name in arrayOf("javaPreCompileArmv7Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabidebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabidebug"))
     }
-    if(name == "javaPreCompileArm64Debug") {
-        dependsOn(tasks.named("cargoBuildAndroidArm64"))
+    if(name in arrayOf("javaPreCompileArmv7Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabirelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabirelease"))
     }
-    if(name == "javaPreCompileX86_64Debug") {
-        dependsOn(tasks.named("cargoBuildAndroidX86"))
+    if(name in arrayOf("javaPreCompileArm64Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androiddebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androiddebug"))
+    }
+    if(name in arrayOf("javaPreCompileArm64Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androidrelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androidrelease"))
+    }
+    if(name in arrayOf("javaPreCompileX86_64Debug")) {
+        dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androiddebug"))
+        dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androiddebug"))
+    }
+    if(name in arrayOf("javaPreCompileX86_64Release")) {
+        dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androidrelease"))
+        dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androidrelease"))
     }
 
     // TODO cf https://kotlinlang.org/docs/multiplatform-dsl-reference.html#targets

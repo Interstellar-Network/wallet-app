@@ -13,14 +13,11 @@
 // limitations under the License.
 
 use bevy::prelude::*;
-use bevy::render::camera::{
-    CameraProjection, DepthCalculation, OrthographicCameraBundle, OrthographicProjection,
-    ScalingMode, WindowOrigin,
-};
+use bevy::render::camera::{OrthographicProjection, ScalingMode, WindowOrigin};
+use bevy::render::mesh::shape::Circle;
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
 
-use crate::bevy_regular_polygon::Circle;
 use crate::TextureUpdateCallbackMessage;
 use crate::TextureUpdateCallbackPinpad;
 use crate::TEXTURE_PIXEL_NB_BYTES;
@@ -28,25 +25,36 @@ use crate::TEXTURE_PIXEL_NB_BYTES;
 /// Init the Camera, with a 2D projection
 // NOTE: not sure how to have a "add_startup_system" depends on another, so this is called FROM setup_main, not via "add_startup_system"
 pub fn setup_camera(mut commands: Commands) {
-    // camera
-    let mut camera = OrthographicCameraBundle::new_2d();
-    // let proj = OrthographicProjection {
-    //     near: 0.0,
-    //     far: 1000.0,
-    //     window_origin: WindowOrigin::Center,
-    //     scaling_mode: ScalingMode::FixedVertical,
-    //     scale: scale,
-    //     depth_calculation: DepthCalculation::ZDifference,
-    //     ..Default::default()
-    // };
-    camera.orthographic_projection.scale = 1.0;
-    camera.orthographic_projection.scaling_mode = crate::CameraScalingMode;
+    // TODO TOREMOVE
+    // // camera
+    // let mut camera = OrthographicCameraBundle::new_2d();
+    // //     depth_calculation: DepthCalculation::ZDifference,
+    // //     ..Default::default()
+    // // };
+    // camera.orthographic_projection.scale = 1.0;
+    // camera.orthographic_projection.scaling_mode = crate::CameraScalingMode;
 
-    let camera2 = camera.camera.clone();
-    let global_transform = camera.global_transform.clone();
+    // let camera2 = camera.camera.clone();
+    // let global_transform = camera.global_transform.clone();
 
     // TODO? use proj.get_projection_matrix()?
-    commands.spawn_bundle(camera);
+    // TODO proper values
+    commands.spawn(Camera2dBundle {
+        projection: OrthographicProjection {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: 0.0,
+            far: 1000.0,
+            window_origin: WindowOrigin::Center,
+            // scaling_mode: ScalingMode::None,
+            scaling_mode: ScalingMode::FixedVertical(2.0),
+            scale: 1.0,
+            // depth_calculation: DepthCalculation::ZDifference,
+        },
+        ..default()
+    });
 
     // FOR REFERENCE; useful to get the resolution from the camera
     // If needed in the future: add a resource with eg ResMut<MyCameraData> and pass around
@@ -79,7 +87,7 @@ pub fn setup_pinpad_textures(
     // TODO https://bevy-cheatbook.github.io/features/parent-child.html
     // circle is the parent, Texture is child
 
-    /// WARNING it is assumed that the layout is one row of 10 "cases"
+    // WARNING it is assumed that the layout is one row of 10 "cases"
     let atlas_width = rects_pinpad.circuit_dimension[0];
     let atlas_height = rects_pinpad.circuit_dimension[1];
 
@@ -89,6 +97,8 @@ pub fn setup_pinpad_textures(
         Vec2::new((atlas_width as f32) / 10., atlas_height as f32),
         10,
         1,
+        None,
+        None,
     ));
     // draw a sprite from the atlas
     for row in 0..rects_pinpad.nb_rows {
@@ -97,7 +107,7 @@ pub fn setup_pinpad_textures(
             // TODO proper index directly(ie without "if"): exclude lower left(cancel button) and lower right(done button)
             let index = col + row * rects_pinpad.nb_cols;
             if index == 9 {
-                col = col + 1;
+                col += 1;
             } else if index >= 10 {
                 break;
             }
@@ -107,13 +117,13 @@ pub fn setup_pinpad_textures(
             let center_x = current_rect.center()[0];
             let center_y = current_rect.center()[1];
 
-            commands.spawn_bundle(SpriteSheetBundle {
+            commands.spawn(SpriteSheetBundle {
                 transform: Transform {
                     translation: Vec3::new(center_x, center_y, 1.0),
                     ..default()
                 },
                 sprite: TextureAtlasSprite {
-                    index: index,
+                    index,
                     custom_size: Some(Vec2::new(
                         current_rect.width() / 2.0,
                         current_rect.height() / 2.0,
@@ -128,7 +138,7 @@ pub fn setup_pinpad_textures(
             // circle_radius: max(width, height), that way it works even if change
             let circle_radius = (current_rect.width() / 2.0).max(current_rect.height() / 2.0);
 
-            commands.spawn_bundle(MaterialMesh2dBundle {
+            commands.spawn(MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::new(circle_radius).into()).into(),
                 material: materials_color.add(rects_pinpad.circle_color.into()),
                 transform: Transform::from_xyz(center_x, center_y, 0.0),
@@ -145,7 +155,7 @@ pub fn setup_message_texture(
     rect_message: Res<crate::RectMessage>,
 ) {
     // Texture message = foreground
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: images.add(uv_debug_texture(
             rect_message.circuit_dimension[0],
             rect_message.circuit_dimension[1],
@@ -232,7 +242,7 @@ pub fn setup_transparent_shader_for_sprites(
     //     text_color_rgba[0], text_color_rgba[1], text_color_rgba[2], text_color_rgba[3]
     // );
 
-    let shader_str = format!("{}", include_str!("../data/transparent_sprite.wgsl"));
+    let shader_str = include_str!("../data/transparent_sprite.wgsl").to_string();
 
     let new_sprite_shader = Shader::from_wgsl(shader_str);
     shaders.set_untracked(bevy::sprite::SPRITE_SHADER_HANDLE, new_sprite_shader);
@@ -287,8 +297,8 @@ fn uv_debug_texture(width: u32, height: u32) -> Image {
 
     Image::new_fill(
         Extent3d {
-            width: width,
-            height: height,
+            width,
+            height,
             depth_or_array_layers: 1,
         },
         wgpu::TextureDimension::D2,

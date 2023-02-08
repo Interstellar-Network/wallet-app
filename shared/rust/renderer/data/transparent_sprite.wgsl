@@ -6,26 +6,26 @@
 let BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 
 struct View {
-    view_proj: mat4x4<f32>;
-    world_position: vec3<f32>;
+    view_proj: mat4x4<f32>,
+    world_position: vec3<f32>,
 };
-[[group(0), binding(0)]]
+@group(0) @binding(0)
 var<uniform> view: View;
 
 struct VertexOutput {
-    [[location(0)]] uv: vec2<f32>;
+    @location(0) uv: vec2<f32>,
 #ifdef COLORED
-    [[location(1)]] color: vec4<f32>;
+    @location(1) color: vec4<f32>,
 #endif
-    [[builtin(position)]] position: vec4<f32>;
+    @builtin(position) position: vec4<f32>,
 };
 
-[[stage(vertex)]]
+@vertex
 fn vertex(
-    [[location(0)]] vertex_position: vec3<f32>,
-    [[location(1)]] vertex_uv: vec2<f32>,
+    @location(0) vertex_position: vec3<f32>,
+    @location(1) vertex_uv: vec2<f32>,
 #ifdef COLORED
-    [[location(2)]] vertex_color: vec4<f32>,
+    @location(2) vertex_color: vec4<f32>,
 #endif
 ) -> VertexOutput {
     var out: VertexOutput;
@@ -37,22 +37,24 @@ fn vertex(
     return out;
 }
 
-[[group(1), binding(0)]]
+@group(1) @binding(0)
 var sprite_texture: texture_2d<f32>;
-[[group(1), binding(1)]]
+@group(1) @binding(1)
 var sprite_sampler: sampler;
 
-[[stage(fragment)]]
-fn fragment(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    // MUST multiply by 255 b/c circuit outputs are 0/1
-    // TODO is there a better texture format that can avoid the multiply?
-    var color = textureSample(sprite_texture, sprite_sampler, in.uv) * 255.0;
+@fragment
+fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv);
 // #ifdef COLORED
     // color = in.color * color;
 // #endif
     // if RED is set, we use the texture's color
     // else we make it transparent
     // NOTE: RED channel b/c we use wgpu::TextureFormat::R8Unorm, but adjust if necessary
+# ifdef COLORED
     color = mix(BACKGROUND_COLOR, in.color, color.r);
+# else
+    color = mix(BACKGROUND_COLOR, vec4<f32>(1.0, 1.0, 1.0, 1.0), color.r);
+# endif
     return color;
 }

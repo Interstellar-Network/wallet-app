@@ -1,27 +1,6 @@
-use codec::{Decode, Encode};
-use core::time::Duration;
-use frame_support::pallet_prelude::*;
+use snafu::prelude::*;
 
-/// MUST match pallets/ocw-garble/src/lib.rs "DisplayStrippedCircuitsPackage"(in repo ocw-demo)
-///
-/// Contrary to "DisplayStrippedCircuitsPackageBuffers" it is NOT used by multiple crates,
-/// but we put it in common b/c down the line it SHOULD be put in a separate repo which will be used
-/// by this wallet-app and substrate-offchain-worker-demo.
-#[derive(Encode, Decode, Debug, Clone)]
-pub struct DisplayStrippedCircuitsPackage {
-    pub message_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
-    pub message_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
-    pub pinpad_pgarbled_cid: BoundedVec<u8, ConstU32<64>>,
-    pub pinpad_packmsg_cid: BoundedVec<u8, ConstU32<64>>,
-    pub message_nb_digits: u32,
-}
-/// MUST also match?
-/// Probably at least "BoundedVec"; not sure about MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT
-const MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT: u32 = 16;
-pub type PendingCircuitsType =
-    BoundedVec<DisplayStrippedCircuitsPackage, ConstU32<MAX_NUMBER_PENDING_CIRCUITS_PER_ACCOUNT>>;
-
-pub type SubPackageType = DisplayStrippedCircuitsPackage;
+pub use circuits_storage_common::DisplayStrippedCircuitsPackage;
 
 /// Struct that match DisplayStrippedCircuitsPackage, but replacing IPFS cid by their content.
 ///
@@ -36,7 +15,17 @@ pub struct DisplayStrippedCircuitsPackageBuffers {
     /// - for UI/UX purposes we need to expose "message_nb_digits"
     /// - the "check_input" extrinsic uses "message_pgarbled_cid" as as ID to know which TX to validate
     ///   for the current account(ie we CAN have multiple pending tx for an account)
-    pub package: SubPackageType,
+    pub package: DisplayStrippedCircuitsPackage,
+}
+
+#[derive(Debug, Snafu)]
+pub enum InterstellarErrors {
+    #[snafu(display("error at get-circuits-package"))]
+    GetCircuitsPackage {},
+    #[snafu(display("error at garble-and-strip-display-circuits-package-signed"))]
+    GarbleAndStrip {},
+    #[snafu(display("error at tx-check-input"))]
+    TxCheckInput {},
 }
 
 #[cfg(test)]

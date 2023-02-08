@@ -6,20 +6,22 @@ package gg.interstellar.wallet
  */
 interface RustInterface {
     /**
-     *
-     * @param ws_url address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9944"
+     * @param ws_url: address of the WS*S* endpoint of the `integritee-worker`; eg dev "wss://127.0.0.1:2090",
+     * @param node_url: address of the WS endpoint of the `integrite-node`; eg dev "ws://127.0.0.1:9990"
      */
     // WARNING: this CAN NOT be "external" if part of the commonMain?
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation
-    fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, tx_message: String): String?
-    fun ExtrinsicRegisterMobile(ws_url: String, pub_key: ByteArray): String?
+    fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, node_url: String, tx_message: String): String?
+    fun ExtrinsicRegisterMobile(ws_url: String, node_url: String, pub_key: ByteArray): String?
     fun GetCircuits(
         ws_url: String,
+        node_url: String,
         ipfs_addr: String,
     ): Long
 
     fun ExtrinsicCheckInput(
         ws_url: String,
+        node_url: String,
         package_ptr: Long,
         inputs: ByteArray,
     )

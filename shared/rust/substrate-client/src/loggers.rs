@@ -18,7 +18,7 @@ extern crate android_logger;
 #[cfg(target_os = "android")]
 use android_logger::{Config, FilterBuilder};
 #[cfg(target_os = "android")]
-use log::Level;
+use log::LevelFilter;
 
 #[cfg(target_os = "android")]
 pub fn init_logger() {
@@ -27,7 +27,7 @@ pub fn init_logger() {
     // https://github.com/Nercury/android_logger-rs#send-rust-logs-to-logcat
     android_logger::init_once(
         Config::default()
-            .with_min_level(Level::Info)
+            .with_max_level(LevelFilter::Info)
             .with_tag("interstellar")
             .with_filter(FilterBuilder::new().parse("info,jni::crate=debug").build()),
     );
