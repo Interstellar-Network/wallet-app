@@ -30,8 +30,8 @@ see https://github.com/bevyengine/bevy/issues/86#issuecomment-766100761
 ### Android
 
 TODO cleanup/rewrite below
-- install Python
-- install Perl?
+- <del>?</del> install Python
+- <del>?</del> install Perl?
   -[windows] FAIL: "This perl implementation doesn't produce Unix like paths"
     Probably b/c https://github.com/alexcrichton/openssl-src-rs/blob/main/src/lib.rs#L226 hardcoded all Android NDK to match Linux...
   -[windows] W/A: alias "perl=wsl perl" `${env:PERL} = 'wsl perl'`
@@ -73,6 +73,11 @@ NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = D
 
 - `adb reverse tcp:5001 tcp:5001` and `adb reverse tcp:9990 tcp:9990` and `adb reverse tcp:2090 tcp:2090`
 - CHECK by opening [a front-end](https://substrate-developer-hub.github.io/substrate-front-end-template/?rpc=ws://localhost:9990) on the Device or Emulator
+
+#### About release builds
+
+You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"` and then eg `adb install path/to/app.apk`.
+That is because the CI is directly signing with an [action](https://github.com/ilharp/sign-android-release) and we want to avoid messing with keys etc from inside the build scripts.
 
 ### iOs
 

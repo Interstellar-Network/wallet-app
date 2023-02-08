@@ -188,6 +188,7 @@ pub fn init_app(
     app.add_plugin(bevy::transform::TransformPlugin {});
     app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
     app.add_plugin(bevy::diagnostic::DiagnosticsPlugin {});
+    #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::input::InputPlugin {});
     app.add_plugin(WindowPlugin {
         window: WindowDescriptor {
@@ -234,25 +235,10 @@ pub fn init_app(
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
     app.add_plugin(bevy::sprite::SpritePlugin {});
-
-    // TODO
-    // app.add_plugins_with(DefaultPlugins, |group| {
-    //     #[cfg(target_os = "android")]
-    //     {
-    //         // NOTE: this is in case we re-add "bevy_winit" for all arch later by mystake
-    //         // Yes, to DISABLE WinitPlugin we need to enable "bevy_winit"...
-    //         // REALLY IMPORTANT: else ndk-glue is used and we end up aborting at
-    //         // pub fn native_activity() -> &'static NativeActivity {
-    //         //     unsafe { NATIVE_ACTIVITY.as_ref().unwrap() }
-    //         // }
-    //         // TODO(android) #[cfg(feature = "bevy/bevy_winit")]
-    //         // group.disable::<bevy::winit::WinitPlugin>();
-
-    //         // crash: does not exist?? group.disable::<ImagePlugin>();
-    //         // TODO FIX?: this crashes on Android see also android_logger::init_once in jni_wrapper.rs
-    //         group.disable::<bevy::log::LogPlugin>()
-    //     }
-    // });
+    // TODO only when Debug?
+    app.add_plugin(LogDiagnosticsPlugin::default());
+    // TODO only when Debug?
+    app.add_plugin(FrameTimeDiagnosticsPlugin::default());
 
     // TODO how much msaa?
     app.insert_resource(Msaa { samples: 4 });
@@ -298,13 +284,6 @@ pub fn init_app(
     app.insert_resource(CircuitPinpad {
         wrapper: pinpad_evaluate_wrapper,
     });
-
-    // TODO only when Debug?
-    #[cfg(debug_assertions)]
-    {
-        app.add_plugin(LogDiagnosticsPlugin::default());
-        app.add_plugin(FrameTimeDiagnosticsPlugin::default());
-    }
 }
 
 // https://github.com/bevyengine/bevy/pull/3139/files#diff-aded320ea899c7a8c225f19639c8aaab1d9d74c37920f1a415697262d6744d54
