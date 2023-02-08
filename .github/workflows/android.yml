@@ -105,17 +105,25 @@ jobs:
         # - gradle_task: eg "assembleXXXRelease"
         # - experimental: a flag passed to "continue-on-error"
         # NOT GET the gradle targets with eg `./gradlew --no-daemon tasks | grep assemble`
+        # eg build outputs:
+        #   ./androidApp/build/outputs/apk/arm64/release/androidApp-arm64-release-unsigned.apk
+        #   ./androidApp/build/outputs/apk/arm64/debug/androidApp-arm64-debug.apk
+        #   ./androidApp/build/outputs/apk/x86_64/debug/androidApp-x86_64-debug.apk
         android-target: [
             {
               cargo_target: "aarch64-linux-android",
               gradle_task: "assembleArm64Release",
               apk_artifact_name: "apk-Arm64Release",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "arm64/release/",
               experimental: false,
             },
             {
               cargo_target: "armv7-linux-androideabi",
               gradle_task: "assembleArmv7Release",
               apk_artifact_name: "apk-Armv7Release",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "armv7/release/",
               # TODO? it (was supposed to fail, cf `lib-garble-rs)` b/c of pointer size difference, at least in Scuttlebut
               # but as we are still not in PROD/GA, we only care about aarch64 for now
               experimental: true,
@@ -124,6 +132,8 @@ jobs:
               cargo_target: "x86_64-linux-android",
               gradle_task: "assembleX86_64Debug",
               apk_artifact_name: "apk-X86_64Debug",
+              # path AFTER: androidApp/build/outputs/apk/
+              apk_dir_name: "x86_64/debug/",
               experimental: false,
             },
           ]
@@ -192,6 +202,7 @@ jobs:
         run: sdkmanager "ndk;25.1.8937393"
 
       - name: Build Wallet-App
+        id: build-app
         run: ./gradlew --no-daemon ${{ matrix.android-target.gradle_task }}
         # TODO it fails b/c of pointer size difference, at least in Scuttlebut
         # but as we are still not in PROD/GA, we only care about aarch64 for now
@@ -210,7 +221,32 @@ jobs:
       # TODO on main/master: it SHOULD be a Release instead of Artifact
       - name: Upload APKs
         uses: actions/upload-artifact@v3
+        if: steps.build-app.outcome == 'success'
         with:
-          name: ${{ matrix.android-target.apk_artifact_name }}
+          name: ${{ matrix.android-target.apk_artifact_name }}-unsigned
           path: ./androidApp/build/outputs/apk/**/**/*.apk
           retention-days: 7
+
+      # https://github.com/ilharp/sign-android-release
+      # TODO do we need this if using signingConfig in gradle?
+      # With it set eg "assembleArm64Release" already generates a signed apk so what is the point?
+      # and without it we CAN NOT deploy release apk from Android Studio which is not ideal?
+      - uses: ilharp/sign-android-release@v1 # Or use @nightly
+        name: Sign app APK
+        id: sign_app
+        if: steps.build-app.outcome == 'success'
+        with:
+          releaseDir: androidApp/build/outputs/apk/${{ matrix.android-target.apk_dir_name }}
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # TODO? set this?
+          # buildToolsVersion: 33.0.0
+
+      # Upload your signed file if you want
+      - uses: actions/upload-artifact@v3
+        if: steps.build-app.outcome == 'success' && steps.sign_app.outcome == 'success'
+        with:
+          name: ${{ matrix.android-target.apk_artifact_name }}
+          path: ${{steps.sign_app.outputs.signedFile}}

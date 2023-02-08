@@ -20,3 +20,8 @@ local.properties
 
 /.vscode/
 /.history/
+
+# signed apks
+/androidApp/arm64/
+/androidApp/armv7*/
+/androidApp/x86_64/

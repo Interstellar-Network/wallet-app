@@ -44,9 +44,21 @@ android {
             }
         }
     }
+    signingConfigs {
+        // https://github.com/ilharp/sign-android-release#usage
+        // TODO? signing, cf CI yml
+//        create("keystore") {
+//            storeFile = file("/home/pratn/.keystores/android-keystores.jks")
+//            storePassword = "xxQZQYvzdblrmVxx6sqDWw8q4CxUPFxy"
+//            keyPassword = "xxQZQYvzdblrmVxx6sqDWw8q4CxUPFxy"
+//            keyAlias = "upload"
+//        }
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            // TODO? signing, cf CI yml
+//            signingConfig = signingConfigs.getByName("keystore")
         }
     }
     compileOptions {
