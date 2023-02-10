@@ -505,6 +505,14 @@ task("cargoBuildIosDevice") {
 // TODO if needed add for "iOs simulator on ARM MACs"
 
 
+// "Plug" our custom task into the android tasks
+// BE REALLY CAREFUL when changing those:
+// https://github.com/mozilla/rust-android-gradle/issues/85
+// https://github.com/mozilla/rust-android-gradle/issues/43
+// Be sure to test the "first build after clean"(`rm -rf jniLibs/` is a good substitute)
+// and then eg `./gradlew assembleArm64Release`:
+// EXPECTED: the final ".apk" MUST contain the "*.so"!
+// In case of failure: you can CHECK the tasks with eg https://github.com/dorongold/gradle-task-tree#init-script-snippet
 tasks.whenTaskAdded {
     // TODO? https://github.com/mozilla/rust-android-gradle/issues/85
     //    if (name == "mergeDebugJniLibFolders" || name == "mergeReleaseJniLibFolders") {
@@ -512,27 +520,27 @@ tasks.whenTaskAdded {
     //
     //
     // NOTE: the dependsOn name come from the "for (cargo_target in arrayOf" above
-    if(name in arrayOf("javaPreCompileArmv7Debug")) {
+    if(name in arrayOf("mergeArmv7DebugJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabidebug"))
         dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabidebug"))
     }
-    if(name in arrayOf("javaPreCompileArmv7Release")) {
+    if(name in arrayOf("mergeArmv7ReleaseJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidarmv7-linux-androideabirelease"))
         dependsOn(tasks.named("copyJniLibsAndroidarmv7-linux-androideabirelease"))
     }
-    if(name in arrayOf("javaPreCompileArm64Debug")) {
+    if(name in arrayOf("mergeArm64DebugJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androiddebug"))
         dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androiddebug"))
     }
-    if(name in arrayOf("javaPreCompileArm64Release")) {
+    if(name in arrayOf("mergeArm64ReleaseJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidaarch64-linux-androidrelease"))
         dependsOn(tasks.named("copyJniLibsAndroidaarch64-linux-androidrelease"))
     }
-    if(name in arrayOf("javaPreCompileX86_64Debug")) {
+    if(name in arrayOf("mergeX86_64DebugJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androiddebug"))
         dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androiddebug"))
     }
-    if(name in arrayOf("javaPreCompileX86_64Release")) {
+    if(name in arrayOf("mergeX86_64ReleaseJniLibFolders")) {
         dependsOn(tasks.named("cargoBuildAndroidx86_64-linux-androidrelease"))
         dependsOn(tasks.named("copyJniLibsAndroidx86_64-linux-androidrelease"))
     }
