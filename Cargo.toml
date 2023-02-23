@@ -44,19 +44,10 @@ lto = "thin"
 # but it is quite a mess to make it work both from repo `integritee-worker` and here
 sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
-[patch.crates-io]
-# wasmtime-runtime: we MUST patch to make it compatible with Android Emulator
-# ELSE: wasmtime-runtime-1.0.2/src/traphandlers/unix.rs:232:13 compile_error!("unsupported platform");
-# SHOULD match https://github.com/paritytech/substrate/blob/master/primitives/wasm-interface/Cargo.toml
-# NOTE: we NEED to patch "wasmtime-runtime" but to avoid error like "note: perhaps two different versions of crate `wasmtime_environ` are being used?"
-# the easiest thing to do is patch the "main lib"
-# NOTE: for the PATCH the work, it MUST be a the correct version(= git tag)
-# wasmtime-runtime = { path = "../wasmtime/crates/runtime/" }
-# wasmtime-environ = { path = "../wasmtime/crates/environ/" }
-wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
-# TODO re-add for bevy 0.9? or not needed anymore
-# NOTE: patch DOES NOT work except at the Workspace level??
-# bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
+[patch."https://github.com/paritytech/substrate.git"]
+sp-wasm-interface = { path = "./shared/rust/deps/wasm-interface" }
+[patch."https://github.com/paritytech/substrate"]
+sp-wasm-interface = { path = "./shared/rust/deps/wasm-interface" }
 
 ################################################################################
 # local dev
@@ -67,8 +58,12 @@ wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
 # [patch."https://github.com/Interstellar-Network/swanky.git"]
 # fancy-garbling = { path = "../swanky/fancy-garbling/" }
 
-# [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-# integritee-cli = { path = "../integritee-worker/cli" }
+[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+integritee-cli = { path = "../integritee-worker/cli" }
+
+[patch."https://github.com/Interstellar-Network/integritee-node.git"]
+my-node-runtime = { package = "integritee-node-runtime-core", path = "../integritee-node/runtime_core"}
+ita-stf = { path = "../integritee-worker/app-libs/stf" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
 # circuits-storage-common = { path = "../pallets/circuits-storage-common" }
