@@ -58,12 +58,12 @@ sp-wasm-interface = { path = "./shared/rust/deps/wasm-interface" }
 # [patch."https://github.com/Interstellar-Network/swanky.git"]
 # fancy-garbling = { path = "../swanky/fancy-garbling/" }
 
-[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-integritee-cli = { path = "../integritee-worker/cli" }
+# [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+# integritee-cli = { path = "../integritee-worker/cli" }
 
-[patch."https://github.com/Interstellar-Network/integritee-node.git"]
-my-node-runtime = { package = "integritee-node-runtime-core", path = "../integritee-node/runtime_core"}
-ita-stf = { path = "../integritee-worker/app-libs/stf" }
+# [patch."https://github.com/Interstellar-Network/integritee-node.git"]
+# my-node-runtime = { package = "integritee-node-runtime", path = "../integritee-node/runtime"}
+# ita-stf = { path = "../integritee-worker/app-libs/stf" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
 # circuits-storage-common = { path = "../pallets/circuits-storage-common" }
