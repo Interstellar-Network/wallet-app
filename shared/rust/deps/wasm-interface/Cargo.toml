@@ -27,6 +27,6 @@ std = [
     "codec/std",
     "log",
     "sp-std/std",
-    "wasmi",
+    # "wasmi",
     # "wasmtime"
 ]

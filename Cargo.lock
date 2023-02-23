@@ -6894,7 +6894,6 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "sp-std 5.0.0 (git+https://github.com/paritytech/substrate.git)",
- "wasmi",
 ]
 
 [[package]]
