@@ -1,5 +1,7 @@
 #!/system/bin/sh
 
+# TODO(bevy0.10) remove??? probably not needed anymore cf https://bevyengine.org/news/bevy-0-10/#enabled-opengl-backend-by-default
+
 # IMPORTANT: https://developer.android.com/ndk/guides/wrap-script#debugging_when_using_wrapsh
 # else will be stuck at "Waiting for application to come online"(the app works but the debugger does not)
 

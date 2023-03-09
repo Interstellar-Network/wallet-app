@@ -1,14 +1,12 @@
-// copy-pasted from https://github.com/bevyengine/bevy/blob/v0.7.0/crates/bevy_sprite/src/lib.rs
+// adapted from https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_sprite/src/render/sprite.wgsl
 // CHANGE: one line added at the end, just before "return color;"
 
 // TODO? will be prepended in "setup_transparent_shader_for_sprites"
 // let BACKGROUND_COLOR: vec4<f32> = vec4<f32>({}, {}, {}, {});
 const BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 
-struct View {
-    view_proj: mat4x4<f32>,
-    world_position: vec3<f32>,
-};
+#import bevy_render::view
+
 @group(0) @binding(0)
 var<uniform> view: View;
 
