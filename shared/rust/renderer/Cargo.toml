@@ -41,7 +41,7 @@ ndarray = "0.15.4"
 #
 # TODO cleanup features; and also in dev-dependencies
 bevy = { version = "0.10", default-features = false, features = [
-    # https://github.com/bevyengine/bevy/blob/v0.9.1/Cargo.toml#L27
+    # https://github.com/bevyengine/bevy/blob/v0.10.0/Cargo.toml#L31
     # "animation",
     "bevy_asset",
     # "bevy_audio",
@@ -57,9 +57,13 @@ bevy = { version = "0.10", default-features = false, features = [
     # "bevy_ui",
     # "png",
     # "hdr",
+    # "ktx2",
+    # "zstd",
     # "vorbis",
     # "x11",
     # "filesystem_watcher",
+    # "android_shared_stdcxx",
+    # "tonemapping_luts"
  ]}
 log = "0.4"
 wgpu = "0.15"  # dep of Bevy, but we need it ourself; versions MUST match
