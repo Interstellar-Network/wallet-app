@@ -87,12 +87,15 @@ impl Rect {
         // eg with ScalingMode::FixedVertical: the y axis is [-1,1]
         // but the horizontal axis is [-1 / (16/9), 1 / (16/9)] == [-0.5625, 0.5625]
         match crate::CAMERA_SCALING_MODE {
-            bevy::render::camera::ScalingMode::None => todo!("ScalingMode::None not yet supported"),
-            bevy::render::camera::ScalingMode::Auto {
-                min_width: _,
-                min_height: _,
-            } => todo!("ScalingMode::Auto not yet supported"),
-            bevy::render::camera::ScalingMode::WindowSize => {
+            bevy::render::camera::ScalingMode::AutoMin {
+                min_width,
+                min_height,
+            } => todo!("ScalingMode::AutoMin not yet supported"),
+            bevy::render::camera::ScalingMode::AutoMax {
+                max_width,
+                max_height,
+            } => todo!("ScalingMode::AutoMax not yet supported"),
+            bevy::render::camera::ScalingMode::WindowSize(pixels_for_world_unit) => {
                 todo!("ScalingMode::WindowSize not yet supported")
             }
             bevy::render::camera::ScalingMode::FixedVertical(_viewport_height_world) => {
@@ -102,6 +105,9 @@ impl Rect {
             bevy::render::camera::ScalingMode::FixedHorizontal(_viewport_width_world) => {
                 top *= width / height;
                 bottom *= width / height;
+            }
+            bevy::render::camera::ScalingMode::Fixed { width, height } => {
+                todo!("ScalingMode::Fixed not yet supported")
             }
         }
 

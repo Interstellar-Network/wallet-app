@@ -40,7 +40,7 @@ ndarray = "0.15.4"
 # see also "target.'cfg(unix)'.dev-dependencies"
 #
 # TODO cleanup features; and also in dev-dependencies
-bevy = { version = "0.9", default-features = false, features = [
+bevy = { version = "0.10", default-features = false, features = [
     # https://github.com/bevyengine/bevy/blob/v0.9.1/Cargo.toml#L27
     # "animation",
     "bevy_asset",
@@ -62,9 +62,7 @@ bevy = { version = "0.9", default-features = false, features = [
     # "filesystem_watcher",
  ]}
 log = "0.4"
-# NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
-# https://github.com/bevyengine/bevy/blob/920543c824735dc1df6f4a59e7036e653dd5a553/crates/bevy_render/Cargo.toml
-wgpu = "0.14"  # dep of Bevy, but we need it ourself; versions MUST match
+wgpu = "0.15"  # dep of Bevy, but we need it ourself; versions MUST match
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}

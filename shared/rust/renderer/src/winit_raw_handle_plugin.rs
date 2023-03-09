@@ -29,7 +29,7 @@ pub struct WinitPluginRawWindowHandle {
 }
 
 /// cf "fn handle_create_window_events"
-/// SHOULD be around https://github.com/bevyengine/bevy/blob/v0.9.1/crates/bevy_winit/src/lib.rs#L649 at hte end of this file
+/// SHOULD be around https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_winit/src/lib.rs#L55 at hte end of this file
 /// when updating to a new bevy version.
 /// We can discard pretty much the whole file.
 ///

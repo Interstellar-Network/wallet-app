@@ -3,7 +3,7 @@
 
 // TODO? will be prepended in "setup_transparent_shader_for_sprites"
 // let BACKGROUND_COLOR: vec4<f32> = vec4<f32>({}, {}, {}, {});
-let BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+const BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 
 struct View {
     view_proj: mat4x4<f32>,

@@ -15,9 +15,11 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy::window::WindowResolution;
 use ndarray::Array2;
 
-mod winit_raw_handle_plugin;
+// TODO(bevy0.10) ??? or remove entirely?
+// mod winit_raw_handle_plugin;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
 // MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
@@ -169,21 +171,14 @@ pub fn init_app(
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
 
-    // DEFAULT: /.../bevy_internal-0.9.1/src/default_plugins.rs
-    // group = group
-    // .add(bevy_log::LogPlugin::default())
-    // .add(bevy_core::CorePlugin::default())
-    // .add(bevy_time::TimePlugin::default())
-    // .add(bevy_transform::TransformPlugin::default())
-    // .add(bevy_hierarchy::HierarchyPlugin::default())
-    // .add(bevy_diagnostic::DiagnosticsPlugin::default())
-    // .add(bevy_input::InputPlugin::default())
-    // .add(bevy_window::WindowPlugin::default());
+    // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
 
     // WARNING: order matters!
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::log::LogPlugin { ..default() });
-    app.add_plugin(bevy::core::CorePlugin { ..default() });
+    app.add_plugin(bevy::core::TaskPoolPlugin { ..default() });
+    app.add_plugin(bevy::core::TypeRegistrationPlugin { ..default() });
+    app.add_plugin(bevy::core::FrameCountPlugin { ..default() });
     app.add_plugin(bevy::time::TimePlugin {});
     app.add_plugin(bevy::transform::TransformPlugin {});
     app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
@@ -191,25 +186,25 @@ pub fn init_app(
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::input::InputPlugin {});
     app.add_plugin(WindowPlugin {
-        window: WindowDescriptor {
+        primary_window: Some(Window {
             title: "renderer demo".to_string(),
-            width: 1920. / 2.,
-            height: 1080. / 2.,
+            resolution: WindowResolution::new(1920. / 2., 1080. / 2.),
             // TODO?
             // present_mode: PresentMode::AutoVsync,
             ..default()
-        },
-        // MUST set ELSE: "thread 'main' panicked at 'Requested resource bevy_window::windows::Windows does not exist in the `World`."
-        add_primary_window: true,
+        }),
         ..default()
     });
+    app.add_plugin(bevy::a11y::AccessibilityPlugin);
     // #[cfg(feature = "bevy_asset")]
     app.add_plugin(bevy::asset::AssetPlugin { ..default() });
     // #[cfg(feature = "bevy_scene")]
     // app.add_plugin(bevy::scene::ScenePlugin { ..default() });
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugin(bevy::render::RenderPlugin {});
+    app.add_plugin(bevy::render::RenderPlugin { ..default() });
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
+    #[cfg(not(target_arch = "wasm32"))]
+    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin { ..default() });
     #[cfg(feature = "with_winit")]
     app.add_plugin(bevy::winit::WinitPlugin {});
     // Init the Window with our CUSTOM winit
@@ -217,20 +212,24 @@ pub fn init_app(
     //
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
     // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
+    // TODO(bevy0.10)
     #[cfg(target_os = "android")]
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-        physical_width,
-        physical_height,
-        1.0,
-        // TODO?raw_window_handle,
-        // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-        bevy::window::RawHandleWrapper {
-            window_handle: raw_window_handle,
-            display_handle: raw_window_handle::RawDisplayHandle::Android(
-                raw_window_handle::AndroidDisplayHandle::empty(),
-            ),
-        },
-    ));
+    compile_error!(
+        "TODO android: port WinitPluginRawWindowHandle to bevy 0.10? or remove entirely?"
+    );
+    // app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
+    //     physical_width,
+    //     physical_height,
+    //     1.0,
+    //     // TODO?raw_window_handle,
+    //     // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
+    //     bevy::window::RawHandleWrapper {
+    //         window_handle: raw_window_handle,
+    //         display_handle: raw_window_handle::RawDisplayHandle::Android(
+    //             raw_window_handle::AndroidDisplayHandle::empty(),
+    //         ),
+    //     },
+    // ));
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
@@ -241,7 +240,7 @@ pub fn init_app(
     app.add_plugin(FrameTimeDiagnosticsPlugin::default());
 
     // TODO how much msaa?
-    app.insert_resource(Msaa { samples: 4 });
+    app.insert_resource(Msaa::Sample4);
     // TODO add param, and obtain from Android
     app.insert_resource(ClearColor(background_color));
 

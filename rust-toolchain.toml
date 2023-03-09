@@ -1,4 +1,9 @@
 [toolchain]
-channel = "nightly-2022-10-22"
+# things to take into account:
+# - various substrate-related deps DO NOT build on stable(or beta) b/c #![feature]
+# - teaclave officially only supports: https://github.com/apache/incubator-teaclave-sgx-sdk/blob/master/rust-toolchain
+# - bevy v0.10 REQUIRES Rust 1.67+
+# 2023-01-22: date of the latest "rust version 1.68.0-nightly"; after that it is 1.69
+channel = "nightly-2023-01-22"
 targets = ["wasm32-unknown-unknown"]
 profile = "default" # include rustfmt, clippy

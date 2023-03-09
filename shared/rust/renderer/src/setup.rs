@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use bevy::prelude::*;
-use bevy::render::camera::{OrthographicProjection, ScalingMode, WindowOrigin};
+use bevy::render::camera::{OrthographicProjection, ScalingMode};
 use bevy::render::mesh::shape::Circle;
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
@@ -41,17 +41,11 @@ pub fn setup_camera(mut commands: Commands) {
     // TODO proper values
     commands.spawn(Camera2dBundle {
         projection: OrthographicProjection {
-            left: -1.0,
-            right: 1.0,
-            bottom: -1.0,
-            top: 1.0,
-            near: 0.0,
-            far: 1000.0,
-            window_origin: WindowOrigin::Center,
+            viewport_origin: Vec2::new(0.5, 0.5),
             // scaling_mode: ScalingMode::None,
             scaling_mode: ScalingMode::FixedVertical(2.0),
-            scale: 1.0,
             // depth_calculation: DepthCalculation::ZDifference,
+            ..default()
         },
         ..default()
     });
