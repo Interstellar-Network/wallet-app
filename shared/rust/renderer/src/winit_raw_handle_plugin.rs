@@ -12,14 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+///
 /// [Android]
 /// REALLY simplified version of Bevy's WinitPlugin
 /// which basically does nothing except passing a RawHandle usually obtained from JNI with ANativeWindow_fromSurface
 /// ie it DOES NOT setup events, etc b/c when using JNI we use NO event loop b/c everything is controlled from Java(SurfaceView)
-///
+use bevy::app::App;
+use bevy::app::Plugin;
+use bevy::ecs::world::World;
+use bevy::utils::default;
 use bevy::window::RawHandleWrapper;
-use bevy::window::WindowId;
-use bevy::{prelude::*, window::WindowMode};
+use bevy::window::WindowMode;
+use bevy::window::WindowResolution;
+use bevy::winit::Window;
+use bevy::winit::WinitWindows;
 
 pub struct WinitPluginRawWindowHandle {
     physical_width: u32,
@@ -40,35 +46,22 @@ impl Plugin for WinitPluginRawWindowHandle {
     // cf WinitPlugin
     // Essentially removed the Runner/Event Loop
     fn build(&self, app: &mut App) {
-        // // TODO(android)? #[cfg(feature = "bevy/bevy_winit")]
-        // // what is this supposed to be doing?
-        // // app.init_non_send_resource::<bevy::winit::WinitWindows>();
+        app.init_non_send_resource::<WinitWindows>()
+            // .init_resource::<WinitSettings>()
+            // .set_runner(winit_runner)
+            // // exit_on_all_closed only uses the query to determine if the query is empty,
+            // // and so doesn't care about ordering relative to changed_window
+            // .add_systems(
+            //     (
+            //         changed_window.ambiguous_with(exit_on_all_closed),
+            //         // Update the state of the window before attempting to despawn to ensure consistent event ordering
+            //         despawn_window.after(changed_window),
+            //     )
+            //         .in_base_set(CoreSet::Last),
+            // )
+            ;
 
-        // // REFERENCE cf WinitPlugin::build
-        // // .init_resource::<WinitSettings>()
-        // // .set_runner(winit_runner)
-        // // .add_system_to_stage(CoreStage::PostUpdate, change_window.exclusive_system());
-        // // let event_loop = EventLoop::new();
-        // // handle_initial_window_events(&mut app.world, &event_loop);
-        // // app.insert_non_send_resource(event_loop);
-
-        // let world = app.world.cell();
-        // let mut windows = world.get_resource_mut::<Windows>().unwrap();
-        // unsafe {
-        //     windows.add(Window::new(
-        //         WindowId::primary(),
-        //         &WindowDescriptor {
-        //             resizable: false,
-        //             mode: WindowMode::Fullscreen,
-        //             ..default()
-        //         },
-        //         self.physical_width,
-        //         self.physical_height,
-        //         self.scale_factor,
-        //         None,
-        //         self.raw_window_handle.get_handle().raw_window_handle(),
-        //     ))
-        // }
+        // app.add_plugin(AccessibilityPlugin);
 
         // Note that we create a window here "early" because WASM/WebGL requires the window to exist prior to initializing
         // the renderer.
@@ -115,7 +108,7 @@ fn handle_create_window_events(
 ) {
     let world = world.cell();
     // let mut winit_windows = world.non_send_resource_mut::<WinitWindows>();
-    let mut windows = world.resource_mut::<Windows>();
+    let mut windows = world.non_send_resource_mut::<WinitWindows>();
     // let create_window_events = world.resource::<Events<CreateWindow>>();
     // for create_window_event in create_window_event_reader.iter(&create_window_events) {
     // let window = winit_windows.create_window(
@@ -123,45 +116,20 @@ fn handle_create_window_events(
     //     create_window_event.id,
     //     &create_window_event.descriptor,
     // );
-    let window = Window::new(
-        WindowId::primary(),
-        &WindowDescriptor {
-            resizable: false,
-            mode: WindowMode::Fullscreen,
+    let window = Window {
+        mode: WindowMode::Fullscreen,
+        resolution: WindowResolution {
+            physical_width,
+            physical_height,
+            scale_factor,
             ..default()
         },
-        physical_width,
-        physical_height,
-        scale_factor,
-        None,
-        // Some(self.raw_window_handle.get_handle().raw_window_handle()),
-        Some(handle_wrapper),
-    );
-    // This event is already sent on windows, x11, and xwayland.
-    // TODO: we aren't yet sure about native wayland, so we might be able to exclude it,
-    // but sending a duplicate event isn't problematic, as windows already does this.
-    // #[cfg(not(any(target_os = "windows", target_feature = "x11")))]
-    // world.send_event(WindowResized {
-    //     id: create_window_event.id,
-    //     width: window.width(),
-    //     height: window.height(),
-    // });
-    windows.add(window);
-    // world.send_event(WindowCreated {
-    //     id: create_window_event.id,
-    // });
+        resizable: false,
+        ..default()
+    };
+    // Some(self.raw_window_handle.get_handle().raw_window_handle()),
+    // Some(handle_wrapper),
 
-    // #[cfg(target_arch = "wasm32")]
-    // {
-    //     let channel = world.resource_mut::<web_resize::CanvasParentResizeEventChannel>();
-    //     if create_window_event.descriptor.fit_canvas_to_parent {
-    //         let selector = if let Some(selector) = &create_window_event.descriptor.canvas {
-    //             selector
-    //         } else {
-    //             web_resize::WINIT_CANVAS_SELECTOR
-    //         };
-    //         channel.listen_to_selector(create_window_event.id, selector);
-    //     }
-    // }
-    // }
+    // (*windows).create_window(window);
+    (*windows).windows.entry(0.into()).insert(window).into_mut();
 }

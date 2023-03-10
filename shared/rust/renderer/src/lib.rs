@@ -212,11 +212,10 @@ pub fn init_app(
     //
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
     // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
+    #[cfg(all(target_os = "android", feature = "with_winit"))]
+    compile_error!("FAIL android+with_winit is NOT supported!");
     // TODO(bevy0.10)
-    #[cfg(target_os = "android")]
-    compile_error!(
-        "TODO android: port WinitPluginRawWindowHandle to bevy 0.10? or remove entirely?"
-    );
+    // #[cfg(target_os = "android")]
     // app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
     //     physical_width,
     //     physical_height,

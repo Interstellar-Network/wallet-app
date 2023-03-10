@@ -96,12 +96,6 @@ android {
             ndk {
                 abiFilters += listOf("x86_64")
             }
-
-            // Currently the emulator does not fully support Vulkan??
-            // So we use a wrap.sh to force OpenGL backend
-            packagingOptions {
-                jniLibs.useLegacyPackaging = true
-            }
         }
     }
 
