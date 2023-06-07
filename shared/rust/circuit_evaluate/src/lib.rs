@@ -16,19 +16,18 @@
 // https://github.com/substrate-developer-hub/substrate-module-template/blob/master/HOWTO.md#forgetting-cfg_attr-for-no_std
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use lib_garble_rs::{EncodedGarblerInputs, EvalCache, EvaluatorInput, InterstellarGarbledCircuit};
+use lib_garble_rs::{EncodedGarblerInputs, EvaluatorInput, GarbledCircuit};
 use rand::distributions::Distribution;
 use rand::distributions::Uniform;
 use rand::thread_rng;
 
 pub struct EvaluateWrapper {
-    garbled: InterstellarGarbledCircuit,
+    garbled: GarbledCircuit,
     encoded_garbler_inputs: EncodedGarblerInputs,
-    eval_cache: EvalCache,
     evaluator_inputs: Vec<EvaluatorInput>,
     width: usize,
     height: usize,
-    temp_outputs: Vec<Option<u16>>,
+    temp_outputs: Vec<u8>,
 }
 
 impl EvaluateWrapper {
@@ -42,7 +41,6 @@ impl EvaluateWrapper {
     pub fn new(pgarbled_buffer: Vec<u8>) -> EvaluateWrapper {
         let (mut garbled, encoded_garbler_inputs) =
             lib_garble_rs::deserialize_for_evaluator(&pgarbled_buffer).unwrap();
-        let eval_cache = garbled.init_cache();
         let evaluator_inputs = lib_garble_rs::prepare_evaluator_inputs(&garbled).unwrap();
 
         let width = garbled
@@ -63,11 +61,10 @@ impl EvaluateWrapper {
         EvaluateWrapper {
             garbled,
             encoded_garbler_inputs,
-            eval_cache,
             evaluator_inputs,
             width,
             height,
-            temp_outputs: vec![Some(0u16); width * height],
+            temp_outputs: vec![0u8; width * height],
         }
     }
 
@@ -85,20 +82,13 @@ impl EvaluateWrapper {
             *input = rand_0_1.sample(&mut rng);
         }
 
-        // TODO convert/transmute texture data???
-        // cf branch "wip unsafe" in Swanky
-
         self.garbled
-            .eval_with_prealloc(
-                &self.encoded_garbler_inputs,
+            .eval(
+                &mut self.encoded_garbler_inputs,
                 &self.evaluator_inputs,
-                &mut self.temp_outputs,
-                &mut self.eval_cache,
+                outputs,
             )
             .unwrap();
-
-        // TODO avoid copy! MAYBE use some kind of "safe transmute"?
-        *outputs = convert_vec_option_u16_to_u8(&self.temp_outputs);
     }
 
     pub fn get_width(&self) -> usize {
@@ -107,21 +97,6 @@ impl EvaluateWrapper {
     pub fn get_height(&self) -> usize {
         self.height
     }
-}
-
-/// cf "fn convert_vec_u16_to_u8" in /lib-garble-rs/png_tests_utils/src/png_utils.rs
-///convert Vec<std::option::Option<u16>> -> Vec<u16>
-// convert Vec<u16> -> Vec<u8>
-pub fn convert_vec_option_u16_to_u8(data: &[Option<u16>]) -> Vec<u8> {
-    let data: Vec<u8> = data
-        .iter()
-        .map(|v| {
-            let pixel_value: u8 = (*v).unwrap().try_into().unwrap();
-            pixel_value * 255
-        })
-        .collect();
-
-    data
 }
 
 #[cfg(test)]

@@ -53,7 +53,7 @@ sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_hel
 # NOTE: for the PATCH the work, it MUST be a the correct version(= git tag)
 # wasmtime-runtime = { path = "../wasmtime/crates/runtime/" }
 # wasmtime-environ = { path = "../wasmtime/crates/environ/" }
-wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
+# wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
 # TODO re-add for bevy 0.9? or not needed anymore
 # NOTE: patch DOES NOT work except at the Workspace level??
 # bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
@@ -61,14 +61,14 @@ wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
 ################################################################################
 # local dev
 
-# [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
-# lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
+[patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
+lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
 
 # [patch."https://github.com/Interstellar-Network/swanky.git"]
 # fancy-garbling = { path = "../swanky/fancy-garbling/" }
 
-# [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-# integritee-cli = { path = "../integritee-worker/cli" }
+[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+integritee-cli = { path = "../integritee-worker/cli" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
 # circuits-storage-common = { path = "../pallets/circuits-storage-common" }
