@@ -16,6 +16,7 @@
 // https://github.com/substrate-developer-hub/substrate-module-template/blob/master/HOWTO.md#forgetting-cfg_attr-for-no_std
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use lib_garble_rs::OutputLabels;
 use lib_garble_rs::{EncodedGarblerInputs, EvaluatorInput, GarbledCircuit};
 use rand::distributions::Distribution;
 use rand::distributions::Uniform;
@@ -28,6 +29,7 @@ pub struct EvaluateWrapper {
     width: usize,
     height: usize,
     temp_outputs: Vec<u8>,
+    outputs_labels: OutputLabels,
 }
 
 impl EvaluateWrapper {
@@ -65,6 +67,7 @@ impl EvaluateWrapper {
             width,
             height,
             temp_outputs: vec![0u8; width * height],
+            outputs_labels: OutputLabels::new(),
         }
     }
 
@@ -82,11 +85,15 @@ impl EvaluateWrapper {
             *input = rand_0_1.sample(&mut rng);
         }
 
+        // TODO(opt) remove the clone
+        let mut encoded_garbler_inputs = self.encoded_garbler_inputs.clone();
+
         self.garbled
             .eval(
-                &mut self.encoded_garbler_inputs,
+                &mut encoded_garbler_inputs,
                 &self.evaluator_inputs,
                 outputs,
+                &mut self.outputs_labels,
             )
             .unwrap();
     }
