@@ -44,7 +44,7 @@ TODO cleanup/rewrite below
 - CHECK if it cross-compiles directly(ie without gradle):
   - NOTE: you can check for the correct env vars in [CI of other projects eg](https://github.com/Interstellar-Network/lib-garble-rs/blob/initial/.github/workflows/rust.yml#L88)
   - `cd shared/rust`
-  - `export NDK_ROOT=~/Android/Sdk/ndk/25.1.8937393`
+  - `export NDK_ROOT=~/Android/Sdk/ndk/25.2.9519653`
   -
     ```bash
     export CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang

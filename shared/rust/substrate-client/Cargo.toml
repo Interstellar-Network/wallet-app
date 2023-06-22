@@ -35,6 +35,7 @@ bytemuck = "1.11.0"
 # [windows] error: failed to run custom build command for `openssl-sys v0.9.73
 # Still fails even with Perl(strawberry) cf README
 # So for now install Android Studio inside WSL2...
+# ALSO "vendored" COULD BE needed b/c "/bin/sh: line 1: aarch64-linux-android-ranlib: command not found" https://github.com/sfackler/rust-openssl/issues/1830
 openssl = { version = '0.10', features = ["vendored"] }
 # those are for the examples cf https://github.com/scs/substrate-api-client/blob/master/Cargo.toml
 # but here need them as part of our public API

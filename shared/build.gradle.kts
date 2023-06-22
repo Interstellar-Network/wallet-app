@@ -72,7 +72,7 @@ android {
     namespace = "gg.interstellar.wallet"
 
     // MUST match the version installed with SDK Manager
-    ndkVersion = "25.1.8937393"
+    ndkVersion = "25.2.9519653"
 
     flavorDimensions += listOf("abi")
     productFlavors {
@@ -242,9 +242,15 @@ abstract class CargoTask : DefaultTask () {
 //        val target_cc = "${toolchains_prebuilt_bin_path}/clang"
         val target_cxx = "${target_cc}++"
         val target_ar = "${toolchains_prebuilt_bin_path}/llvm-ar"
+        // Also since NDK > 22 (so 23+), "ranlib" is NOT included anymore
+        // It is now a symlink to "llvm-ar"
+        // CHECK with `find -L ~/Android/Sdk/ -type f -name "*ranlib*"`
+        // Without this we get: "needed b/c "/bin/sh: line 1: aarch64-linux-android-ranlib: command not found" https://github.com/sfackler/rust-openssl/issues/1830"
+        val target_ranlib = "${toolchains_prebuilt_bin_path}/llvm-ranlib"
         println("### target_cc: $target_cc")
         println("### target_cxx: $target_cxx")
         println("### target_ar: $target_ar")
+        println("### target_ranlib: $target_ranlib")
 
         project.exec {
             workingDir = myWorkingDir.get()
@@ -284,6 +290,7 @@ abstract class CargoTask : DefaultTask () {
 //            environment("TARGET_CC", target_cc)
 
             environment("AR_$cargo_target", target_ar)
+            environment("RANLIB_$cargo_target", target_ranlib)
             // TODO? spec.environment("SDL2_TOOLCHAIN", "${android.ndkDirectory}/build/cmake/android.toolchain.cmake")
             // else:
             //        -- SDL2 was configured with the following options:

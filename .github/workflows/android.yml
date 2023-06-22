@@ -199,7 +199,7 @@ jobs:
       - name: Install NDK v25
         # version required else: "Warning: Failed to find package 'ndk'"
         # MUST match version used at NDK_ROOT below! Careful when updating!
-        run: sdkmanager "ndk;25.1.8937393"
+        run: sdkmanager "ndk;25.2.9519653"
 
       - name: Build Wallet-App
         id: build-app
