@@ -76,8 +76,10 @@ NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = D
 
 #### About release builds
 
-You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"` and then eg `adb install path/to/app.apk`.
+You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"` and then eg `adb install ./androidApp/arm64/release/androidApp-arm64-release.apk`.
 That is because the CI is directly signing with an [action](https://github.com/ilharp/sign-android-release) and we want to avoid messing with keys etc from inside the build scripts.
+
+NOTE: CHECK with `find . -type f -name "*.apk"`; if the only .apk are under `./androidApp/build` it means you HAVE NOT yet run "Generate Signed Bundled / APK"
 
 ### iOs
 

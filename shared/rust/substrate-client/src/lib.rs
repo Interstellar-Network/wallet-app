@@ -100,14 +100,14 @@ impl InterstellarIntegriteeWorkerCli {
             &node_url_str,
             "list-workers",
         ]);
-        let res = commands::match_command(&cli);
-        match res {
-            Ok(CliResultOk::MrEnclaveBase58 { mr_enclaves }) => {
-                // TODO which enclave to choose if more than one? Probably random to distribute the clients?
-                worker_cli.mrenclave = Some(mr_enclaves.first().unwrap().to_string());
-            }
-            _ => todo!("InterstellarIntegriteeWorkerCli::new list-workers failed"),
-        }
+        // let res = commands::match_command(&cli);
+        // match res {
+        //     Ok(CliResultOk::MrEnclaveBase58 { mr_enclaves }) => {
+        //         // TODO which enclave to choose if more than one? Probably random to distribute the clients?
+        //         worker_cli.mrenclave = Some(mr_enclaves.first().unwrap().to_string());
+        //     }
+        //     _ => todo!("InterstellarIntegriteeWorkerCli::new list-workers failed"),
+        // }
 
         worker_cli
     }
@@ -149,17 +149,24 @@ impl InterstellarIntegriteeWorkerCli {
     /// cf /integritee-worker/cli/demo_interstellar.sh for how to call "garble-and-strip-display-circuits-package-signed"
     /// eg:
     /// ${CLIENT} trusted --mrenclave "${MRENCLAVE}" --direct garble-and-strip-display-circuits-package-signed "${PLAYER1}" "REPLACEME tx msg"
+    // pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
+    //     &self,
+    //     tx_message: &str,
+    // ) -> Result<(), InterstellarErrors> {
+    //     self.run_trusted_direct(vec![
+    //         "garble-and-strip-display-circuits-package-signed".to_string(),
+    //         self.get_account(),
+    //         tx_message.to_string(),
+    //     ])
+    //     .map_err(|_err| InterstellarErrors::GarbleAndStrip {})
+    //     .map(|_| ())
+    // }
+
     pub fn extrinsic_garble_and_strip_display_circuits_package_signed(
         &self,
         tx_message: &str,
     ) -> Result<(), InterstellarErrors> {
-        self.run_trusted_direct(vec![
-            "garble-and-strip-display-circuits-package-signed".to_string(),
-            self.get_account(),
-            tx_message.to_string(),
-        ])
-        .map_err(|_err| InterstellarErrors::GarbleAndStrip {})
-        .map(|_| ())
+        Ok(())
     }
 
     pub fn extrinsic_register_mobile(&self, _pub_key: Vec<u8>) {
@@ -207,49 +214,84 @@ impl InterstellarIntegriteeWorkerCli {
     ///
     /// - ipfs_server_multiaddr: something like "/ip4/127.0.0.1/tcp/5001"
     /// - ws_url: address of the WS endpoint of the OCW; something like "ws://127.0.0.1:9990"
+    // pub fn get_latest_pending_display_stripped_circuits_package(
+    //     &self,
+    //     ipfs_server_multiaddr: &str,
+    // ) -> Result<DisplayStrippedCircuitsPackageBuffers, InterstellarErrors> {
+    //     let circuit = self.get_most_recent_circuit()?;
+
+    //     // convert Vec<u8> into str
+    //     let message_pgarbled_cid_str = sp_std::str::from_utf8(&circuit.message_pgarbled_cid)
+    //         .expect("message_pgarbled_cid utf8");
+    //     let pinpad_pgarbled_cid_str =
+    //         sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
+
+    //     // allow calling ipfs api(ASYNC) from a sync context
+    //     // TODO can we make jni functions async?
+    //     let rt = tokio::runtime::Runtime::new().unwrap();
+    //     rt.block_on(async {
+    //         // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
+    //         let message_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
+    //             .cat(message_pgarbled_cid_str)
+    //             .map_ok(|chunk| chunk.to_vec())
+    //             .try_concat()
+    //             .await
+    //             .unwrap();
+    //         let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
+    //             .cat(pinpad_pgarbled_cid_str)
+    //             .map_ok(|chunk| chunk.to_vec())
+    //             .try_concat()
+    //             .await
+    //             .unwrap();
+
+    //         info!(
+    //             "get_one_pending_display_stripped_circuits_package: got: {},{}",
+    //             message_pgarbled_buf.len(),
+    //             pinpad_pgarbled_buf.len(),
+    //         );
+
+    //         Ok(DisplayStrippedCircuitsPackageBuffers {
+    //             message_pgarbled_buf,
+    //             message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+    //             pinpad_pgarbled_buf,
+    //             pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+    //             package: circuit.clone(),
+    //         })
+    //     })
+
     pub fn get_latest_pending_display_stripped_circuits_package(
         &self,
         ipfs_server_multiaddr: &str,
     ) -> Result<DisplayStrippedCircuitsPackageBuffers, InterstellarErrors> {
-        let circuit = self.get_most_recent_circuit()?;
+        use common::DisplayStrippedCircuitsPackage;
+        use sp_core::bounded_vec::BoundedVec;
 
-        // convert Vec<u8> into str
-        let message_pgarbled_cid_str = sp_std::str::from_utf8(&circuit.message_pgarbled_cid)
-            .expect("message_pgarbled_cid utf8");
-        let pinpad_pgarbled_cid_str =
-            sp_std::str::from_utf8(&circuit.pinpad_pgarbled_cid).expect("pinpad_pgarbled_cid utf8");
+        let message_bytes =
+            include_bytes!("/home/pratn/workspace/interstellar/lib-garble-rs/message.garbled");
+        let message_vec: Vec<u8> = (*message_bytes).into();
 
-        // allow calling ipfs api(ASYNC) from a sync context
-        // TODO can we make jni functions async?
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            // IMPORTANT: stored using ipfs_client().add() so we MUST use cat()
-            let message_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
-                .cat(message_pgarbled_cid_str)
-                .map_ok(|chunk| chunk.to_vec())
-                .try_concat()
-                .await
-                .unwrap();
-            let pinpad_pgarbled_buf: Vec<u8> = ipfs_client(ipfs_server_multiaddr)
-                .cat(pinpad_pgarbled_cid_str)
-                .map_ok(|chunk| chunk.to_vec())
-                .try_concat()
-                .await
-                .unwrap();
+        let pinpad_bytes =
+            include_bytes!("/home/pratn/workspace/interstellar/lib-garble-rs/pinpad.garbled");
+        let pinpad_vec: Vec<u8> = (*pinpad_bytes).into();
 
-            info!(
-                "get_one_pending_display_stripped_circuits_package: got: {},{}",
-                message_pgarbled_buf.len(),
-                pinpad_pgarbled_buf.len(),
-            );
-
-            Ok(DisplayStrippedCircuitsPackageBuffers {
-                message_pgarbled_buf,
-                message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
-                pinpad_pgarbled_buf,
-                pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
-                package: circuit.clone(),
-            })
+        Ok(DisplayStrippedCircuitsPackageBuffers {
+            message_pgarbled_buf: message_vec,
+            message_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+            pinpad_pgarbled_buf: pinpad_vec,
+            pinpad_packmsg_buf: b"TODO TOREMOVE".to_vec(),
+            package: DisplayStrippedCircuitsPackage {
+                message_pgarbled_cid: "TODO message_pgarbled_cid?"
+                    .as_bytes()
+                    .to_vec()
+                    .try_into()
+                    .unwrap(),
+                pinpad_pgarbled_cid: "TODO pinpad_pgarbled_cid?"
+                    .as_bytes()
+                    .to_vec()
+                    .try_into()
+                    .unwrap(),
+                message_nb_digits: 2,
+            },
         })
     }
 
