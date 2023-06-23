@@ -1538,6 +1538,13 @@ dependencies = [
 [[package]]
 name = "common-primitives"
 version = "0.1.0"
+dependencies = [
+ "sp-std",
+]
+
+[[package]]
+name = "common-primitives"
+version = "0.1.0"
 source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
 dependencies = [
  "sp-std",
@@ -6460,7 +6467,6 @@ dependencies = [
 [[package]]
 name = "sgx-verify"
 version = "0.1.4"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
 dependencies = [
  "base64 0.13.1",
  "chrono",
@@ -6469,7 +6475,6 @@ dependencies = [
  "hex",
  "hex-literal",
  "parity-scale-codec",
- "ring 0.16.20 (git+https://github.com/Niederb/ring-xous.git?branch=0.16.20-cleanup)",
  "scale-info",
  "serde",
  "serde_json",
@@ -7555,7 +7560,7 @@ name = "teeracle-primitives"
 version = "0.1.0"
 source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
 dependencies = [
- "common-primitives",
+ "common-primitives 0.1.0 (git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39)",
  "sp-std",
  "substrate-fixed",
 ]
@@ -7563,9 +7568,8 @@ dependencies = [
 [[package]]
 name = "teerex-primitives"
 version = "0.1.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
 dependencies = [
- "common-primitives",
+ "common-primitives 0.1.0",
  "parity-scale-codec",
  "scale-info",
  "serde",

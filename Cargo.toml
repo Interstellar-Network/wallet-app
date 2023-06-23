@@ -58,6 +58,15 @@ sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_hel
 # NOTE: patch DOES NOT work except at the Workspace level??
 # bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
 
+[patch."https://github.com/integritee-network/pallets.git"]
+sgx-verify = { path = "./shared/rust/deps/integritee-pallets/teerex/sgx-verify/" }
+# 161 |                 Enclave::new(
+#     |                 ------------ arguments to this function are incorrect
+# ...
+# 166 |                     report.build_mode,
+#     |                     ^^^^^^^^^^^^^^^^^ expected enum `teerex_primitives::SgxBuildMode`, found a different enum `teerex_primitives::SgxBuildMod
+teerex-primitives = { path = "./shared/rust/deps/integritee-pallets/primitives/teerex/" }
+
 ################################################################################
 # local dev
 
