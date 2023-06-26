@@ -19,6 +19,8 @@ use bevy::window::WindowResolution;
 use ndarray::Array2;
 
 // TODO(bevy0.10) ??? or remove entirely?
+// mod winit2;
+// TODO?
 // mod winit_raw_handle_plugin;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
@@ -203,8 +205,12 @@ pub fn init_app(
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
     app.add_plugin(bevy::render::RenderPlugin { ..default() });
     app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
-    #[cfg(not(target_arch = "wasm32"))]
+    // FAIL on Android?
+    // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
+    #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
     app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin { ..default() });
+    // DO NOT use on Android:
+    // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
     app.add_plugin(bevy::winit::WinitPlugin {});
     // Init the Window with our CUSTOM winit
@@ -239,6 +245,11 @@ pub fn init_app(
     app.add_plugin(FrameTimeDiagnosticsPlugin::default());
 
     // TODO how much msaa?
+    // MSAA makes some Android devices panic, this is under investigation
+    // https://github.com/bevyengine/bevy/issues/8229
+    #[cfg(target_os = "android")]
+    app.insert_resource(Msaa::Off);
+    #[cfg(not(target_os = "android"))]
     app.insert_resource(Msaa::Sample4);
     // TODO add param, and obtain from Android
     app.insert_resource(ClearColor(background_color));
