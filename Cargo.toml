@@ -45,18 +45,24 @@ lto = "thin"
 sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
 
 [patch.crates-io]
+# TODO re-add for bevy 0.9? or not needed anymore
+# NOTE: patch DOES NOT work except at the Workspace level??
+# bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
+
 # wasmtime-runtime: we MUST patch to make it compatible with Android Emulator
-# ELSE: wasmtime-runtime-1.0.2/src/traphandlers/unix.rs:232:13 compile_error!("unsupported platform");
+# error: unsupported platform
+#    --> /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/wasmtime-runtime-6.0.2/src/traphandlers/unix.rs:235:13
+#     |
+# 235 |             compile_error!("unsupported platform");
 # SHOULD match https://github.com/paritytech/substrate/blob/master/primitives/wasm-interface/Cargo.toml
 # NOTE: we NEED to patch "wasmtime-runtime" but to avoid error like "note: perhaps two different versions of crate `wasmtime_environ` are being used?"
 # the easiest thing to do is patch the "main lib"
 # NOTE: for the PATCH the work, it MUST be a the correct version(= git tag)
 # wasmtime-runtime = { path = "../wasmtime/crates/runtime/" }
 # wasmtime-environ = { path = "../wasmtime/crates/environ/" }
-# wasmtime = { path = "./shared/rust/deps/wasmtime/crates/wasmtime/" }
-# TODO re-add for bevy 0.9? or not needed anymore
-# NOTE: patch DOES NOT work except at the Workspace level??
-# bevy_render = { path = './shared/rustrenderer/patch/bevy_render-0.7.0' }
+# MUST ALSO SET "[workspace.dependencies]" below
+# because this is a workspace and all versions are inherited...
+wasmtime-runtime = { path = "./shared/rust/deps/wasmtime/crates/runtime/" }
 
 [patch."https://github.com/integritee-network/pallets.git"]
 sgx-verify = { path = "./shared/rust/deps/integritee-pallets/teerex/sgx-verify/" }
@@ -81,3 +87,89 @@ integritee-cli = { path = "../integritee-worker/cli" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
 # circuits-storage-common = { path = "../pallets/circuits-storage-common" }
+
+################################################################################
+# only needed because "wastime" is using workspace inheritance
+# copy-pasted from: https://github.com/bytecodealliance/wasmtime/blob/00fd7bc4d1ce64feb3ca82161216721b740ec571/Cargo.toml#L112
+[workspace.dependencies]
+# wasmtime = { path = "crates/wasmtime", version = "6.0.2", default-features = false }
+# wasmtime-cache = { path = "crates/cache", version = "=6.0.2" }
+# wasmtime-cli-flags = { path = "crates/cli-flags", version = "=6.0.2" }
+# wasmtime-cranelift = { path = "crates/cranelift", version = "=6.0.2" }
+wasmtime-environ = { version = "=6.0.2" }
+wasmtime-fiber = { version = "=6.0.2" }
+wasmtime-types = { version = "6.0.2" }
+# wasmtime-jit = { path = "crates/jit", version = "=6.0.2" }
+wasmtime-jit-debug = { version = "=6.0.2" }
+# wasmtime-runtime = { path = "crates/runtime", version = "=6.0.2" }
+# wasmtime-wast = { path = "crates/wast", version = "=6.0.2" }
+# wasmtime-wasi = { path = "crates/wasi", version = "6.0.2" }
+# wasmtime-wasi-crypto = { path = "crates/wasi-crypto", version = "6.0.2" }
+# wasmtime-wasi-nn = { path = "crates/wasi-nn", version = "6.0.2" }
+wasmtime-component-util = { version = "=6.0.2" }
+# wasmtime-component-macro = { path = "crates/component-macro", version = "=6.0.2" }
+wasmtime-asm-macros = { version = "=6.0.2" }
+# component-test-util = { path = "crates/misc/component-test-util" }
+# component-fuzz-util = { path = "crates/misc/component-fuzz-util" }
+# wiggle = { path = "crates/wiggle", version = "=6.0.2", default-features = false }
+# wiggle-macro = { path = "crates/wiggle/macro", version = "=6.0.2" }
+# wiggle-generate = { path = "crates/wiggle/generate", version = "=6.0.2" }
+# wasi-common = { path = "crates/wasi-common", version = "=6.0.2" }
+# wasi-tokio = { path = "crates/wasi-common/tokio", version = "=6.0.2" }
+# wasi-cap-std-sync = { path = "crates/wasi-common/cap-std-sync", version = "=6.0.2" }
+# wasmtime-fuzzing = { path = "crates/fuzzing" }
+# wasmtime-jit-icache-coherence = { path = "crates/jit-icache-coherence", version = "=6.0.2" }
+# wasmtime-wit-bindgen = { path = "crates/wit-bindgen", version = "=6.0.2" }
+
+# cranelift-wasm = { path = "cranelift/wasm", version = "0.93.2" }
+# cranelift-codegen = { path = "cranelift/codegen", version = "0.93.2" }
+# cranelift-frontend = { path = "cranelift/frontend", version = "0.93.2" }
+cranelift-entity = { version = "0.93.2" }
+# cranelift-native = { path = "cranelift/native", version = "0.93.2" }
+# cranelift-module = { path = "cranelift/module", version = "0.93.2" }
+# cranelift-interpreter = { path = "cranelift/interpreter", version = "0.93.2" }
+# cranelift-reader = { path = "cranelift/reader", version = "0.93.2" }
+# cranelift-filetests = { path = "cranelift/filetests" }
+# cranelift-object = { path = "cranelift/object", version = "0.93.2" }
+# cranelift-jit = { path = "cranelift/jit", version = "0.93.2" }
+# cranelift-fuzzgen = { path = "cranelift/fuzzgen" }
+# cranelift-bforest = { path = "cranelift/bforest", version = "0.93.2" }
+# cranelift = { path = "cranelift/umbrella", version = "0.93.2" }
+
+# winch-codegen = { path = "winch/codegen", version = "=0.4.2" }
+# winch-filetests = { path = "winch/filetests" }
+# winch-test-macros = { path = "winch/test-macros" }
+
+target-lexicon = { version = "0.12.3", default-features = false, features = ["std"] }
+anyhow = "1.0.22"
+wasmparser = "0.100.0"
+wat = "1.0.57"
+# wast = "53.0.0"
+wasmprinter = "0.2.50"
+wasm-encoder = "0.23.0"
+# wasm-smith = "0.12.1"
+# wasm-mutate = "0.2.17"
+# wit-parser = "0.6.0"
+windows-sys = "0.42.0"
+env_logger = "0.9"
+rustix = "0.36.7"
+log = { version = "0.4.8", default-features = false }
+object = { version = "0.29", default-features = false, features = ['read_core', 'elf', 'std'] }
+gimli = { version = "0.26.0", default-features = false, features = ['read', 'std'] }
+clap = { version = "3.2.0", features = ["color", "suggestions", "derive"] }
+# hashbrown = "0.12"
+# cap-std = "1.0.0"
+# cap-rand = "1.0.0"
+# capstone = "0.9.0"
+once_cell = "1.12.0"
+# smallvec = { version = "1.6.1", features = ["union"] }
+# io-lifetimes = { version = "1.0.0", default-features = false }
+# tracing = "0.1.26"
+# bitflags = "1.2"
+thiserror = "1.0.15"
+# async-trait = "0.1.42"
+# heck = "0.4"
+# similar = "2.1.0"
+# toml = "0.5.9"
+# serde = "1.0.94"
+# glob = "0.3.0"
