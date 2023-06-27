@@ -19,9 +19,7 @@ use bevy::window::WindowResolution;
 use ndarray::Array2;
 
 // TODO(bevy0.10) ??? or remove entirely?
-// mod winit2;
-// TODO?
-// mod winit_raw_handle_plugin;
+mod winit_raw_handle_plugin;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
 // MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
@@ -187,6 +185,7 @@ pub fn init_app(
     app.add_plugin(bevy::diagnostic::DiagnosticsPlugin {});
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::input::InputPlugin {});
+    // TODO? #[cfg(not(target_os = "android"))]
     app.add_plugin(WindowPlugin {
         primary_window: Some(Window {
             title: "renderer demo".to_string(),
@@ -221,20 +220,20 @@ pub fn init_app(
     #[cfg(all(target_os = "android", feature = "with_winit"))]
     compile_error!("FAIL android+with_winit is NOT supported!");
     // TODO(bevy0.10)
-    // #[cfg(target_os = "android")]
-    // app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-    //     physical_width,
-    //     physical_height,
-    //     1.0,
-    //     // TODO?raw_window_handle,
-    //     // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-    //     bevy::window::RawHandleWrapper {
-    //         window_handle: raw_window_handle,
-    //         display_handle: raw_window_handle::RawDisplayHandle::Android(
-    //             raw_window_handle::AndroidDisplayHandle::empty(),
-    //         ),
-    //     },
-    // ));
+    #[cfg(target_os = "android")]
+    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
+        physical_width,
+        physical_height,
+        1.0,
+        // TODO?raw_window_handle,
+        // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
+        bevy::window::RawHandleWrapper {
+            window_handle: raw_window_handle,
+            display_handle: raw_window_handle::RawDisplayHandle::Android(
+                raw_window_handle::AndroidDisplayHandle::empty(),
+            ),
+        },
+    ));
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]

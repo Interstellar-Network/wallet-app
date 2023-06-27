@@ -5959,6 +5959,7 @@ dependencies = [
  "raw-window-handle",
  "substrate-client",
  "wgpu",
+ "winit",
 ]
 
 [[package]]

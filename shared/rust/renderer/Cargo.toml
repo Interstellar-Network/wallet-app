@@ -47,7 +47,7 @@ bevy = { version = "0.10", default-features = false, features = [
     # "bevy_audio",
     # "bevy_gilrs",
     # "bevy_scene",
-    # "bevy_winit",
+    "bevy_winit",
     "bevy_core_pipeline",
     # "bevy_pbr",
     # "bevy_gltf",
@@ -67,6 +67,8 @@ bevy = { version = "0.10", default-features = false, features = [
  ]}
 log = "0.4"
 wgpu = "0.15"  # dep of Bevy, but we need it ourself; versions MUST match
+# MUST match https://github.com/bevyengine/bevy/blob/bec299fa6e727a59d973fc8ca8f468732d40cb14/crates/bevy_winit/Cargo.toml#L31C1-L31C55
+winit = { version = "0.28", default-features = false }
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
