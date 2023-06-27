@@ -18,42 +18,17 @@ use bevy::render::camera::ScalingMode;
 use bevy::window::WindowResolution;
 use ndarray::Array2;
 
-mod winit_raw_handle_plugin;
-
-// eg 4 when ARGB/RGBA, 1 for GRAYSCALE
-// MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
-const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
-
-/// IMPORTANT
-/// The only way to make Bevy work with the Android Emulator(ie OpenGL) is to patch
-/// bevy_render-0.7.0/src/texture/mod.rs
-///
-// impl BevyDefault for wgpu::TextureFormat {
-//     fn bevy_default() -> Self {
-//         if cfg!(target_os = "android") || cfg!(target_arch = "wasm32") {
-//             // Bgra8UnormSrgb texture missing on some Android devices
-//             wgpu::TextureFormat::Rgba8Unorm
-//         } else {
-//             wgpu::TextureFormat::Bgra8UnormSrgb
-//         }
-//     }
-// }
-//
-// ALSO
-// # TODO(android) AT LEAST FOR EMULATOR: "webgl", else ""wgpu::backend::direct: Shader translation error for stage VERTEX: The selected version doesn't support CUBE_TEXTURES_ARRAY""
-// # cf https://github.com/bevyengine/bevy/blob/main/crates/bevy_pbr/src/render/mesh.rs
-// b/c https://github.com/gfx-rs/naga/pull/1736
-// But we do not need lighting/PBR for now so this is acceptable
 pub use bevy::prelude::App;
-
 pub mod vertices_utils;
 
+mod jni_wrapper;
 mod setup;
 mod update_texture_utils;
+mod winit_raw_handle_plugin;
 
-// #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
-mod jni_wrapper;
-
+/// eg 4 when ARGB/RGBA, 1 for GRAYSCALE
+/// MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
+const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
 /// IMPORTANT: if you change it, adjust renderer/src/vertices_utils.rs else it will
 /// not position the message/pinpad correctly
 pub const CAMERA_SCALING_MODE: ScalingMode = ScalingMode::FixedVertical(1.0);
@@ -162,10 +137,6 @@ pub fn init_app(
     let message_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
     let pinpad_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
 
-    // TODO? #[cfg(target_os = "android")]
-    // default runner crash at app.run on Android
-    // app.set_runner(my_runner);
-
     // TODO CHECK history for why "app.add_plugins_with(DefaultPlugins, |group| group.disable::<ImagePlugin>());"
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
@@ -173,7 +144,6 @@ pub fn init_app(
     // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
 
     // WARNING: order matters!
-    #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::log::LogPlugin { ..default() });
     app.add_plugin(bevy::core::TaskPoolPlugin { ..default() });
     app.add_plugin(bevy::core::TypeRegistrationPlugin { ..default() });
@@ -184,7 +154,6 @@ pub fn init_app(
     app.add_plugin(bevy::diagnostic::DiagnosticsPlugin {});
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::input::InputPlugin {});
-    // TODO? #[cfg(not(target_os = "android"))]
     app.add_plugin(WindowPlugin {
         primary_window: Some(Window {
             title: "renderer demo".to_string(),
