@@ -18,7 +18,6 @@ use bevy::render::camera::ScalingMode;
 use bevy::window::WindowResolution;
 use ndarray::Array2;
 
-// TODO(bevy0.10) ??? or remove entirely?
 mod winit_raw_handle_plugin;
 
 // eg 4 when ARGB/RGBA, 1 for GRAYSCALE
@@ -189,6 +188,9 @@ pub fn init_app(
     app.add_plugin(WindowPlugin {
         primary_window: Some(Window {
             title: "renderer demo".to_string(),
+            #[cfg(target_os = "android")]
+            resolution: WindowResolution::new(physical_width as f32, physical_height as f32),
+            #[cfg(not(target_os = "android"))]
             resolution: WindowResolution::new(1920. / 2., 1080. / 2.),
             // TODO?
             // present_mode: PresentMode::AutoVsync,
@@ -219,7 +221,6 @@ pub fn init_app(
     // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
     #[cfg(all(target_os = "android", feature = "with_winit"))]
     compile_error!("FAIL android+with_winit is NOT supported!");
-    // TODO(bevy0.10)
     #[cfg(target_os = "android")]
     app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
         physical_width,

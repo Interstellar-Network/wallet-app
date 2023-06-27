@@ -45,9 +45,6 @@ use bevy::winit::winit_runner;
 use bevy::winit::WinitSettings;
 use bevy::winit::WinitWindows;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
-use winit::event_loop::EventLoop;
-use winit::event_loop::EventLoopBuilder;
-use winit::event_loop::EventLoopWindowTarget;
 
 pub struct WinitPluginRawWindowHandle {
     physical_width: u32,
@@ -68,42 +65,8 @@ impl Plugin for WinitPluginRawWindowHandle {
     // cf WinitPlugin
     // Essentially removed the Runner/Event Loop
     fn build(&self, app: &mut App) {
-        // let mut event_loop_builder = EventLoopBuilder::<()>::with_user_event();
-
-        // #[cfg(target_os = "android")]
-        // {
-        //     use winit::platform::android::EventLoopBuilderExtAndroid;
-        //     event_loop_builder.with_android_app(
-        //         ANDROID_APP
-        //             .get()
-        //             .expect("Bevy must be setup with the #[bevy_main] macro on Android")
-        //             .clone(),
-        //     );
-        // }
-
-        // let event_loop = event_loop_builder.build();
-        // app.insert_non_send_resource(event_loop);
-
-        // DO NOT use the above ^^^
-        // else: thread '<unnamed>' panicked at 'An `AndroidApp` as passed to android_main() is required to create an `EventLoop` on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.28.6/src/platform_impl/android/mod.rs:331:59
-        // let event_loop = EventLoop::new();
-
         app.init_non_send_resource::<WinitWindows>()
-            .init_resource::<WinitSettings>()
-            // .set_runner(winit_runner)
-            // exit_on_all_closed only uses the query to determine if the query is empty,
-            // and so doesn't care about ordering relative to changed_window
-            // .add_systems(
-            //     (
-            //         changed_window.ambiguous_with(exit_on_all_closed),
-            //         // Update the state of the window before attempting to despawn to ensure consistent event ordering
-            //         despawn_window.after(changed_window),
-            //     )
-            //         .in_base_set(CoreSet::Last),
-            // )
-            ;
-
-        // app.add_plugin(AccessibilityPlugin);
+            .init_resource::<WinitSettings>();
 
         #[cfg(not(target_arch = "wasm32"))]
         let mut create_window_system_state: SystemState<(
@@ -111,8 +74,6 @@ impl Plugin for WinitPluginRawWindowHandle {
             Query<(Entity, &mut Window), Added<Window>>,
             EventWriter<WindowCreated>,
             NonSendMut<WinitWindows>,
-            // NonSendMut<AccessKitAdapters>,
-            // ResMut<WinitActionHandlers>,
             ResMut<AccessibilityRequested>,
         )> = SystemState::from_world(&mut app.world);
 
@@ -122,21 +83,17 @@ impl Plugin for WinitPluginRawWindowHandle {
             mut new_windows,
             created_window_writer,
             winit_windows,
-            // adapters,
-            // handlers,
             accessibility_requested,
         ) = create_window_system_state.get_mut(&mut app.world);
 
         // Responsible for creating new windows
         create_window(
             self.handle_wrapper.clone(),
+            self.scale_factor,
             commands,
-            // &event_loop,
             new_windows.iter_mut(),
             created_window_writer,
             winit_windows,
-            // adapters,
-            // handlers,
             accessibility_requested,
             #[cfg(target_arch = "wasm32")]
             canvas_parent_resize_channel,
@@ -167,13 +124,11 @@ impl WinitPluginRawWindowHandle {
 #[allow(clippy::too_many_arguments)]
 fn create_window<'a>(
     handle_wrapper: RawHandleWrapper,
+    scale_factor: f64,
     mut commands: Commands,
-    // event_loop: &EventLoopWindowTarget<()>,
     created_windows: impl Iterator<Item = (Entity, Mut<'a, Window>)>,
     mut event_writer: EventWriter<WindowCreated>,
     mut winit_windows: NonSendMut<WinitWindows>,
-    // mut adapters: NonSendMut<AccessKitAdapters>,
-    // mut handlers: ResMut<WinitActionHandlers>,
     mut accessibility_requested: ResMut<AccessibilityRequested>,
     #[cfg(target_arch = "wasm32")] event_channel: ResMut<CanvasParentResizeEventChannel>,
 ) {
@@ -188,19 +143,10 @@ fn create_window<'a>(
             entity
         );
 
-        // let winit_window = winit_windows_create_window(
-        //     &mut winit_windows,
-        //     // event_loop,
-        //     entity,
-        //     &window,
-        //     // &mut adapters,
-        //     // &mut handlers,
-        //     &mut accessibility_requested,
-        // );
-
         // window
         //     .resolution
         //     .set_scale_factor(winit_window.scale_factor());
+        window.resolution.set_scale_factor(scale_factor);
 
         // commands
         //     .entity(entity)
@@ -243,27 +189,28 @@ pub struct CachedWindow {
     pub window: Window,
 }
 
-/// cf impl WinitWindows {pub fn create_window
-fn winit_windows_create_window<'a>(
-    winit_windows: &'a mut WinitWindows,
-    // event_loop: &winit::event_loop::EventLoopWindowTarget<()>,
-    entity: Entity,
-    window: &'a Window,
-    // adapters: &'a mut AccessKitAdapters,
-    // handlers: &'a mut WinitActionHandlers,
-    accessibility_requested: &'a mut AccessibilityRequested,
-) -> &'a winit::window::Window {
-    let mut winit_window_builder = winit::window::WindowBuilder::new();
+// cf impl WinitWindows {pub fn create_window
+// FAIL, cf `EventLoopBuilder::new().build` below
+// fn winit_windows_create_window<'a>(
+//     winit_windows: &'a mut WinitWindows,
+//     // event_loop: &winit::event_loop::EventLoopWindowTarget<()>,
+//     entity: Entity,
+//     window: &'a Window,
+//     // adapters: &'a mut AccessKitAdapters,
+//     // handlers: &'a mut WinitActionHandlers,
+//     accessibility_requested: &'a mut AccessibilityRequested,
+// ) -> &'a winit::window::Window {
+//     let mut winit_window_builder = winit::window::WindowBuilder::new();
 
-    // FAIL: "thread '<unnamed>' panicked at 'An `AndroidApp` as passed to android_main() is required to create an `EventLoop` on Android', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.28.6/src/platform_impl/android/mod.rs:331:59
-    // 2023-06-27 12:23:02.454  7364-7364  wrap.sh                 logwrapper                           I  "
-    let event_loop = winit::event_loop::EventLoopBuilder::new().build();
+//     // FAIL: "thread '<unnamed>' panicked at 'An `AndroidApp` as passed to android_main() is required to create an `EventLoop` on Android', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.28.6/src/platform_impl/android/mod.rs:331:59
+//     // 2023-06-27 12:23:02.454  7364-7364  wrap.sh                 logwrapper                           I  "
+//     let event_loop = winit::event_loop::EventLoopBuilder::new().build();
 
-    let winit_window = winit::window::Window::new(&event_loop).unwrap();
+//     let winit_window = winit::window::Window::new(&event_loop).unwrap();
 
-    winit_windows
-        .windows
-        .entry(winit_window.id())
-        .insert(winit_window)
-        .into_mut()
-}
+//     winit_windows
+//         .windows
+//         .entry(winit_window.id())
+//         .insert(winit_window)
+//         .into_mut()
+// }
