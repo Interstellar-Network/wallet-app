@@ -34,6 +34,7 @@ pub struct EvaluateWrapper {
     /// one per "output" (ie len() == circuit.outputs.len())
     /// This is used to avoid alloc in `decoding_internal` during eval
     outputs_bufs: Vec<BytesMut>,
+    ro_buf: BytesMut,
 }
 
 impl EvaluateWrapper {
@@ -76,6 +77,7 @@ impl EvaluateWrapper {
             temp_outputs: vec![0u8; width * height],
             outputs_labels: OutputLabels::new(),
             outputs_bufs,
+            ro_buf: BytesMut::new(),
         }
     }
 
@@ -103,6 +105,7 @@ impl EvaluateWrapper {
                 outputs,
                 &mut self.outputs_labels,
                 &mut self.outputs_bufs,
+                &mut self.ro_buf,
             )
             .unwrap();
     }
