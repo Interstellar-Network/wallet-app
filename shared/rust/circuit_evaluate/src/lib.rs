@@ -16,6 +16,7 @@
 // https://github.com/substrate-developer-hub/substrate-module-template/blob/master/HOWTO.md#forgetting-cfg_attr-for-no_std
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use bytes::BytesMut;
 use lib_garble_rs::OutputLabels;
 use lib_garble_rs::{EncodedGarblerInputs, EvaluatorInput, GarbledCircuit};
 use rand::distributions::Distribution;
@@ -30,6 +31,9 @@ pub struct EvaluateWrapper {
     height: usize,
     temp_outputs: Vec<u8>,
     outputs_labels: OutputLabels,
+    /// one per "output" (ie len() == circuit.outputs.len())
+    /// This is used to avoid alloc in `decoding_internal` during eval
+    outputs_bufs: Vec<BytesMut>,
 }
 
 impl EvaluateWrapper {
@@ -60,6 +64,9 @@ impl EvaluateWrapper {
             .try_into()
             .unwrap();
 
+        let mut outputs_bufs = Vec::new();
+        outputs_bufs.resize_with(garbled.num_outputs(), BytesMut::new);
+
         EvaluateWrapper {
             garbled,
             encoded_garbler_inputs,
@@ -68,6 +75,7 @@ impl EvaluateWrapper {
             height,
             temp_outputs: vec![0u8; width * height],
             outputs_labels: OutputLabels::new(),
+            outputs_bufs,
         }
     }
 
@@ -94,6 +102,7 @@ impl EvaluateWrapper {
                 &self.evaluator_inputs,
                 outputs,
                 &mut self.outputs_labels,
+                &mut self.outputs_bufs,
             )
             .unwrap();
     }

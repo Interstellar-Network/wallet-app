@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
+bytes = { version = "1", default-features = false }
 
 [lib]
 name = "circuit_evaluate"

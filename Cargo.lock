@@ -1351,6 +1351,7 @@ dependencies = [
 name = "circuit-evaluate"
 version = "0.1.0"
 dependencies = [
+ "bytes 1.4.0",
  "lib-garble-rs",
  "rand 0.8.5",
 ]
