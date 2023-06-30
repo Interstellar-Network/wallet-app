@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use bytes::BytesMut;
-use lib_garble_rs::OutputLabels;
+use lib_garble_rs::EvalCache;
 use lib_garble_rs::{EncodedGarblerInputs, EvaluatorInput, GarbledCircuit};
 use rand::distributions::Distribution;
 use rand::distributions::Uniform;
@@ -30,11 +30,7 @@ pub struct EvaluateWrapper {
     width: usize,
     height: usize,
     temp_outputs: Vec<u8>,
-    outputs_labels: OutputLabels,
-    /// one per "output" (ie len() == circuit.outputs.len())
-    /// This is used to avoid alloc in `decoding_internal` during eval
-    outputs_bufs: Vec<BytesMut>,
-    ro_buf: BytesMut,
+    eval_cache: EvalCache,
 }
 
 impl EvaluateWrapper {
@@ -75,9 +71,7 @@ impl EvaluateWrapper {
             width,
             height,
             temp_outputs: vec![0u8; width * height],
-            outputs_labels: OutputLabels::new(),
-            outputs_bufs,
-            ro_buf: BytesMut::new(),
+            eval_cache: EvalCache::new(),
         }
     }
 
@@ -103,9 +97,7 @@ impl EvaluateWrapper {
                 &mut encoded_garbler_inputs,
                 &self.evaluator_inputs,
                 outputs,
-                &mut self.outputs_labels,
-                &mut self.outputs_bufs,
-                &mut self.ro_buf,
+                &mut self.eval_cache,
             )
             .unwrap();
     }
