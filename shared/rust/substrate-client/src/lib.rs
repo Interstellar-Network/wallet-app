@@ -266,12 +266,14 @@ impl InterstellarIntegriteeWorkerCli {
         use common::DisplayStrippedCircuitsPackage;
         use sp_core::bounded_vec::BoundedVec;
 
-        let message_bytes =
-            include_bytes!("/home/pratn/workspace/interstellar/lib-garble-rs/message.garbled");
+        let message_bytes = include_bytes!(
+            "../../circuit_evaluate/tests/data/display_message_640x360_2digits.garbled.pb.bin"
+        );
         let message_vec: Vec<u8> = (*message_bytes).into();
 
-        let pinpad_bytes =
-            include_bytes!("/home/pratn/workspace/interstellar/lib-garble-rs/pinpad.garbled");
+        let pinpad_bytes = include_bytes!(
+            "../../circuit_evaluate/tests/data/display_pinpad_590x50.garbled.pb.bin"
+        );
         let pinpad_vec: Vec<u8> = (*pinpad_bytes).into();
 
         Ok(DisplayStrippedCircuitsPackageBuffers {
