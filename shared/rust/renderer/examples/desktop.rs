@@ -14,7 +14,6 @@
 
 /// IMPORTANT it will compile(and even work) WITHOUT "bevy_winit", but it will render nothing
 /// ie main will "run once" and exit
-use bevy::prelude::*;
 use clap::Parser;
 use ndarray::Array2;
 use substrate_client::InterstellarIntegriteeWorkerCli;
@@ -28,7 +27,7 @@ use renderer::vertices_utils::Rect;
 struct Args {}
 
 fn main() {
-    let args = Args::parse();
+    let _args = Args::parse();
 
     let mut app = renderer::App::new();
 

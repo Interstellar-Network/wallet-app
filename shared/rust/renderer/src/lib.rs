@@ -156,10 +156,10 @@ pub fn init_app(
     // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
 
     // WARNING: order matters!
-    app.add_plugin(bevy::log::LogPlugin { ..default() });
-    app.add_plugin(bevy::core::TaskPoolPlugin { ..default() });
-    app.add_plugin(bevy::core::TypeRegistrationPlugin { ..default() });
-    app.add_plugin(bevy::core::FrameCountPlugin { ..default() });
+    app.add_plugin(bevy::log::LogPlugin::default());
+    app.add_plugin(bevy::core::TaskPoolPlugin::default());
+    app.add_plugin(bevy::core::TypeRegistrationPlugin::default());
+    app.add_plugin(bevy::core::FrameCountPlugin::default());
     app.add_plugin(bevy::time::TimePlugin {});
     app.add_plugin(bevy::transform::TransformPlugin {});
     app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
@@ -181,16 +181,16 @@ pub fn init_app(
     });
     app.add_plugin(bevy::a11y::AccessibilityPlugin);
     // #[cfg(feature = "bevy_asset")]
-    app.add_plugin(bevy::asset::AssetPlugin { ..default() });
+    app.add_plugin(bevy::asset::AssetPlugin::default());
     // #[cfg(feature = "bevy_scene")]
-    // app.add_plugin(bevy::scene::ScenePlugin { ..default() });
+    // app.add_plugin(bevy::scene::ScenePlugin::default());
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugin(bevy::render::RenderPlugin { ..default() });
-    app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
+    app.add_plugin(bevy::render::RenderPlugin::default());
+    app.add_plugin(bevy::render::texture::ImagePlugin::default());
     // FAIL on Android?
     // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
     #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
-    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin { ..default() });
+    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
     // DO NOT use on Android:
     // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
@@ -203,19 +203,17 @@ pub fn init_app(
     #[cfg(all(target_os = "android", feature = "with_winit"))]
     compile_error!("FAIL android+with_winit is NOT supported!");
     #[cfg(target_os = "android")]
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-        physical_width,
-        physical_height,
-        1.0,
+    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
+        scale_factor: 1.0,
         // TODO?raw_window_handle,
         // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-        bevy::window::RawHandleWrapper {
+        handle_wrapper: bevy::window::RawHandleWrapper {
             window_handle: raw_window_handle,
             display_handle: raw_window_handle::RawDisplayHandle::Android(
                 raw_window_handle::AndroidDisplayHandle::empty(),
             ),
         },
-    ));
+    });
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
@@ -293,7 +291,6 @@ pub fn init_app(
 fn change_texture_message(
     mut query: Query<Option<&Handle<Image>>>,
     mut images: ResMut<Assets<Image>>,
-    texture_update_callback: Res<TextureUpdateCallbackMessage>,
     mut message_data_events: EventReader<UpdateMessageDataEvent>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
@@ -320,7 +317,7 @@ fn evaluate_message(
     // Eg:
     // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
     // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
-    let data_len_before = texture_update_callback.data.len();
+    let _data_len_before = texture_update_callback.data.len();
 
     // https://bevy-cheatbook.github.io/pitfalls/split-borrows.html
     let texture_update_callback = &mut *texture_update_callback;
@@ -377,7 +374,7 @@ fn evaluate_pinpad(
     // Eg:
     // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
     // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
-    let data_len_before = texture_update_callback.data.len();
+    let _data_len_before = texture_update_callback.data.len();
 
     // https://bevy-cheatbook.github.io/pitfalls/split-borrows.html
     let texture_update_callback = &mut *texture_update_callback;

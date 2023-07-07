@@ -29,7 +29,6 @@ pub struct EvaluateWrapper {
     evaluator_inputs: Vec<EvaluatorInput>,
     width: usize,
     height: usize,
-    temp_outputs: Vec<u8>,
     eval_cache: EvalCache,
 }
 
@@ -42,7 +41,7 @@ impl EvaluateWrapper {
     /// typically in PROD we use STRIPPED ones, but for tests/dev we keep compat with FULL circuits
     /// [in which case] packmsg_buffer can be empty
     pub fn new(pgarbled_buffer: Vec<u8>) -> EvaluateWrapper {
-        let (mut garbled, encoded_garbler_inputs) =
+        let (garbled, encoded_garbler_inputs) =
             lib_garble_rs::deserialize_for_evaluator(&pgarbled_buffer).unwrap();
         let evaluator_inputs = lib_garble_rs::prepare_evaluator_inputs(&garbled).unwrap();
 
@@ -70,7 +69,6 @@ impl EvaluateWrapper {
             evaluator_inputs,
             width,
             height,
-            temp_outputs: vec![0u8; width * height],
             eval_cache: EvalCache::new(),
         }
     }
@@ -89,12 +87,9 @@ impl EvaluateWrapper {
             *input = rand_0_1.sample(&mut rng);
         }
 
-        // TODO(opt) remove the clone
-        let mut encoded_garbler_inputs = self.encoded_garbler_inputs.clone();
-
         self.garbled
             .eval(
-                &mut encoded_garbler_inputs,
+                &self.encoded_garbler_inputs,
                 &self.evaluator_inputs,
                 outputs,
                 &mut self.eval_cache,

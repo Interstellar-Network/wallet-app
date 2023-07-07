@@ -1,20 +1,19 @@
 use common::DisplayStrippedCircuitsPackage;
 use common::DisplayStrippedCircuitsPackageBuffers;
 use log::info;
-use sp_core::bounded_vec::BoundedVec;
 
 use crate::InterstellarIntegriteeWorkerCliTrait;
 
 pub struct InterstellarIntegriteeWorkerCliOffline {}
 
 impl InterstellarIntegriteeWorkerCliTrait for InterstellarIntegriteeWorkerCliOffline {
-    fn new(ws_url: &str, node_url: &str) -> Self {
+    fn new(_ws_url: &str, _node_url: &str) -> Self {
         Self {}
     }
 
     fn extrinsic_garble_and_strip_display_circuits_package_signed(
         &self,
-        tx_message: &str,
+        _tx_message: &str,
     ) -> Result<(), common::InterstellarErrors> {
         info!("offline_demo: extrinsic_garble_and_strip_display_circuits_package_signed");
         Ok(())
@@ -26,8 +25,8 @@ impl InterstellarIntegriteeWorkerCliTrait for InterstellarIntegriteeWorkerCliOff
 
     fn extrinsic_check_input(
         &self,
-        ipfs_cid: &[u8],
-        input_digits: &[u8],
+        _ipfs_cid: &[u8],
+        _input_digits: &[u8],
     ) -> Result<(), common::InterstellarErrors> {
         info!("offline_demo: extrinsic_check_input");
         Ok(())
@@ -35,7 +34,7 @@ impl InterstellarIntegriteeWorkerCliTrait for InterstellarIntegriteeWorkerCliOff
 
     fn get_latest_pending_display_stripped_circuits_package(
         &self,
-        ipfs_server_multiaddr: &str,
+        _ipfs_server_multiaddr: &str,
     ) -> Result<common::DisplayStrippedCircuitsPackageBuffers, common::InterstellarErrors> {
         let message_bytes = include_bytes!(
             "../../circuit_evaluate/tests/data/display_message_640x360_2digits.garbled.pb.bin"

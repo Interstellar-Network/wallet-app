@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use bevy::a11y::AccessibilityPlugin;
 use bevy::a11y::AccessibilityRequested;
 ///
 /// [Android]
@@ -31,26 +30,16 @@ use bevy::ecs::system::Query;
 use bevy::ecs::system::ResMut;
 use bevy::ecs::system::SystemState;
 use bevy::ecs::world::Mut;
-use bevy::ecs::world::World;
 use bevy::prelude::FromWorld;
-use bevy::utils::default;
 use bevy::window::RawHandleWrapper;
 use bevy::window::Window;
 use bevy::window::WindowCreated;
-use bevy::window::WindowMode;
-use bevy::window::WindowResolution;
-use bevy::winit::accessibility::AccessKitAdapters;
-use bevy::winit::accessibility::WinitActionHandlers;
-use bevy::winit::winit_runner;
 use bevy::winit::WinitSettings;
 use bevy::winit::WinitWindows;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
 pub struct WinitPluginRawWindowHandle {
-    physical_width: u32,
-    physical_height: u32,
-    scale_factor: f64,
-    handle_wrapper: RawHandleWrapper,
+    pub(super) scale_factor: f64,
+    pub(super) handle_wrapper: RawHandleWrapper,
 }
 
 /// cf "fn handle_create_window_events"
@@ -68,6 +57,7 @@ impl Plugin for WinitPluginRawWindowHandle {
         app.init_non_send_resource::<WinitWindows>()
             .init_resource::<WinitSettings>();
 
+        #[allow(clippy::type_complexity)]
         #[cfg(not(target_arch = "wasm32"))]
         let mut create_window_system_state: SystemState<(
             Commands,
@@ -83,7 +73,7 @@ impl Plugin for WinitPluginRawWindowHandle {
             mut new_windows,
             created_window_writer,
             winit_windows,
-            accessibility_requested,
+            _accessibility_requested,
         ) = create_window_system_state.get_mut(&mut app.world);
 
         // Responsible for creating new windows
@@ -94,29 +84,11 @@ impl Plugin for WinitPluginRawWindowHandle {
             new_windows.iter_mut(),
             created_window_writer,
             winit_windows,
-            accessibility_requested,
             #[cfg(target_arch = "wasm32")]
             canvas_parent_resize_channel,
         );
 
         create_window_system_state.apply(&mut app.world);
-    }
-}
-
-#[cfg(target_os = "android")]
-impl WinitPluginRawWindowHandle {
-    pub fn new(
-        physical_width: u32,
-        physical_height: u32,
-        scale_factor: f64,
-        handle_wrapper: RawHandleWrapper,
-    ) -> Self {
-        Self {
-            physical_width,
-            physical_height,
-            scale_factor,
-            handle_wrapper,
-        }
     }
 }
 
@@ -128,8 +100,7 @@ fn create_window<'a>(
     mut commands: Commands,
     created_windows: impl Iterator<Item = (Entity, Mut<'a, Window>)>,
     mut event_writer: EventWriter<WindowCreated>,
-    mut winit_windows: NonSendMut<WinitWindows>,
-    mut accessibility_requested: ResMut<AccessibilityRequested>,
+    winit_windows: NonSendMut<WinitWindows>,
     #[cfg(target_arch = "wasm32")] event_channel: ResMut<CanvasParentResizeEventChannel>,
 ) {
     for (entity, mut window) in created_windows {
