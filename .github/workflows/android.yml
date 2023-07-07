@@ -179,13 +179,13 @@ jobs:
           # > Failed to apply plugin 'com.android.internal.application'.
           #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
-          # TODO use Java 17(LTS)
-          java-version: 11.0
+          # 17 required: "Android Gradle plugin requires Java 17 to run. You are currently using Java 11."
+          java-version: 17.0
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
         # -> FAIL: no libjvm.so in JAVA_HOME?? [in CI: JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64]
-        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*11.*\)' -printf "%h:")" >> $GITHUB_ENV
+        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*17.*\)' -printf "%h:")" >> $GITHUB_ENV
 
       # TODO apparently this is not cached?
       # if not: cache the whole "Setup Android SDK"+"Delete old NDK v23"+"Install NDK v24"
@@ -193,6 +193,7 @@ jobs:
         uses: android-actions/setup-android@v2
 
       # else: "Warning: Observed package id 'ndk;23.2.8568313' in inconsistent location '/usr/local/lib/android/sdk/ndk-bundle' (Expected '/usr/local/lib/android/sdk/ndk/23.2.8568313')"
+      - run: sdkmanager --list_installed
       - name: Delete old NDK v23
         # version required else: "Warning: Failed to find package 'ndk'"
         run: sdkmanager --uninstall "ndk;23.2.8568313"
