@@ -18,53 +18,16 @@ use bevy::prelude::*;
 use clap::Parser;
 use ndarray::Array2;
 use substrate_client::InterstellarIntegriteeWorkerCli;
+use substrate_client::InterstellarIntegriteeWorkerCliTrait;
 
 extern crate renderer;
 use renderer::vertices_utils::Rect;
-extern crate lib_garble_rs;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
-struct Args {
-    /// download circuits via crate substrate-client instead of using hardcoded ones from data/
-    #[clap(long)]
-    is_online: bool,
-}
+struct Args {}
 
 fn main() {
-    // TODO TOREMOVE write the results to files directly; then remove deps "lib-garble-rs"
-    let display_message_buf = {
-        let garb = lib_garble_rs::garble_skcd(include_bytes!(
-            "data/display_message_640x360_2digits.skcd.pb.bin"
-        ))
-        .unwrap();
-
-        // "packsmg"
-        let encoded_garbler_inputs = lib_garble_rs::garbled_display_circuit_prepare_garbler_inputs(
-            &garb,
-            &[4, 0],
-            "test\nmessage",
-        )
-        .unwrap();
-        // then serialize "garb" and "packmsg"
-        lib_garble_rs::serialize_for_evaluator(garb, encoded_garbler_inputs).unwrap()
-    };
-    let display_pinpad_buf = {
-        let garb =
-            lib_garble_rs::garble_skcd(include_bytes!("data/display_pinpad_590x50.skcd.pb.bin"))
-                .unwrap();
-
-        // "packsmg"
-        let encoded_garbler_inputs = lib_garble_rs::garbled_display_circuit_prepare_garbler_inputs(
-            &garb,
-            &[9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-            "",
-        )
-        .unwrap();
-        // then serialize "garb" and "packmsg"
-        lib_garble_rs::serialize_for_evaluator(garb, encoded_garbler_inputs).unwrap()
-    };
-
     let args = Args::parse();
 
     let mut app = renderer::App::new();
@@ -76,7 +39,7 @@ fn main() {
     let rects_pinpad = generate_pinpad_rects();
 
     // if NOT offline: use crate substrate-client to generate then DL the circuits
-    let (display_message_buf, display_pinpad_buf) = if args.is_online {
+    let (display_message_buf, display_pinpad_buf) = {
         let worker_cli =
             InterstellarIntegriteeWorkerCli::new("wss://127.0.0.1:2090", "ws://127.0.0.1:9990");
         worker_cli
@@ -90,8 +53,6 @@ fn main() {
             display_stripped_circuits_package_buffers.message_pgarbled_buf,
             display_stripped_circuits_package_buffers.pinpad_pgarbled_buf,
         )
-    } else {
-        (display_message_buf, display_pinpad_buf)
     };
 
     renderer::init_app(

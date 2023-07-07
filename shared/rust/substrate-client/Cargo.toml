@@ -73,3 +73,6 @@ default = ["std"]
 std = []
 with-jni = ["jni", "jni_fn"]
 with-cwrapper = []
+# NOTE: technically for offline demos we DO NOT need integritee-cli,sgx_crypto_helper,etc
+# but we keep compiling/testing with them b/c we really want to be sure Android compiles fine
+offline_demo = []

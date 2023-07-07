@@ -401,7 +401,7 @@ abstract class CopyJniLibs : CargoTask () {
 //
 val cargo_use_nightly = false
 val cargo_project_dir = rootDir.toPath().toFile()
-val cargo_features_android = "with-jni"
+val cargo_features_android = "with-jni,offline_demo"
 for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","x86_64-linux-android")) {
     for (cargo_build_type in arrayOf("debug","release")) {
         val cargo_task = tasks.register<CargoTask>("cargoBuildAndroid${cargo_target}${cargo_build_type}") {

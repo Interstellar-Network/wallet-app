@@ -25,6 +25,8 @@ crate-type = ["cdylib", "staticlib", "lib"]
 [features]
 # TODO if "bevy_winit" is ALSO needed for Android: move it to "dep:bevy" directly
 with_winit = ["bevy/bevy_winit", "bevy/x11"]
+# Forward to substrate-client's feature
+offline_demo = ["substrate-client/offline_demo"]
 
 [dependencies]
 ndarray = "0.15.4"
@@ -88,8 +90,6 @@ clap = { version = "4", features = ["derive", "env"] }
 jni = { version = "0.20", features = ["invocation"] }
 # needed only for example/desktop
 substrate-client = { path = "../substrate-client" }
-# TODO TOREMOVE
-lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 
 [[example]]
 name = "desktop"
