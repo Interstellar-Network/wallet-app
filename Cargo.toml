@@ -76,14 +76,14 @@ teerex-primitives = { path = "./shared/rust/deps/integritee-pallets/primitives/t
 ################################################################################
 # local dev
 
-[patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
-lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
+# [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
+# lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
 
 # [patch."https://github.com/Interstellar-Network/swanky.git"]
 # fancy-garbling = { path = "../swanky/fancy-garbling/" }
 
-[patch."https://github.com/Interstellar-Network/integritee-worker.git"]
-integritee-cli = { path = "../integritee-worker/cli" }
+# [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
+# integritee-cli = { path = "../integritee-worker/cli" }
 
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
 # circuits-storage-common = { path = "../pallets/circuits-storage-common" }
