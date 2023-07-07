@@ -1574,6 +1574,7 @@ dependencies = [
 [[package]]
 name = "common-primitives"
 version = "0.1.0"
+source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
 dependencies = [
  "sp-std",
 ]
@@ -1581,7 +1582,7 @@ dependencies = [
 [[package]]
 name = "common-primitives"
 version = "0.1.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.39#4239d3defa20c3fbd13966f62ce85e9a407bd7bf"
+source = "git+https://github.com/Interstellar-Network/integritee-pallets.git?branch=sgx-verify-bypass-ring#09b330cf95ba5a73a613e3d94354d18aaac5ba76"
 dependencies = [
  "sp-std",
 ]
@@ -6591,6 +6592,7 @@ dependencies = [
 [[package]]
 name = "sgx-verify"
 version = "0.1.4"
+source = "git+https://github.com/Interstellar-Network/integritee-pallets.git?branch=sgx-verify-bypass-ring#09b330cf95ba5a73a613e3d94354d18aaac5ba76"
 dependencies = [
  "base64 0.13.1",
  "chrono",
@@ -6613,6 +6615,7 @@ dependencies = [
 [[package]]
 name = "sgx_crypto_helper"
 version = "1.1.6"
+source = "git+https://github.com/Interstellar-Network/incubator-teaclave-sgx-sdk.git?branch=interstellar-direct-client-android#7c27fe00128e96da734b3ce5fb8056a5f49fee03"
 dependencies = [
  "itertools",
  "libc",
@@ -7693,8 +7696,9 @@ dependencies = [
 [[package]]
 name = "teerex-primitives"
 version = "0.1.0"
+source = "git+https://github.com/Interstellar-Network/integritee-pallets.git?branch=sgx-verify-bypass-ring#09b330cf95ba5a73a613e3d94354d18aaac5ba76"
 dependencies = [
- "common-primitives 0.1.0",
+ "common-primitives 0.1.0 (git+https://github.com/Interstellar-Network/integritee-pallets.git?branch=sgx-verify-bypass-ring)",
  "parity-scale-codec",
  "scale-info",
  "serde",

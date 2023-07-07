@@ -42,7 +42,7 @@ lto = "thin"
 # itc-rpc-client = { path = "../integritee-worker/core/rpc-client/" }
 # TODO ideally we would directly use this patched version from `integritee-cli`
 # but it is quite a mess to make it work both from repo `integritee-worker` and here
-sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_helper/" }
+sgx_crypto_helper = { git = "https://github.com/Interstellar-Network/incubator-teaclave-sgx-sdk.git", branch = "interstellar-direct-client-android" }
 
 [patch.crates-io]
 # TODO re-add for bevy 0.9? or not needed anymore
@@ -62,16 +62,17 @@ sgx_crypto_helper = { path = "./shared/rust/deps/teaclave-sgx-sdk/sgx_crypto_hel
 # wasmtime-environ = { path = "../wasmtime/crates/environ/" }
 # MUST ALSO SET "[workspace.dependencies]" below
 # because this is a workspace and all versions are inherited...
+# wasmtime-runtime = { git = "https://github.com/Interstellar-Network/wasmtime.git", branch = "v6.0.2-fix-android-emulator" }
 wasmtime-runtime = { path = "./shared/rust/deps/wasmtime/crates/runtime/" }
 
 [patch."https://github.com/integritee-network/pallets.git"]
-sgx-verify = { path = "./shared/rust/deps/integritee-pallets/teerex/sgx-verify/" }
+sgx-verify = { git = "https://github.com/Interstellar-Network/integritee-pallets.git", branch = "sgx-verify-bypass-ring" }
 # 161 |                 Enclave::new(
 #     |                 ------------ arguments to this function are incorrect
 # ...
 # 166 |                     report.build_mode,
 #     |                     ^^^^^^^^^^^^^^^^^ expected enum `teerex_primitives::SgxBuildMode`, found a different enum `teerex_primitives::SgxBuildMod
-teerex-primitives = { path = "./shared/rust/deps/integritee-pallets/primitives/teerex/" }
+teerex-primitives = {  git = "https://github.com/Interstellar-Network/integritee-pallets.git", branch = "sgx-verify-bypass-ring" }
 
 ################################################################################
 # local dev
