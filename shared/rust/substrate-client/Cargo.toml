@@ -51,7 +51,8 @@ sp-core = { default-features = false, features = ["full_crypto"], git = "https:/
 
 # local
 common = { path = "../common" }
-integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "bump-polkadot-v0.9.39", features = ["sidechain"] }
+# https://github.com/Interstellar-Network/integritee-worker/commit/be35a1cb650c0584fcecaaec558a51d415ca09a2
+integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", rev = "be35a1cb650c0584fcecaaec558a51d415ca09a2", features = ["sidechain"] }
 # FIX: force correct features for this dep
 sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
 
