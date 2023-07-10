@@ -138,6 +138,26 @@ jobs:
             },
           ]
     steps:
+      # Sporadic error: "No space left on device"
+      # Sometimes work depending on version, OS, etc.
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+      # TODO or easier: "large-packages: false" above?
+      # - name: re-add needed packages
+      #   run: |
+      #     sudo apt-get install -y libclang-dev
+
       # install build dependencies
       # MUST match the same step in Dockerfile
       # - name: Install dependencies
