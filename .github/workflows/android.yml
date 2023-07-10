@@ -93,6 +93,10 @@ jobs:
         with:
           test_args: "--all-features"
 
+      # COMPILE ONLY, we could run headless but what's the point?
+      - name: check cli "desktop" build
+        run: cargo build --example desktop --features=with-jni,with_winit
+
   ##########################################################################
   ##########################################################################
   android:
