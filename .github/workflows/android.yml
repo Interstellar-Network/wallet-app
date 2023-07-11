@@ -93,6 +93,10 @@ jobs:
         with:
           test_args: "--all-features"
 
+      # COMPILE ONLY, we could run headless but what's the point?
+      - name: check cli "desktop" build
+        run: cargo build --example desktop --features=with-jni,with_winit
+
   ##########################################################################
   ##########################################################################
   android:
@@ -138,6 +142,26 @@ jobs:
             },
           ]
     steps:
+      # Sporadic error: "No space left on device"
+      # Sometimes work depending on version, OS, etc.
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+      # TODO or easier: "large-packages: false" above?
+      # - name: re-add needed packages
+      #   run: |
+      #     sudo apt-get install -y libclang-dev
+
       # install build dependencies
       # MUST match the same step in Dockerfile
       # - name: Install dependencies
@@ -179,13 +203,13 @@ jobs:
           # > Failed to apply plugin 'com.android.internal.application'.
           #   > Android Gradle plugin requires Java 11 to run. You are currently using Java 1.8.
           #     Your current JDK is located in  /usr/lib/jvm/temurin-8-jdk-amd64/jre
-          # TODO use Java 17(LTS)
-          java-version: 11.0
+          # 17 required: "Android Gradle plugin requires Java 17 to run. You are currently using Java 11."
+          java-version: 17.0
       - name: update LD_LIBRARY_PATH for Rust+Java
         # careful with this "find"; usually in CI there are multiple versions installed
         # so DO NOT find in "/usr/lib/jvm" but use JAVA_HOME instead!
         # -> FAIL: no libjvm.so in JAVA_HOME?? [in CI: JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.18-10/x64]
-        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*11.*\)' -printf "%h:")" >> $GITHUB_ENV
+        run: echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(find /usr/lib/jvm -type f -name libjvm.so -regex '\(.*17.*\)' -printf "%h:")" >> $GITHUB_ENV
 
       # TODO apparently this is not cached?
       # if not: cache the whole "Setup Android SDK"+"Delete old NDK v23"+"Install NDK v24"
@@ -193,13 +217,14 @@ jobs:
         uses: android-actions/setup-android@v2
 
       # else: "Warning: Observed package id 'ndk;23.2.8568313' in inconsistent location '/usr/local/lib/android/sdk/ndk-bundle' (Expected '/usr/local/lib/android/sdk/ndk/23.2.8568313')"
+      - run: sdkmanager --list_installed
       - name: Delete old NDK v23
         # version required else: "Warning: Failed to find package 'ndk'"
         run: sdkmanager --uninstall "ndk;23.2.8568313"
       - name: Install NDK v25
         # version required else: "Warning: Failed to find package 'ndk'"
         # MUST match version used at NDK_ROOT below! Careful when updating!
-        run: sdkmanager "ndk;25.1.8937393"
+        run: sdkmanager "ndk;25.2.9519653"
 
       - name: Build Wallet-App
         id: build-app

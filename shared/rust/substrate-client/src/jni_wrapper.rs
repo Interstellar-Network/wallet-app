@@ -16,6 +16,7 @@
 
 use crate::loggers;
 use crate::InterstellarIntegriteeWorkerCli;
+use crate::InterstellarIntegriteeWorkerCliTrait;
 use common::{DisplayStrippedCircuitsPackage, DisplayStrippedCircuitsPackageBuffers};
 use jni::objects::{JClass, JString};
 use jni::sys::JNI_VERSION_1_6;

@@ -44,7 +44,7 @@ TODO cleanup/rewrite below
 - CHECK if it cross-compiles directly(ie without gradle):
   - NOTE: you can check for the correct env vars in [CI of other projects eg](https://github.com/Interstellar-Network/lib-garble-rs/blob/initial/.github/workflows/rust.yml#L88)
   - `cd shared/rust`
-  - `export NDK_ROOT=~/Android/Sdk/ndk/25.1.8937393`
+  - `export NDK_ROOT=~/Android/Sdk/ndk/25.2.9519653`
   -
     ```bash
     export CC_armv7_linux_androideabi=$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi33-clang
@@ -76,8 +76,19 @@ NOTE: to debug Rust code: Run -> Edit Configurations -> Debugger: Debug Type = D
 
 #### About release builds
 
-You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"` and then eg `adb install path/to/app.apk`.
+You CAN build the `Release` flavors from Android studio, but to deploy/test them you MUST use `Build -> "Generate Signed Bundled / APK"`.
 That is because the CI is directly signing with an [action](https://github.com/ilharp/sign-android-release) and we want to avoid messing with keys etc from inside the build scripts.
+
+- `./gradlew assembleArm64Release`
+- You MUST sign the apk to install it cf [sign_manually](https://developer.android.com/build/building-cmdline#sign_manually):
+  - prepare the signing keys; or download them from CI env vars -> install in `~/.keystores/android-keystores.jks`
+  - `mkdir -p ./androidApp/arm64/release`
+  - locate `apksigner` `find ~/Android -type f -name apksigner`
+  - `REPLACEME/to/apksigner sign --ks ~/.keystores/android-keystores.jks --out ./androidApp/arm64/release/androidApp-arm64-release.apk ./androidApp/build/outputs/apk/arm64/release/androidApp-arm64-release-unsigned.apk`
+- And finally eg `adb install ./androidApp/arm64/release/androidApp-arm64-release.apk`.
+- To see logcat `adb logcat --pid=$(adb shell pidof -s gg.interstellar.wallet.android)`
+
+NOTE: CHECK with `find . -type f -name "*.apk"`; if the only .apk are under `./androidApp/build` it means you HAVE NOT yet run "Generate Signed Bundled / APK"
 
 ### iOs
 

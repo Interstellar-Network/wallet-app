@@ -30,22 +30,22 @@ impl Rect {
     /// @param: MUST be in NDC[-1.0,1.0]
     pub fn new(left: f32, top: f32, right: f32, bottom: f32) -> Self {
         if !(-1.0..=1.0).contains(&left) {
-            panic!("left NOT in NDC[-1.0,1.0]: {}", left)
+            panic!("left NOT in NDC[-1.0,1.0]: {left}")
         }
         if !(-1.0..=1.0).contains(&top) {
-            panic!("top NOT in NDC[-1.0,1.0]: {}", top)
+            panic!("top NOT in NDC[-1.0,1.0]: {top}")
         }
         if !(-1.0..=1.0).contains(&right) {
-            panic!("right NOT in NDC[-1.0,1.0]: {}", right)
+            panic!("right NOT in NDC[-1.0,1.0]: {right}")
         }
         if !(-1.0..=1.0).contains(&bottom) {
-            panic!("bottom NOT in NDC[-1.0,1.0]: {}", bottom)
+            panic!("bottom NOT in NDC[-1.0,1.0]: {bottom}")
         }
         if bottom > top {
-            panic!("bottom > top: {} > {}", bottom, top)
+            panic!("bottom > top: {bottom} > {top}")
         }
         if left > right {
-            panic!("left > right: {} > {} ", left, right)
+            panic!("left > right: {left} > {right} ")
         }
 
         Rect {
@@ -87,12 +87,15 @@ impl Rect {
         // eg with ScalingMode::FixedVertical: the y axis is [-1,1]
         // but the horizontal axis is [-1 / (16/9), 1 / (16/9)] == [-0.5625, 0.5625]
         match crate::CAMERA_SCALING_MODE {
-            bevy::render::camera::ScalingMode::None => todo!("ScalingMode::None not yet supported"),
-            bevy::render::camera::ScalingMode::Auto {
+            bevy::render::camera::ScalingMode::AutoMin {
                 min_width: _,
                 min_height: _,
-            } => todo!("ScalingMode::Auto not yet supported"),
-            bevy::render::camera::ScalingMode::WindowSize => {
+            } => todo!("ScalingMode::AutoMin not yet supported"),
+            bevy::render::camera::ScalingMode::AutoMax {
+                max_width: _,
+                max_height: _,
+            } => todo!("ScalingMode::AutoMax not yet supported"),
+            bevy::render::camera::ScalingMode::WindowSize(_pixels_for_world_unit) => {
                 todo!("ScalingMode::WindowSize not yet supported")
             }
             bevy::render::camera::ScalingMode::FixedVertical(_viewport_height_world) => {
@@ -102,6 +105,12 @@ impl Rect {
             bevy::render::camera::ScalingMode::FixedHorizontal(_viewport_width_world) => {
                 top *= width / height;
                 bottom *= width / height;
+            }
+            bevy::render::camera::ScalingMode::Fixed {
+                width: _,
+                height: _,
+            } => {
+                todo!("ScalingMode::Fixed not yet supported")
             }
         }
 

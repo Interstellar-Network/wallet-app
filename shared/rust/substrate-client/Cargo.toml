@@ -35,22 +35,24 @@ bytemuck = "1.11.0"
 # [windows] error: failed to run custom build command for `openssl-sys v0.9.73
 # Still fails even with Perl(strawberry) cf README
 # So for now install Android Studio inside WSL2...
+# ALSO "vendored" COULD BE needed b/c "/bin/sh: line 1: aarch64-linux-android-ranlib: command not found" https://github.com/sfackler/rust-openssl/issues/1830
 openssl = { version = '0.10', features = ["vendored"] }
 # those are for the examples cf https://github.com/scs/substrate-api-client/blob/master/Cargo.toml
 # but here need them as part of our public API
 # TODO cleanup eg MAYBE we need sp-core NOT the full node-template-runtime
 # env_logger = "0.9.0"
 # node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
 # clap = { version = "2.33", features = ["yaml"] }
 # wabt = "0.10.0"
 
-sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
-sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.36" }
+sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
+sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
 
 # local
 common = { path = "../common" }
-integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", branch = "interstellar", features = ["sidechain"] }
+# https://github.com/Interstellar-Network/integritee-worker/commit/be35a1cb650c0584fcecaaec558a51d415ca09a2
+integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", rev = "be35a1cb650c0584fcecaaec558a51d415ca09a2", features = ["sidechain"] }
 # FIX: force correct features for this dep
 sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
 
@@ -72,3 +74,6 @@ default = ["std"]
 std = []
 with-jni = ["jni", "jni_fn"]
 with-cwrapper = []
+# NOTE: technically for offline demos we DO NOT need integritee-cli,sgx_crypto_helper,etc
+# but we keep compiling/testing with them b/c we really want to be sure Android compiles fine
+offline_demo = []

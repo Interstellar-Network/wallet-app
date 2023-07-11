@@ -19,6 +19,8 @@
         android:theme="@style/Theme.Interstellar"
         android:icon="@mipmap/ic_interstellar_launcher">
 
+        <profileable android:shell="true"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

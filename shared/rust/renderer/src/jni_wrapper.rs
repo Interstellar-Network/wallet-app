@@ -303,6 +303,25 @@ unsafe fn convert_rect_float_arr_to_vec_rect(
     rects_vec
 }
 
+/// Possibly b/c of https://github.com/bevyengine/bevy/commit/3900b48c88cf2ba66ca970ec007fb63002893c48
+/// java.lang.UnsatisfiedLinkError: dlopen failed: cannot locate symbol "android_main" referenced by "/data/app/~~D1q58D-tTZRUQMCsvUf_oQ==/gg.interstellar.wallet.android-SzILOimA4CxvYSxUsjJAeg==/lib/x86_64/librenderer.so"...
+/// So we add a NOOP funtion with this name
+///
+// TODO(bevy0.10): still needed; https://github.com/bevyengine/bevy/blob/v0.10.1/crates/bevy_derive/src/bevy_main.rs
+//  BUT could probably be full no-op?
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "system" fn android_main(android_app: bevy::winit::AndroidApp) {
+    // use winit::platform::android::EventLoopBuilderExtAndroid;
+
+    let _ = bevy::winit::ANDROID_APP.set(android_app);
+    // https://github.com/rust-windowing/winit#android
+    /*let event_loop = */
+    // winit::event_loop::EventLoopBuilder::with_user_event()
+    //     .with_android_app(android_app)
+    //     .build();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

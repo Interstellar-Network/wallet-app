@@ -1,14 +1,16 @@
-// copy-pasted from https://github.com/bevyengine/bevy/blob/v0.7.0/crates/bevy_sprite/src/lib.rs
+// adapted from https://github.com/bevyengine/bevy/blob/v0.10.0/crates/bevy_sprite/src/render/sprite.wgsl
 // CHANGE: one line added at the end, just before "return color;"
 
 // TODO? will be prepended in "setup_transparent_shader_for_sprites"
 // let BACKGROUND_COLOR: vec4<f32> = vec4<f32>({}, {}, {}, {});
-let BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+const BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 
-struct View {
-    view_proj: mat4x4<f32>,
-    world_position: vec3<f32>,
-};
+#ifdef TONEMAP_IN_SHADER
+#import bevy_core_pipeline::tonemapping
+#endif
+
+#import bevy_render::view
+
 @group(0) @binding(0)
 var<uniform> view: View;
 
@@ -45,16 +47,20 @@ var sprite_sampler: sampler;
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     var color = textureSample(sprite_texture, sprite_sampler, in.uv);
-// #ifdef COLORED
-    // color = in.color * color;
-// #endif
-    // if RED is set, we use the texture's color
-    // else we make it transparent
-    // NOTE: RED channel b/c we use wgpu::TextureFormat::R8Unorm, but adjust if necessary
-# ifdef COLORED
-    color = mix(BACKGROUND_COLOR, in.color, color.r);
-# else
-    color = mix(BACKGROUND_COLOR, vec4<f32>(1.0, 1.0, 1.0, 1.0), color.r);
-# endif
+
+    // At this point "color" would be either red if foreground(because we are using 1-channel R texture), or background
+    // But we want "foreground color" instead of red so we convert it
+    // ALSO " * 255.0" to convert the current boolean values = (0,1) from the circuit outputs into
+    // "texture values" = (0,255)
+    color = mix(BACKGROUND_COLOR, vec4<f32>(1.0, 1.0, 1.0, 1.0), color.r) * 255.0;
+
+#ifdef COLORED
+    color = in.color * color;
+#endif
+
+#ifdef TONEMAP_IN_SHADER
+    color = tone_mapping(color);
+#endif
+
     return color;
 }

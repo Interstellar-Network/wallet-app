@@ -25,6 +25,8 @@ crate-type = ["cdylib", "staticlib", "lib"]
 [features]
 # TODO if "bevy_winit" is ALSO needed for Android: move it to "dep:bevy" directly
 with_winit = ["bevy/bevy_winit", "bevy/x11"]
+# Forward to substrate-client's feature
+offline_demo = ["substrate-client/offline_demo"]
 
 [dependencies]
 ndarray = "0.15.4"
@@ -40,14 +42,14 @@ ndarray = "0.15.4"
 # see also "target.'cfg(unix)'.dev-dependencies"
 #
 # TODO cleanup features; and also in dev-dependencies
-bevy = { version = "0.9", default-features = false, features = [
-    # https://github.com/bevyengine/bevy/blob/v0.9.1/Cargo.toml#L27
+bevy = { version = "0.10", default-features = false, features = [
+    # https://github.com/bevyengine/bevy/blob/v0.10.0/Cargo.toml#L31
     # "animation",
     "bevy_asset",
     # "bevy_audio",
     # "bevy_gilrs",
     # "bevy_scene",
-    # "bevy_winit",
+    "bevy_winit",
     "bevy_core_pipeline",
     # "bevy_pbr",
     # "bevy_gltf",
@@ -57,14 +59,16 @@ bevy = { version = "0.9", default-features = false, features = [
     # "bevy_ui",
     # "png",
     # "hdr",
+    # "ktx2",
+    # "zstd",
     # "vorbis",
     # "x11",
     # "filesystem_watcher",
+    # "android_shared_stdcxx",
+    # "tonemapping_luts"
  ]}
 log = "0.4"
-# NO! cf comment above; winit = "0.26.1"  # dep of Bevy, but we need ourself
-# https://github.com/bevyengine/bevy/blob/920543c824735dc1df6f4a59e7036e653dd5a553/crates/bevy_render/Cargo.toml
-wgpu = "0.14"  # dep of Bevy, but we need it ourself; versions MUST match
+wgpu = "0.15"  # dep of Bevy, but we need it ourself; versions MUST match
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
@@ -86,8 +90,6 @@ clap = { version = "4", features = ["derive", "env"] }
 jni = { version = "0.20", features = ["invocation"] }
 # needed only for example/desktop
 substrate-client = { path = "../substrate-client" }
-# TODO TOREMOVE
-lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
 
 [[example]]
 name = "desktop"

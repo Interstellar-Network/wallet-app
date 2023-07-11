@@ -13,13 +13,11 @@
 // limitations under the License.
 
 use bevy::prelude::*;
-use bevy::render::camera::{OrthographicProjection, ScalingMode, WindowOrigin};
+use bevy::render::camera::{OrthographicProjection, ScalingMode};
 use bevy::render::mesh::shape::Circle;
 use bevy::render::render_resource::Extent3d;
 use bevy::sprite::MaterialMesh2dBundle;
 
-use crate::TextureUpdateCallbackMessage;
-use crate::TextureUpdateCallbackPinpad;
 use crate::TEXTURE_PIXEL_NB_BYTES;
 
 /// Init the Camera, with a 2D projection
@@ -41,17 +39,11 @@ pub fn setup_camera(mut commands: Commands) {
     // TODO proper values
     commands.spawn(Camera2dBundle {
         projection: OrthographicProjection {
-            left: -1.0,
-            right: 1.0,
-            bottom: -1.0,
-            top: 1.0,
-            near: 0.0,
-            far: 1000.0,
-            window_origin: WindowOrigin::Center,
+            viewport_origin: Vec2::new(0.5, 0.5),
             // scaling_mode: ScalingMode::None,
             scaling_mode: ScalingMode::FixedVertical(2.0),
-            scale: 1.0,
             // depth_calculation: DepthCalculation::ZDifference,
+            ..default()
         },
         ..default()
     });
@@ -182,17 +174,17 @@ pub fn setup_message_texture(
 /// using the mod "update_texture_utils"
 // TODO ideally we would want to pass the function all the way from init_app, to completely
 // decouple renderer and "circuit update"
-pub fn setup_texture_update_systems(
-    mut texture_update_callback_message: ResMut<TextureUpdateCallbackMessage>,
-    mut texture_update_callback_pinpad: ResMut<TextureUpdateCallbackPinpad>,
-) {
-    texture_update_callback_message.callback = Some(Box::new(
-        crate::update_texture_utils::update_texture_data_message,
-    ));
-    texture_update_callback_pinpad.callback = Some(Box::new(
-        crate::update_texture_utils::update_texture_data_pinpad,
-    ));
-}
+// pub fn setup_texture_update_systems(
+//     mut texture_update_callback_message: ResMut<TextureUpdateCallbackMessage>,
+//     mut texture_update_callback_pinpad: ResMut<TextureUpdateCallbackPinpad>,
+// ) {
+//     texture_update_callback_message.callback = Some(Box::new(
+//         crate::update_texture_utils::update_texture_data_message,
+//     ));
+//     texture_update_callback_pinpad.callback = Some(Box::new(
+//         crate::update_texture_utils::update_texture_data_pinpad,
+//     ));
+// }
 
 /// NOTE: it will REPLACE the default shader used by all SpriteSheetBundle/SpriteBundle/etc
 /// This shader is allows to us to use alpha as a mask

@@ -12,24 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use bevy::a11y::AccessibilityRequested;
+///
 /// [Android]
 /// REALLY simplified version of Bevy's WinitPlugin
 /// which basically does nothing except passing a RawHandle usually obtained from JNI with ANativeWindow_fromSurface
 /// ie it DOES NOT setup events, etc b/c when using JNI we use NO event loop b/c everything is controlled from Java(SurfaceView)
-///
+use bevy::app::App;
+use bevy::app::Plugin;
+use bevy::ecs::component::Component;
+use bevy::ecs::entity::Entity;
+use bevy::ecs::event::EventWriter;
+use bevy::ecs::query::Added;
+use bevy::ecs::system::Commands;
+use bevy::ecs::system::NonSendMut;
+use bevy::ecs::system::Query;
+use bevy::ecs::system::ResMut;
+use bevy::ecs::system::SystemState;
+use bevy::ecs::world::Mut;
+use bevy::prelude::FromWorld;
 use bevy::window::RawHandleWrapper;
-use bevy::window::WindowId;
-use bevy::{prelude::*, window::WindowMode};
+use bevy::window::Window;
+use bevy::window::WindowCreated;
+use bevy::winit::WinitSettings;
+use bevy::winit::WinitWindows;
 
 pub struct WinitPluginRawWindowHandle {
-    physical_width: u32,
-    physical_height: u32,
-    scale_factor: f64,
-    handle_wrapper: RawHandleWrapper,
+    pub(super) scale_factor: f64,
+    pub(super) handle_wrapper: RawHandleWrapper,
 }
 
 /// cf "fn handle_create_window_events"
-/// SHOULD be around https://github.com/bevyengine/bevy/blob/v0.9.1/crates/bevy_winit/src/lib.rs#L649 at hte end of this file
+/// SHOULD be around https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_winit/src/lib.rs#L55 at hte end of this file
 /// when updating to a new bevy version.
 /// We can discard pretty much the whole file.
 ///
@@ -40,128 +54,134 @@ impl Plugin for WinitPluginRawWindowHandle {
     // cf WinitPlugin
     // Essentially removed the Runner/Event Loop
     fn build(&self, app: &mut App) {
-        // // TODO(android)? #[cfg(feature = "bevy/bevy_winit")]
-        // // what is this supposed to be doing?
-        // // app.init_non_send_resource::<bevy::winit::WinitWindows>();
+        app.init_non_send_resource::<WinitWindows>()
+            .init_resource::<WinitSettings>();
 
-        // // REFERENCE cf WinitPlugin::build
-        // // .init_resource::<WinitSettings>()
-        // // .set_runner(winit_runner)
-        // // .add_system_to_stage(CoreStage::PostUpdate, change_window.exclusive_system());
-        // // let event_loop = EventLoop::new();
-        // // handle_initial_window_events(&mut app.world, &event_loop);
-        // // app.insert_non_send_resource(event_loop);
+        #[allow(clippy::type_complexity)]
+        #[cfg(not(target_arch = "wasm32"))]
+        let mut create_window_system_state: SystemState<(
+            Commands,
+            Query<(Entity, &mut Window), Added<Window>>,
+            EventWriter<WindowCreated>,
+            NonSendMut<WinitWindows>,
+            ResMut<AccessibilityRequested>,
+        )> = SystemState::from_world(&mut app.world);
 
-        // let world = app.world.cell();
-        // let mut windows = world.get_resource_mut::<Windows>().unwrap();
-        // unsafe {
-        //     windows.add(Window::new(
-        //         WindowId::primary(),
-        //         &WindowDescriptor {
-        //             resizable: false,
-        //             mode: WindowMode::Fullscreen,
-        //             ..default()
-        //         },
-        //         self.physical_width,
-        //         self.physical_height,
-        //         self.scale_factor,
-        //         None,
-        //         self.raw_window_handle.get_handle().raw_window_handle(),
-        //     ))
-        // }
+        #[cfg(not(target_arch = "wasm32"))]
+        let (
+            commands,
+            mut new_windows,
+            created_window_writer,
+            winit_windows,
+            _accessibility_requested,
+        ) = create_window_system_state.get_mut(&mut app.world);
 
-        // Note that we create a window here "early" because WASM/WebGL requires the window to exist prior to initializing
-        // the renderer.
-        // And for ios and macos, we should not create window early, all ui related code should be executed inside
-        // UIApplicationMain/NSApplicationMain.
-        //[interstllar] #[cfg(not(any(target_os = "android", target_os = "ios", target_os = "macos")))]
-        // handle_create_window_events(&mut app.world, &event_loop, &mut create_window_reader.0);
-        handle_create_window_events(
-            &mut app.world, /* &event_loop, &mut create_window_reader.0 */
-            self.physical_width,
-            self.physical_height,
-            self.scale_factor,
+        // Responsible for creating new windows
+        create_window(
             self.handle_wrapper.clone(),
+            self.scale_factor,
+            commands,
+            new_windows.iter_mut(),
+            created_window_writer,
+            winit_windows,
+            #[cfg(target_arch = "wasm32")]
+            canvas_parent_resize_channel,
         );
+
+        create_window_system_state.apply(&mut app.world);
     }
 }
 
-#[cfg(target_os = "android")]
-impl WinitPluginRawWindowHandle {
-    pub fn new(
-        physical_width: u32,
-        physical_height: u32,
-        scale_factor: f64,
-        handle_wrapper: RawHandleWrapper,
-    ) -> Self {
-        Self {
-            physical_width,
-            physical_height,
-            scale_factor,
-            handle_wrapper,
-        }
-    }
-}
-
-fn handle_create_window_events(
-    world: &mut World,
-    // [interstellar] remove arguments
-    // event_loop: &EventLoopWindowTarget<()>,
-    // create_window_event_reader: &mut ManualEventReader<CreateWindow>,
-    physical_width: u32,
-    physical_height: u32,
-    scale_factor: f64,
+/// NOTE: `create_window` not pub, so cf https://github.com/bevyengine/bevy/blob/v0.10.1/crates/bevy_winit/src/system.rs#L35
+#[allow(clippy::too_many_arguments)]
+fn create_window<'a>(
     handle_wrapper: RawHandleWrapper,
+    scale_factor: f64,
+    mut commands: Commands,
+    created_windows: impl Iterator<Item = (Entity, Mut<'a, Window>)>,
+    mut event_writer: EventWriter<WindowCreated>,
+    winit_windows: NonSendMut<WinitWindows>,
+    #[cfg(target_arch = "wasm32")] event_channel: ResMut<CanvasParentResizeEventChannel>,
 ) {
-    let world = world.cell();
-    // let mut winit_windows = world.non_send_resource_mut::<WinitWindows>();
-    let mut windows = world.resource_mut::<Windows>();
-    // let create_window_events = world.resource::<Events<CreateWindow>>();
-    // for create_window_event in create_window_event_reader.iter(&create_window_events) {
-    // let window = winit_windows.create_window(
-    //     event_loop,
-    //     create_window_event.id,
-    //     &create_window_event.descriptor,
-    // );
-    let window = Window::new(
-        WindowId::primary(),
-        &WindowDescriptor {
-            resizable: false,
-            mode: WindowMode::Fullscreen,
-            ..default()
-        },
-        physical_width,
-        physical_height,
-        scale_factor,
-        None,
-        // Some(self.raw_window_handle.get_handle().raw_window_handle()),
-        Some(handle_wrapper),
-    );
-    // This event is already sent on windows, x11, and xwayland.
-    // TODO: we aren't yet sure about native wayland, so we might be able to exclude it,
-    // but sending a duplicate event isn't problematic, as windows already does this.
-    // #[cfg(not(any(target_os = "windows", target_feature = "x11")))]
-    // world.send_event(WindowResized {
-    //     id: create_window_event.id,
-    //     width: window.width(),
-    //     height: window.height(),
-    // });
-    windows.add(window);
-    // world.send_event(WindowCreated {
-    //     id: create_window_event.id,
-    // });
+    for (entity, mut window) in created_windows {
+        if winit_windows.get_window(entity).is_some() {
+            continue;
+        }
 
-    // #[cfg(target_arch = "wasm32")]
-    // {
-    //     let channel = world.resource_mut::<web_resize::CanvasParentResizeEventChannel>();
-    //     if create_window_event.descriptor.fit_canvas_to_parent {
-    //         let selector = if let Some(selector) = &create_window_event.descriptor.canvas {
-    //             selector
-    //         } else {
-    //             web_resize::WINIT_CANVAS_SELECTOR
-    //         };
-    //         channel.listen_to_selector(create_window_event.id, selector);
-    //     }
-    // }
-    // }
+        log::info!(
+            "Creating new window {:?} ({:?})",
+            window.title.as_str(),
+            entity
+        );
+
+        // window
+        //     .resolution
+        //     .set_scale_factor(winit_window.scale_factor());
+        window.resolution.set_scale_factor(scale_factor);
+
+        // commands
+        //     .entity(entity)
+        //     .insert(RawHandleWrapper {
+        //         window_handle: winit_window.raw_window_handle(),
+        //         display_handle: winit_window.raw_display_handle(),
+        //     })
+        //     .insert(CachedWindow {
+        //         window: window.clone(),
+        //     });
+        commands
+            .entity(entity)
+            .insert(RawHandleWrapper {
+                window_handle: handle_wrapper.get_window_handle(),
+                display_handle: handle_wrapper.get_display_handle(),
+            })
+            .insert(CachedWindow {
+                window: window.clone(),
+            });
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            if window.fit_canvas_to_parent {
+                let selector = if let Some(selector) = &window.canvas {
+                    selector
+                } else {
+                    WINIT_CANVAS_SELECTOR
+                };
+                event_channel.listen_to_selector(entity, selector);
+            }
+        }
+
+        event_writer.send(WindowCreated { window: entity });
+    }
 }
+
+/// The cached state of the window so we can check which properties were changed from within the app.
+#[derive(Debug, Clone, Component)]
+pub struct CachedWindow {
+    pub window: Window,
+}
+
+// cf impl WinitWindows {pub fn create_window
+// FAIL, cf `EventLoopBuilder::new().build` below
+// fn winit_windows_create_window<'a>(
+//     winit_windows: &'a mut WinitWindows,
+//     // event_loop: &winit::event_loop::EventLoopWindowTarget<()>,
+//     entity: Entity,
+//     window: &'a Window,
+//     // adapters: &'a mut AccessKitAdapters,
+//     // handlers: &'a mut WinitActionHandlers,
+//     accessibility_requested: &'a mut AccessibilityRequested,
+// ) -> &'a winit::window::Window {
+//     let mut winit_window_builder = winit::window::WindowBuilder::new();
+
+//     // FAIL: "thread '<unnamed>' panicked at 'An `AndroidApp` as passed to android_main() is required to create an `EventLoop` on Android', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.28.6/src/platform_impl/android/mod.rs:331:59
+//     // 2023-06-27 12:23:02.454  7364-7364  wrap.sh                 logwrapper                           I  "
+//     let event_loop = winit::event_loop::EventLoopBuilder::new().build();
+
+//     let winit_window = winit::window::Window::new(&event_loop).unwrap();
+
+//     winit_windows
+//         .windows
+//         .entry(winit_window.id())
+//         .insert(winit_window)
+//         .into_mut()
+// }

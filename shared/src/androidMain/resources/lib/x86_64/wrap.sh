@@ -1,5 +1,7 @@
 #!/system/bin/sh
 
+# TODO(bevy0.10) remove??? probably not needed anymore cf https://bevyengine.org/news/bevy-0-10/#enabled-opengl-backend-by-default
+
 # IMPORTANT: https://developer.android.com/ndk/guides/wrap-script#debugging_when_using_wrapsh
 # else will be stuck at "Waiting for application to come online"(the app works but the debugger does not)
 
@@ -16,4 +18,6 @@ else
   cmd="$cmd -XjdwpProvider:adbconnection -XjdwpOptions:suspend=n,server=y $@"
 fi
 
-WGPU_BACKEND=gl exec $cmd
+# "WGPU_BACKEND=vulkan" compile and runs but is broken; display is completely borked
+# MAYBE related to width/height inversion; cf `WindowResolution::new`; OR scale_factor?
+WGPU_BACKEND=gl RUST_LOG=debug RUST_BACKTRACE=full exec $cmd

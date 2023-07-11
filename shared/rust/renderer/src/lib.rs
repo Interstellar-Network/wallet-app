@@ -15,44 +15,20 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy::window::WindowResolution;
 use ndarray::Array2;
 
-mod winit_raw_handle_plugin;
-
-// eg 4 when ARGB/RGBA, 1 for GRAYSCALE
-// MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
-const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
-
-/// IMPORTANT
-/// The only way to make Bevy work with the Android Emulator(ie OpenGL) is to patch
-/// bevy_render-0.7.0/src/texture/mod.rs
-///
-// impl BevyDefault for wgpu::TextureFormat {
-//     fn bevy_default() -> Self {
-//         if cfg!(target_os = "android") || cfg!(target_arch = "wasm32") {
-//             // Bgra8UnormSrgb texture missing on some Android devices
-//             wgpu::TextureFormat::Rgba8Unorm
-//         } else {
-//             wgpu::TextureFormat::Bgra8UnormSrgb
-//         }
-//     }
-// }
-//
-// ALSO
-// # TODO(android) AT LEAST FOR EMULATOR: "webgl", else ""wgpu::backend::direct: Shader translation error for stage VERTEX: The selected version doesn't support CUBE_TEXTURES_ARRAY""
-// # cf https://github.com/bevyengine/bevy/blob/main/crates/bevy_pbr/src/render/mesh.rs
-// b/c https://github.com/gfx-rs/naga/pull/1736
-// But we do not need lighting/PBR for now so this is acceptable
 pub use bevy::prelude::App;
-
 pub mod vertices_utils;
 
+mod jni_wrapper;
 mod setup;
 mod update_texture_utils;
+mod winit_raw_handle_plugin;
 
-// #[cfg_attr(target_os = "android", path = "jni_wrapper.rs", allow(non_snake_case))]
-mod jni_wrapper;
-
+/// eg 4 when ARGB/RGBA, 1 for GRAYSCALE
+/// MUST have a match b/w wgpu::TextureFormat and "update_texture_data"
+const TEXTURE_PIXEL_NB_BYTES: u32 = 1;
 /// IMPORTANT: if you change it, adjust renderer/src/vertices_utils.rs else it will
 /// not position the message/pinpad correctly
 pub const CAMERA_SCALING_MODE: ScalingMode = ScalingMode::FixedVertical(1.0);
@@ -63,14 +39,18 @@ type TextureUpdateCallbackType =
 
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
-#[derive(Default, Resource)]
+#[derive(Resource)]
 pub struct TextureUpdateCallbackMessage {
     callback: TextureUpdateCallbackType,
+    wrapper: EvaluateWrapperType,
+    data: Vec<u8>,
 }
 
-#[derive(Default, Resource)]
+#[derive(Resource)]
 pub struct TextureUpdateCallbackPinpad {
     callback: TextureUpdateCallbackType,
+    wrapper: EvaluateWrapperType,
+    data: Vec<u8>,
 }
 
 /// Declare the position/size of the message(usually at the top of the window, full width)
@@ -93,16 +73,24 @@ pub struct RectsPinpad {
     circuit_dimension: [u32; 2],
 }
 
+/// For performance reasons, we want to evaluate message and pinpad in parallel.
+/// BUT we CAN NOT have two systems having `mut images: ResMut<Assets<Image>>,` b/c Bevy will run them sequentially (which is a good thing for thread safety!).
+/// So to workaround this, we split into:
+/// - message eval
+/// - pinpad eval
+/// - textureS(plural): basic memcopy of the textureS data
+/// That way we can run the costly parts (the eval) in parallel.
+///
+/// https://www.phind.com/agent?cache=cljio5vut000jjo09ansd9ntw
+///
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
-#[derive(Resource)]
-pub struct CircuitMessage {
-    wrapper: EvaluateWrapperType,
+pub struct UpdateMessageDataEvent {
+    data: Vec<u8>,
 }
 
-#[derive(Resource)]
-pub struct CircuitPinpad {
-    wrapper: EvaluateWrapperType,
+pub struct UpdatePinpadDataEvent {
+    data: Vec<u8>,
 }
 
 /// param message_text_color: color of the segments on the message
@@ -161,29 +149,17 @@ pub fn init_app(
     let message_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(message_pgc_buf);
     let pinpad_evaluate_wrapper = circuit_evaluate::EvaluateWrapper::new(pinpad_pgc_buf);
 
-    // TODO? #[cfg(target_os = "android")]
-    // default runner crash at app.run on Android
-    // app.set_runner(my_runner);
-
     // TODO CHECK history for why "app.add_plugins_with(DefaultPlugins, |group| group.disable::<ImagePlugin>());"
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
 
-    // DEFAULT: /.../bevy_internal-0.9.1/src/default_plugins.rs
-    // group = group
-    // .add(bevy_log::LogPlugin::default())
-    // .add(bevy_core::CorePlugin::default())
-    // .add(bevy_time::TimePlugin::default())
-    // .add(bevy_transform::TransformPlugin::default())
-    // .add(bevy_hierarchy::HierarchyPlugin::default())
-    // .add(bevy_diagnostic::DiagnosticsPlugin::default())
-    // .add(bevy_input::InputPlugin::default())
-    // .add(bevy_window::WindowPlugin::default());
+    // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
 
     // WARNING: order matters!
-    #[cfg(not(target_os = "android"))]
-    app.add_plugin(bevy::log::LogPlugin { ..default() });
-    app.add_plugin(bevy::core::CorePlugin { ..default() });
+    app.add_plugin(bevy::log::LogPlugin::default());
+    app.add_plugin(bevy::core::TaskPoolPlugin::default());
+    app.add_plugin(bevy::core::TypeRegistrationPlugin::default());
+    app.add_plugin(bevy::core::FrameCountPlugin::default());
     app.add_plugin(bevy::time::TimePlugin {});
     app.add_plugin(bevy::transform::TransformPlugin {});
     app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
@@ -191,25 +167,32 @@ pub fn init_app(
     #[cfg(not(target_os = "android"))]
     app.add_plugin(bevy::input::InputPlugin {});
     app.add_plugin(WindowPlugin {
-        window: WindowDescriptor {
+        primary_window: Some(Window {
             title: "renderer demo".to_string(),
-            width: 1920. / 2.,
-            height: 1080. / 2.,
+            #[cfg(target_os = "android")]
+            resolution: WindowResolution::new(physical_width as f32, physical_height as f32),
+            #[cfg(not(target_os = "android"))]
+            resolution: WindowResolution::new(1920. / 2., 1080. / 2.),
             // TODO?
             // present_mode: PresentMode::AutoVsync,
             ..default()
-        },
-        // MUST set ELSE: "thread 'main' panicked at 'Requested resource bevy_window::windows::Windows does not exist in the `World`."
-        add_primary_window: true,
+        }),
         ..default()
     });
+    app.add_plugin(bevy::a11y::AccessibilityPlugin);
     // #[cfg(feature = "bevy_asset")]
-    app.add_plugin(bevy::asset::AssetPlugin { ..default() });
+    app.add_plugin(bevy::asset::AssetPlugin::default());
     // #[cfg(feature = "bevy_scene")]
-    // app.add_plugin(bevy::scene::ScenePlugin { ..default() });
+    // app.add_plugin(bevy::scene::ScenePlugin::default());
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugin(bevy::render::RenderPlugin {});
-    app.add_plugin(bevy::render::texture::ImagePlugin { ..default() });
+    app.add_plugin(bevy::render::RenderPlugin::default());
+    app.add_plugin(bevy::render::texture::ImagePlugin::default());
+    // FAIL on Android?
+    // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
+    #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
+    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
+    // DO NOT use on Android:
+    // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
     app.add_plugin(bevy::winit::WinitPlugin {});
     // Init the Window with our CUSTOM winit
@@ -217,20 +200,20 @@ pub fn init_app(
     //
     // NOTE: MUST be after init_app(or rather DefaultPlugins) else
     // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
+    #[cfg(all(target_os = "android", feature = "with_winit"))]
+    compile_error!("FAIL android+with_winit is NOT supported!");
     #[cfg(target_os = "android")]
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle::new(
-        physical_width,
-        physical_height,
-        1.0,
+    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
+        scale_factor: 1.0,
         // TODO?raw_window_handle,
         // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-        bevy::window::RawHandleWrapper {
+        handle_wrapper: bevy::window::RawHandleWrapper {
             window_handle: raw_window_handle,
             display_handle: raw_window_handle::RawDisplayHandle::Android(
                 raw_window_handle::AndroidDisplayHandle::empty(),
             ),
         },
-    ));
+    });
     // #[cfg(feature = "bevy_core_pipeline")]
     app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
@@ -241,18 +224,17 @@ pub fn init_app(
     app.add_plugin(FrameTimeDiagnosticsPlugin::default());
 
     // TODO how much msaa?
-    app.insert_resource(Msaa { samples: 4 });
+    // MSAA makes some Android devices panic, this is under investigation
+    // https://github.com/bevyengine/bevy/issues/8229
+    #[cfg(target_os = "android")]
+    app.insert_resource(Msaa::Off);
+    #[cfg(not(target_os = "android"))]
+    app.insert_resource(Msaa::Sample4);
     // TODO add param, and obtain from Android
     app.insert_resource(ClearColor(background_color));
 
     app.add_startup_system(setup::setup_camera);
     app.add_startup_system(setup::setup_transparent_shader_for_sprites);
-
-    app.init_resource::<TextureUpdateCallbackMessage>();
-    app.init_resource::<TextureUpdateCallbackPinpad>();
-    app.add_startup_system(setup::setup_texture_update_systems);
-    app.add_system(change_texture_message);
-    app.add_system(change_texture_pinpad);
 
     // setup where and how to draw the message
     app.insert_resource(RectMessage {
@@ -278,12 +260,27 @@ pub fn init_app(
         ],
     });
     app.add_startup_system(setup::setup_pinpad_textures);
-    app.insert_resource(CircuitMessage {
+
+    app.add_event::<UpdateMessageDataEvent>();
+    app.add_event::<UpdatePinpadDataEvent>();
+    app.insert_resource(TextureUpdateCallbackMessage {
+        callback: Some(Box::new(
+            crate::update_texture_utils::update_texture_data_message,
+        )),
         wrapper: message_evaluate_wrapper,
+        data: Vec::new(),
     });
-    app.insert_resource(CircuitPinpad {
+    app.insert_resource(TextureUpdateCallbackPinpad {
+        callback: Some(Box::new(
+            crate::update_texture_utils::update_texture_data_pinpad,
+        )),
         wrapper: pinpad_evaluate_wrapper,
+        data: Vec::new(),
     });
+    app.add_system(evaluate_pinpad);
+    app.add_system(evaluate_message);
+    app.add_system(change_texture_message);
+    app.add_system(change_texture_pinpad);
 }
 
 // https://github.com/bevyengine/bevy/pull/3139/files#diff-aded320ea899c7a8c225f19639c8aaab1d9d74c37920f1a415697262d6744d54
@@ -292,87 +289,109 @@ pub fn init_app(
 // TODO is this the proper way to modify a Texture's underlying data??
 // TODO DRY change_texture_message+change_texture_pinpad
 fn change_texture_message(
-    mut query: Query<(&mut Sprite, &Transform, Option<&Handle<Image>>)>,
+    mut query: Query<Option<&Handle<Image>>>,
     mut images: ResMut<Assets<Image>>,
-    mut texture_update_callback: ResMut<TextureUpdateCallbackMessage>,
-    mut circuit_message: ResMut<CircuitMessage>,
+    mut message_data_events: EventReader<UpdateMessageDataEvent>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
     log::debug!("change_texture_message BEGIN");
-    for (_sprite, _t, opt_handle) in query.iter_mut() {
+    for opt_handle in query.iter_mut() {
         log::debug!("change_texture_message query OK");
-
-        // let size = if let Some(custom_size) = sprite.custom_size {
-        //     custom_size
-        // } else if let Some(image) = opt_handle.map(|handle| images.get(handle)).flatten() {
-        //     Vec2::new(
-        //         image.texture_descriptor.size.width as f32,
-        //         image.texture_descriptor.size.height as f32,
-        //     )
-        // } else {
-        //     Vec2::new(1.0, 1.0)
-        // };
-        // info!("{:?}", size * t.scale.truncate());
 
         if let Some(image) = opt_handle.and_then(|handle| images.get_mut(handle)) {
             log::debug!("change_texture_message images OK");
 
-            // IMPORTANT: DO NOT use image.texture_descriptor.size.width/height
-            // Eg:
-            // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
-            // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
-            let data_len = image.data.len();
-            (texture_update_callback.callback.as_mut().unwrap().as_mut())(
-                &mut image.data,
-                &mut circuit_message.wrapper,
-            );
-            assert!(
-                image.data.len() == data_len,
-                "image: modified data len! before: {}, after: {}",
-                data_len,
-                image.data.len()
-            );
-
-            // sprite.color = Color::ALICE_BLUE;
+            for UpdateMessageDataEvent { data } in message_data_events.into_iter() {
+                log::debug!("UpdateMessageDataEvent found");
+                image.data = data.clone();
+            }
         }
     }
+}
+
+fn evaluate_message(
+    mut texture_update_callback: ResMut<TextureUpdateCallbackMessage>,
+    mut message_data_events: EventWriter<UpdateMessageDataEvent>,
+) {
+    // IMPORTANT: DO NOT use image.texture_descriptor.size.width/height
+    // Eg:
+    // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
+    // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
+    let _data_len_before = texture_update_callback.data.len();
+
+    // https://bevy-cheatbook.github.io/pitfalls/split-borrows.html
+    let texture_update_callback = &mut *texture_update_callback;
+
+    (texture_update_callback.callback.as_mut().unwrap().as_mut())(
+        &mut texture_update_callback.data,
+        &mut texture_update_callback.wrapper,
+    );
+
+    // assert!(
+    //     texture_update_callback.data.len() == data_len_before,
+    //     "image: modified data len! before: {}, after: {}",
+    //     data_len_before,
+    //     texture_update_callback.data.len()
+    // );
+
+    message_data_events.send(UpdateMessageDataEvent {
+        data: texture_update_callback.data.clone(),
+    });
 }
 
 ///
 /// NOTE the TextureAtlas itself has a Handle<Image>, so we also need "ResMut<Assets<Image>>"
 // TODO DRY change_texture_message+change_texture_pinpad
 fn change_texture_pinpad(
-    mut query: Query<(
-        &mut TextureAtlasSprite,
-        &Transform,
-        Option<&Handle<TextureAtlas>>,
-    )>,
+    mut query: Query<Option<&Handle<TextureAtlas>>>,
     mut texture_atlas: ResMut<Assets<TextureAtlas>>,
     mut images: ResMut<Assets<Image>>,
-    mut texture_update_callback: ResMut<TextureUpdateCallbackPinpad>,
-    mut circuit_pinpad: ResMut<CircuitPinpad>,
+    mut pinpad_data_events: EventReader<UpdatePinpadDataEvent>,
 ) {
     // TODO investigate: without "mut sprite" it SOMETIMES update the texture, and sometimes it is just not visible
     // TODO FIX the query does not work -> texture_update_callback is not called
     log::debug!("change_texture_pinpad BEGIN");
-    for (_sprite, _t, opt_handle) in query.iter_mut() {
+    for opt_handle in query.iter_mut() {
         log::debug!("change_texture_pinpad query OK");
         if let Some(texture_atlas) = opt_handle.and_then(|handle| texture_atlas.get_mut(handle)) {
             log::debug!("change_texture_pinpad texture_atlas OK");
             if let Some(atlas_image) = images.get_mut(&texture_atlas.texture) {
                 log::debug!("change_texture_pinpad texture_atlas.texture OK");
-                let data_len = atlas_image.data.len();
-                (texture_update_callback.callback.as_mut().unwrap().as_mut())(
-                    &mut atlas_image.data,
-                    &mut circuit_pinpad.wrapper,
-                );
-                assert!(
-                    atlas_image.data.len() == data_len,
-                    "atlas_image: modified data len! before: {}, after: {}",
-                    data_len,
-                    atlas_image.data.len()
-                );
+                for UpdatePinpadDataEvent { data } in pinpad_data_events.into_iter() {
+                    log::debug!("UpdatePinpadDataEvent found");
+                    atlas_image.data = data.clone();
+                }
             }
         }
     }
+}
+
+fn evaluate_pinpad(
+    mut texture_update_callback: ResMut<TextureUpdateCallbackPinpad>,
+    mut message_data_events: EventWriter<UpdatePinpadDataEvent>,
+) {
+    // IMPORTANT: DO NOT use image.texture_descriptor.size.width/height
+    // Eg:
+    // - image.data.len(); 86016 -> OK = 224 * 96 * TEXTURE_PIXEL_NB_BYTES
+    // - size.x as usize * size.y as usize * TEXTURE_PIXEL_NB_BYTES; = 10000 b/c the rendered texture is 50x50
+    let _data_len_before = texture_update_callback.data.len();
+
+    // https://bevy-cheatbook.github.io/pitfalls/split-borrows.html
+    let texture_update_callback = &mut *texture_update_callback;
+
+    (texture_update_callback.callback.as_mut().unwrap().as_mut())(
+        &mut texture_update_callback.data,
+        &mut texture_update_callback.wrapper,
+    );
+
+    // assert!(
+    //     texture_update_callback.data.len() == data_len_before,
+    //     "image: modified data len! before: {}, after: {}",
+    //     data_len_before,
+    //     texture_update_callback.data.len()
+    // );
+
+    message_data_events.send(UpdatePinpadDataEvent {
+        data: texture_update_callback.data.clone(),
+    });
 }

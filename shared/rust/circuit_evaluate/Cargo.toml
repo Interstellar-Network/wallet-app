@@ -6,8 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lib-garble-rs = { git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "initial", default-features = false, features = ["std"] }
+# NOTE: MUST add branch = "main" b/c also a dep of `pallet-ocw-garble`, and without it appears two times in Cargo.lock
+lib-garble-rs = { version = "2.0.0", git = "https://github.com/Interstellar-Network/lib-garble-rs.git", branch = "main", default-features = false, features = ["std"] }
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
+bytes = { version = "1", default-features = false }
 
 [lib]
 name = "circuit_evaluate"
