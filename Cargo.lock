@@ -1352,7 +1352,7 @@ name = "circuit-evaluate"
 version = "0.1.0"
 dependencies = [
  "bytes 1.4.0",
- "lib-garble-rs 2.0.0 (git+https://github.com/Interstellar-Network/lib-garble-rs.git)",
+ "lib-garble-rs",
  "rand 0.8.5",
 ]
 
@@ -3488,7 +3488,7 @@ dependencies = [
 [[package]]
 name = "ipfs-client-http-req"
 version = "0.2.0"
-source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=main#ba3a530518e43e92ad4e9726beaaa4c338c80e1f"
+source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=main#c0d249ba4696d63d26da199e3bf58252baa59c5a"
 dependencies = [
  "http-grpc-client",
  "log",
@@ -3958,30 +3958,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "lib-garble-rs"
 version = "2.0.0"
-source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=main#dd1b292429626f42102831afd01f3ab3256a719a"
-dependencies = [
- "bitvec",
- "bytes 1.4.0",
- "hashbrown 0.13.2",
- "image 0.24.5",
- "imageproc",
- "log",
- "num_enum",
- "postcard 1.0.4",
- "prost 0.11.3",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "rayon",
- "rusttype",
- "serde",
- "snafu",
- "xxhash-rust",
-]
-
-[[package]]
-name = "lib-garble-rs"
-version = "2.0.0"
-source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git#dd1b292429626f42102831afd01f3ab3256a719a"
+source = "git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=main#c0d249ba4696d63d26da199e3bf58252baa59c5a"
 dependencies = [
  "bitvec",
  "bytes 1.4.0",
@@ -5095,7 +5072,7 @@ dependencies = [
  "hex",
  "http-grpc-client",
  "ipfs-client-http-req",
- "lib-garble-rs 2.0.0 (git+https://github.com/Interstellar-Network/lib-garble-rs.git?branch=main)",
+ "lib-garble-rs",
  "log",
  "pallet-ocw-circuits",
  "pallet-timestamp",
