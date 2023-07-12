@@ -85,14 +85,23 @@ teerex-primitives = { git = "https://github.com/Interstellar-Network/integritee-
 # [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
 # lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
 
-# [patch."https://github.com/Interstellar-Network/swanky.git"]
-# fancy-garbling = { path = "../swanky/fancy-garbling/" }
-
 # [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
 # integritee-cli = { path = "../integritee-worker/cli" }
 
+# [patch."https://github.com/Interstellar-Network/integritee-node.git"]
+# integritee-node-runtime = { path = "../integritee-node/runtime/" }
+
 # [patch."https://github.com/Interstellar-Network/pallets.git"]
-# circuits-storage-common = { path = "../pallets/circuits-storage-common" }
+# circuits-storage-common = { path = "../pallets/circuits-storage-common/" }
+# pallet-mobile-registry = { path = "../pallets/pallets/mobile-registry/" }
+# pallet-ocw-circuits = { path = "../pallets/pallets/ocw-circuits/" }
+# pallet-ocw-garble = { path = "../pallets/pallets/ocw-garble/" }
+# pallet-tx-registry = { path = "../pallets/pallets/tx-registry/" }
+# pallet-tx-validation = { path = "../pallets/pallets/tx-validation/" }
+
+# [patch."https://github.com/Interstellar-Network/rs-common.git"]
+# interstellar-http-client = { path = "../rs-common/http-client/" }
+# interstellar-ipfs-client = { path = "../rs-common/ipfs-client-http-req/" }
 
 ################################################################################
 # only needed because "wastime" is using workspace inheritance

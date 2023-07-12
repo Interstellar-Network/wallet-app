@@ -1,4 +1,4 @@
-// adapted from https://github.com/bevyengine/bevy/blob/v0.10.0/crates/bevy_sprite/src/render/sprite.wgsl
+// adapted from https://github.com/bevyengine/bevy/blob/v0.11.0/crates/bevy_sprite/src/render/sprite.wgsl
 // CHANGE: one line added at the end, just before "return color;"
 
 // TODO? will be prepended in "setup_transparent_shader_for_sprites"
@@ -9,7 +9,7 @@ const BACKGROUND_COLOR: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 #import bevy_core_pipeline::tonemapping
 #endif
 
-#import bevy_render::view
+#import bevy_render::view View
 
 @group(0) @binding(0)
 var<uniform> view: View;
@@ -59,7 +59,7 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
 #endif
 
 #ifdef TONEMAP_IN_SHADER
-    color = tone_mapping(color);
+    color = bevy_core_pipeline::tonemapping::tone_mapping(color, view.color_grading);
 #endif
 
     return color;

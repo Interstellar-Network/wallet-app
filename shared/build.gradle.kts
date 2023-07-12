@@ -30,11 +30,11 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                api("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
-                api("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
+                api("androidx.compose.ui:ui:${rootProject.extra["composeUiVersion"]}")
+                api("androidx.compose.material:material:${rootProject.extra["composeMaterialVersion"]}")
             }
         }
-        val androidTest by getting
+        val androidUnitTest by getting
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
@@ -57,12 +57,14 @@ kotlin {
 }
 
 android {
-    compileSdk = 33
+    // See also `toolVersion` below when upgrading
+    compileSdk = 34
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         // Compose Jetpack: requires >= 21?
         minSdk = 21
-        targetSdk = 33
+        // See also `toolVersion` below when upgrading
+        targetSdk = 34
 
         // TODO? used by our own CargoTask NOT by externalNativeBuild
         ndk {
@@ -98,7 +100,10 @@ android {
             }
         }
     }
-
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 
@@ -157,6 +162,18 @@ abstract class CargoTask : DefaultTask () {
     // comma separated list of features; will be passed directly as-is: --features=${features}
     @get:Input
     abstract val features: Property<String>
+
+    // Typically when compiling (compileSdk/targetSdk) for a beta version (eg 34)
+    // there are no corresponding binaries in `Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin/`
+    // [...]
+    //    -rwxr-xr-x  1 aaa aaa       196 Jun 22 13:01 x86_64-linux-android31-clang++
+    //    -rwxr-xr-x  1 aaa aaa       192 Jun 22 13:01 x86_64-linux-android32-clang
+    //    -rwxr-xr-x  1 aaa aaa       196 Jun 22 13:01 x86_64-linux-android32-clang++
+    //    -rwxr-xr-x  1 aaa aaa       192 Jun 22 13:01 x86_64-linux-android33-clang
+    //    -rwxr-xr-x  1 aaa aaa       196 Jun 22 13:01 x86_64-linux-android33-clang++
+    //    -rwxr-xr-x  1 aaa aaa    678264 Jun 22 13:01 yasm
+    @get:Input
+    abstract val toolVersion: Property<String>
 
     init {}
 
@@ -238,7 +255,7 @@ abstract class CargoTask : DefaultTask () {
         // CXX eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android31-clang++"
         // BUT AR is NOT versionned:
         // eg "/.../Sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
-        val target_cc = "${toolchains_prebuilt_bin_path}/${ndkTarget()}${project.android.compileSdk!!}-clang"
+        val target_cc = "${toolchains_prebuilt_bin_path}/${ndkTarget()}${toolVersion.get()}-clang"
 //        val target_cc = "${toolchains_prebuilt_bin_path}/clang"
         val target_cxx = "${target_cc}++"
         val target_ar = "${toolchains_prebuilt_bin_path}/llvm-ar"
@@ -410,6 +427,7 @@ for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","
             target.set(cargo_target)
             use_nightly.set(cargo_use_nightly)
             features.set(cargo_features_android)
+            toolVersion.set("33")
 
             // TODO replace by
             // https://stackoverflow.com/questions/57653597/i-want-to-use-different-library-in-debug-and-release-mode-in-android
@@ -425,6 +443,7 @@ for (cargo_target in arrayOf("armv7-linux-androideabi","aarch64-linux-android","
             target.set(cargo_target)
             use_nightly.set(cargo_use_nightly)
             features.set(cargo_features_android)
+            toolVersion.set("UNUSED_PLACEHOLDER")
 
             // TODO cf upToDateWhen above
             outputs.upToDateWhen { false }

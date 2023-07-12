@@ -127,7 +127,9 @@ jobs:
 
       # COMPILE ONLY, we could run headless but what's the point?
       - name: check cli "desktop" build
-        run: cargo build --example desktop --features=with-jni,with_winit
+        run: |
+          cargo build --example desktop --features=with-jni,bevy_x11
+          cargo build --example desktop --features=with-jni,bevy_x11,offline_demo
 
   ##########################################################################
   ##########################################################################
