@@ -42,7 +42,7 @@ ndarray = "0.15.4"
 # see also "target.'cfg(unix)'.dev-dependencies"
 #
 # TODO cleanup features; and also in dev-dependencies
-bevy = { version = "0.10", default-features = false, features = [
+bevy = { version = "0.11", default-features = false, features = [
     # https://github.com/bevyengine/bevy/blob/v0.10.0/Cargo.toml#L31
     # "animation",
     "bevy_asset",
@@ -57,6 +57,7 @@ bevy = { version = "0.10", default-features = false, features = [
     "bevy_sprite",
     # "bevy_text",
     # "bevy_ui",
+    "multi-threaded",
     # "png",
     # "hdr",
     # "ktx2",
@@ -64,11 +65,14 @@ bevy = { version = "0.10", default-features = false, features = [
     # "vorbis",
     # "x11",
     # "filesystem_watcher",
+    # "bevy_gizmos",
     # "android_shared_stdcxx",
-    # "tonemapping_luts"
+    # "tonemapping_luts",
+    # "default_font",
+    # "webgl2",
  ]}
 log = "0.4"
-wgpu = "0.15"  # dep of Bevy, but we need it ourself; versions MUST match
+wgpu = "0.16"  # dep of Bevy, but we need it ourself; versions MUST match
 
 # TODO dev-dependencies?
 image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}

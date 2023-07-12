@@ -85,10 +85,12 @@ pub struct RectsPinpad {
 ///
 // TODO? Default, or impl FromWorld? In any case we need Option
 // TODO? use a common Trait
+#[derive(Event)]
 pub struct UpdateMessageDataEvent {
     data: Vec<u8>,
 }
 
+#[derive(Event)]
 pub struct UpdatePinpadDataEvent {
     data: Vec<u8>,
 }
@@ -156,17 +158,17 @@ pub fn init_app(
     // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
 
     // WARNING: order matters!
-    app.add_plugin(bevy::log::LogPlugin::default());
-    app.add_plugin(bevy::core::TaskPoolPlugin::default());
-    app.add_plugin(bevy::core::TypeRegistrationPlugin::default());
-    app.add_plugin(bevy::core::FrameCountPlugin::default());
-    app.add_plugin(bevy::time::TimePlugin {});
-    app.add_plugin(bevy::transform::TransformPlugin {});
-    app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
-    app.add_plugin(bevy::diagnostic::DiagnosticsPlugin {});
+    app.add_plugins(bevy::log::LogPlugin::default());
+    app.add_plugins(bevy::core::TaskPoolPlugin::default());
+    app.add_plugins(bevy::core::TypeRegistrationPlugin::default());
+    app.add_plugins(bevy::core::FrameCountPlugin::default());
+    app.add_plugins(bevy::time::TimePlugin {});
+    app.add_plugins(bevy::transform::TransformPlugin {});
+    app.add_plugins(bevy::hierarchy::HierarchyPlugin {});
+    app.add_plugins(bevy::diagnostic::DiagnosticsPlugin {});
     #[cfg(not(target_os = "android"))]
-    app.add_plugin(bevy::input::InputPlugin {});
-    app.add_plugin(WindowPlugin {
+    app.add_plugins(bevy::input::InputPlugin {});
+    app.add_plugins(WindowPlugin {
         primary_window: Some(Window {
             title: "renderer demo".to_string(),
             #[cfg(target_os = "android")]
@@ -179,22 +181,22 @@ pub fn init_app(
         }),
         ..default()
     });
-    app.add_plugin(bevy::a11y::AccessibilityPlugin);
+    app.add_plugins(bevy::a11y::AccessibilityPlugin);
     // #[cfg(feature = "bevy_asset")]
-    app.add_plugin(bevy::asset::AssetPlugin::default());
+    app.add_plugins(bevy::asset::AssetPlugin::default());
     // #[cfg(feature = "bevy_scene")]
-    // app.add_plugin(bevy::scene::ScenePlugin::default());
+    // app.add_plugins(bevy::scene::ScenePlugin::default());
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugin(bevy::render::RenderPlugin::default());
-    app.add_plugin(bevy::render::texture::ImagePlugin::default());
+    app.add_plugins(bevy::render::RenderPlugin::default());
+    app.add_plugins(bevy::render::texture::ImagePlugin::default());
     // FAIL on Android?
     // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
     #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
-    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
+    app.add_plugins(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
     // DO NOT use on Android:
     // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
-    app.add_plugin(bevy::winit::WinitPlugin {});
+    app.add_plugins(bevy::winit::WinitPlugin {});
     // Init the Window with our CUSTOM winit
     // Only needed for Android; this replaces "WinitPlugin"
     //
@@ -203,7 +205,7 @@ pub fn init_app(
     #[cfg(all(target_os = "android", feature = "with_winit"))]
     compile_error!("FAIL android+with_winit is NOT supported!");
     #[cfg(target_os = "android")]
-    app.add_plugin(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
+    app.add_plugins(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
         scale_factor: 1.0,
         // TODO?raw_window_handle,
         // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
@@ -215,13 +217,13 @@ pub fn init_app(
         },
     });
     // #[cfg(feature = "bevy_core_pipeline")]
-    app.add_plugin(bevy::core_pipeline::CorePipelinePlugin {});
+    app.add_plugins(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
-    app.add_plugin(bevy::sprite::SpritePlugin {});
+    app.add_plugins(bevy::sprite::SpritePlugin {});
     // TODO only when Debug?
-    app.add_plugin(LogDiagnosticsPlugin::default());
+    app.add_plugins(LogDiagnosticsPlugin::default());
     // TODO only when Debug?
-    app.add_plugin(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
     // TODO how much msaa?
     // MSAA makes some Android devices panic, this is under investigation
@@ -233,8 +235,8 @@ pub fn init_app(
     // TODO add param, and obtain from Android
     app.insert_resource(ClearColor(background_color));
 
-    app.add_startup_system(setup::setup_camera);
-    app.add_startup_system(setup::setup_transparent_shader_for_sprites);
+    app.add_systems(Startup, setup::setup_camera);
+    app.add_systems(Startup, setup::setup_transparent_shader_for_sprites);
 
     // setup where and how to draw the message
     app.insert_resource(RectMessage {
@@ -246,7 +248,7 @@ pub fn init_app(
             message_evaluate_wrapper.get_height().try_into().unwrap(),
         ],
     });
-    app.add_startup_system(setup::setup_message_texture);
+    app.add_systems(Startup, setup::setup_message_texture);
     // and same the pinpad
     app.insert_resource(RectsPinpad {
         rects: rects_pinpad,
@@ -259,7 +261,7 @@ pub fn init_app(
             pinpad_evaluate_wrapper.get_height().try_into().unwrap(),
         ],
     });
-    app.add_startup_system(setup::setup_pinpad_textures);
+    app.add_systems(Startup, setup::setup_pinpad_textures);
 
     app.add_event::<UpdateMessageDataEvent>();
     app.add_event::<UpdatePinpadDataEvent>();
@@ -277,10 +279,10 @@ pub fn init_app(
         wrapper: pinpad_evaluate_wrapper,
         data: Vec::new(),
     });
-    app.add_system(evaluate_pinpad);
-    app.add_system(evaluate_message);
-    app.add_system(change_texture_message);
-    app.add_system(change_texture_pinpad);
+    app.add_systems(Update, evaluate_pinpad);
+    app.add_systems(Update, evaluate_message);
+    app.add_systems(Update, change_texture_message);
+    app.add_systems(Update, change_texture_pinpad);
 }
 
 // https://github.com/bevyengine/bevy/pull/3139/files#diff-aded320ea899c7a8c225f19639c8aaab1d9d74c37920f1a415697262d6744d54

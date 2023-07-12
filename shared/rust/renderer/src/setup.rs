@@ -236,7 +236,7 @@ pub fn setup_transparent_shader_for_sprites(
 
     let shader_str = include_str!("../data/transparent_sprite.wgsl").to_string();
 
-    let new_sprite_shader = Shader::from_wgsl(shader_str);
+    let new_sprite_shader = Shader::from_wgsl(shader_str, file!());
     shaders.set_untracked(bevy::sprite::SPRITE_SHADER_HANDLE, new_sprite_shader);
 
     // TODO?
