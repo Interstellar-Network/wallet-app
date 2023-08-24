@@ -70,16 +70,13 @@ bevy = { version = "0.11", default-features = false, features = [
     # "tonemapping_luts",
     # "default_font",
     # "webgl2",
- ]}
+] }
 log = "0.4"
-wgpu = "0.16"  # dep of Bevy, but we need it ourself; versions MUST match
-
-# TODO dev-dependencies?
-image = { version = "0.24", default-features = false, features = ["png", "jpeg"]}
+wgpu = "0.16" # dep of Bevy, but we need it ourself; versions MUST match
 
 #TODO [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.12"
-jni = { version = "0.20" }  # TODO optional = true
+jni = { version = "0.20" } # TODO optional = true
 jni_fn = "0.1"
 raw-window-handle = "0.5"
 
@@ -88,7 +85,6 @@ circuit-evaluate = { path = "../circuit_evaluate" }
 common = { path = "../common" }
 
 [dev-dependencies]
-png = "0.17.5"
 clap = { version = "4", features = ["derive", "env"] }
 # features "invocation" needed for tests(to create a JVM)
 jni = { version = "0.20", features = ["invocation"] }

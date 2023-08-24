@@ -156,12 +156,13 @@ pub fn init_app(
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
 
     // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
+    // app.add_plugins(DefaultPlugins);
 
     // WARNING: order matters!
     app.add_plugins(bevy::log::LogPlugin::default());
     app.add_plugins(bevy::core::TaskPoolPlugin::default());
-    app.add_plugins(bevy::core::TypeRegistrationPlugin::default());
-    app.add_plugins(bevy::core::FrameCountPlugin::default());
+    app.add_plugins(bevy::core::TypeRegistrationPlugin {});
+    app.add_plugins(bevy::core::FrameCountPlugin {});
     app.add_plugins(bevy::time::TimePlugin {});
     app.add_plugins(bevy::transform::TransformPlugin {});
     app.add_plugins(bevy::hierarchy::HierarchyPlugin {});
@@ -192,7 +193,7 @@ pub fn init_app(
     // FAIL on Android?
     // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
     #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
-    app.add_plugins(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
+    app.add_plugins(bevy::render::pipelined_rendering::PipelinedRenderingPlugin {});
     // DO NOT use on Android:
     // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
@@ -220,10 +221,11 @@ pub fn init_app(
     app.add_plugins(bevy::core_pipeline::CorePipelinePlugin {});
     // #[cfg(feature = "bevy_sprite")]
     app.add_plugins(bevy::sprite::SpritePlugin {});
+
     // TODO only when Debug?
     app.add_plugins(LogDiagnosticsPlugin::default());
     // TODO only when Debug?
-    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugins(FrameTimeDiagnosticsPlugin {});
 
     // TODO how much msaa?
     // MSAA makes some Android devices panic, this is under investigation

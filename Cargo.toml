@@ -72,7 +72,12 @@ sgx-verify = { git = "https://github.com/Interstellar-Network/integritee-pallets
 # ...
 # 166 |                     report.build_mode,
 #     |                     ^^^^^^^^^^^^^^^^^ expected enum `teerex_primitives::SgxBuildMode`, found a different enum `teerex_primitives::SgxBuildMod
-teerex-primitives = {  git = "https://github.com/Interstellar-Network/integritee-pallets.git", branch = "sgx-verify-bypass-ring" }
+teerex-primitives = { git = "https://github.com/Interstellar-Network/integritee-pallets.git", branch = "sgx-verify-bypass-ring" }
+
+# https://github.com/integritee-network/worker/issues/1388
+[patch."https://github.com/paritytech/frame-metadata.git"]
+# CHECK the version used by https://github.com/Interstellar-Network/integritee-worker/blob/interstellar/Cargo.lock#L1837
+frame-metadata = { version = "=15.1.0" }
 
 ################################################################################
 # local dev
@@ -141,7 +146,9 @@ cranelift-entity = { version = "0.93.2" }
 # winch-filetests = { path = "winch/filetests" }
 # winch-test-macros = { path = "winch/test-macros" }
 
-target-lexicon = { version = "0.12.3", default-features = false, features = ["std"] }
+target-lexicon = { version = "0.12.3", default-features = false, features = [
+    "std",
+] }
 anyhow = "1.0.22"
 wasmparser = "0.100.0"
 wat = "1.0.57"
@@ -155,8 +162,15 @@ windows-sys = "0.42.0"
 env_logger = "0.9"
 rustix = "0.36.7"
 log = { version = "0.4.8", default-features = false }
-object = { version = "0.29", default-features = false, features = ['read_core', 'elf', 'std'] }
-gimli = { version = "0.26.0", default-features = false, features = ['read', 'std'] }
+object = { version = "0.29", default-features = false, features = [
+    'read_core',
+    'elf',
+    'std',
+] }
+gimli = { version = "0.26.0", default-features = false, features = [
+    'read',
+    'std',
+] }
 clap = { version = "3.2.0", features = ["color", "suggestions", "derive"] }
 # hashbrown = "0.12"
 # cap-std = "1.0.0"

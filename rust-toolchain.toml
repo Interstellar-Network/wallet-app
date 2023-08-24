@@ -4,7 +4,9 @@
 # - teaclave officially only supports: https://github.com/apache/incubator-teaclave-sgx-sdk/blob/master/rust-toolchain
 # - bevy v0.11 REQUIRES Rust 1.70+
 # 2023-04-15: date of the latest "1.70.0-nightly"; after that it is 1.71
+# https://github.com/oxalica/rust-overlay/blob/master/manifests/nightly/2023/2023-05-28.nix
+# -> latest 1.71.0-nightly
 # a good source to check which nightly is which Rust version: https://github.com/oxalica/rust-overlay/tree/master/manifests/nightly/
-channel = "nightly-2023-04-15"
+channel = "nightly-2023-05-28"
 targets = ["wasm32-unknown-unknown"]
-profile = "default" # include rustfmt, clippy
+profile = "default"                  # include rustfmt, clippy
