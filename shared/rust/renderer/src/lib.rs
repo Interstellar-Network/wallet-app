@@ -15,7 +15,6 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
-use bevy::window::WindowResolution;
 use ndarray::Array2;
 
 pub use bevy::prelude::App;
@@ -155,72 +154,40 @@ pub fn init_app(
 
     // TODO? for Android: https://github.com/bevyengine/bevy/blob/main/examples/app/without_winit.rs
 
-    // DEFAULT: https://github.com/bevyengine/bevy/blob/289fd1d0f2353353f565989a2296ed1b442e00bc/crates/bevy_internal/src/default_plugins.rs#L43
-    // app.add_plugins(DefaultPlugins);
-
-    // WARNING: order matters!
-    app.add_plugins(bevy::log::LogPlugin::default());
-    app.add_plugins(bevy::core::TaskPoolPlugin::default());
-    app.add_plugins(bevy::core::TypeRegistrationPlugin {});
-    app.add_plugins(bevy::core::FrameCountPlugin {});
-    app.add_plugins(bevy::time::TimePlugin {});
-    app.add_plugins(bevy::transform::TransformPlugin {});
-    app.add_plugins(bevy::hierarchy::HierarchyPlugin {});
-    app.add_plugins(bevy::diagnostic::DiagnosticsPlugin {});
+    // DEFAULT: https://github.com/bevyengine/bevy/blob/v0.11.2/crates/bevy_internal/src/default_plugins.rs#L41
     #[cfg(not(target_os = "android"))]
-    app.add_plugins(bevy::input::InputPlugin {});
-    app.add_plugins(WindowPlugin {
-        primary_window: Some(Window {
-            title: "renderer demo".to_string(),
-            #[cfg(target_os = "android")]
-            resolution: WindowResolution::new(physical_width as f32, physical_height as f32),
-            #[cfg(not(target_os = "android"))]
-            resolution: WindowResolution::new(1920. / 2., 1080. / 2.),
-            // TODO?
-            // present_mode: PresentMode::AutoVsync,
-            ..default()
-        }),
-        ..default()
-    });
-    app.add_plugins(bevy::a11y::AccessibilityPlugin);
-    // #[cfg(feature = "bevy_asset")]
-    app.add_plugins(bevy::asset::AssetPlugin::default());
-    // #[cfg(feature = "bevy_scene")]
-    // app.add_plugins(bevy::scene::ScenePlugin::default());
-    // the two next are feature gated behind #[cfg(feature = "bevy_render")]
-    app.add_plugins(bevy::render::RenderPlugin::default());
-    app.add_plugins(bevy::render::texture::ImagePlugin::default());
-    // FAIL on Android?
-    // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
-    #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
-    app.add_plugins(bevy::render::pipelined_rendering::PipelinedRenderingPlugin {});
-    // DO NOT use on Android:
-    // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
-    #[cfg(feature = "with_winit")]
-    app.add_plugins(bevy::winit::WinitPlugin {});
-    // Init the Window with our CUSTOM winit
-    // Only needed for Android; this replaces "WinitPlugin"
-    //
-    // NOTE: MUST be after init_app(or rather DefaultPlugins) else
-    // panic at: "let mut windows = world.get_resource_mut::<Windows>().unwrap();"
-    #[cfg(all(target_os = "android", feature = "with_winit"))]
-    compile_error!("FAIL android+with_winit is NOT supported!");
+    app.add_plugins(DefaultPlugins);
     #[cfg(target_os = "android")]
-    app.add_plugins(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
-        scale_factor: 1.0,
-        // TODO?raw_window_handle,
-        // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
-        handle_wrapper: bevy::window::RawHandleWrapper {
-            window_handle: raw_window_handle,
-            display_handle: raw_window_handle::RawDisplayHandle::Android(
-                raw_window_handle::AndroidDisplayHandle::empty(),
-            ),
-        },
-    });
-    // #[cfg(feature = "bevy_core_pipeline")]
-    app.add_plugins(bevy::core_pipeline::CorePipelinePlugin {});
-    // #[cfg(feature = "bevy_sprite")]
-    app.add_plugins(bevy::sprite::SpritePlugin {});
+    app.add_plugins(
+        DefaultPlugins
+            .build()
+            .disable::<bevy::winit::WinitPlugin>()
+            .disable::<bevy::window::WindowPlugin>()
+            .add(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "My bevy::window::WindowPlugin".to_string(),
+                    resolution: bevy::window::WindowResolution::new(
+                        physical_width as f32,
+                        physical_height as f32,
+                    ),
+                    // TODO?
+                    // present_mode: PresentMode::AutoVsync,
+                    ..default()
+                }),
+                ..default()
+            })
+            .add(winit_raw_handle_plugin::WinitPluginRawWindowHandle {
+                scale_factor: 1.0,
+                // TODO?raw_window_handle,
+                // my_raw_window_handle::MyRawWindowHandleWrapper::new(raw_window_handle),
+                handle_wrapper: bevy::window::RawHandleWrapper {
+                    window_handle: raw_window_handle,
+                    display_handle: raw_window_handle::RawDisplayHandle::Android(
+                        raw_window_handle::AndroidDisplayHandle::empty(),
+                    ),
+                },
+            }),
+    );
 
     // TODO only when Debug?
     app.add_plugins(LogDiagnosticsPlugin::default());

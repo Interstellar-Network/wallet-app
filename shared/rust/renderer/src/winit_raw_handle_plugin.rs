@@ -36,6 +36,7 @@ use bevy::window::Window;
 use bevy::window::WindowCreated;
 use bevy::winit::WinitSettings;
 use bevy::winit::WinitWindows;
+use log::info;
 
 pub struct WinitPluginRawWindowHandle {
     pub(super) scale_factor: f64,
@@ -66,6 +67,20 @@ impl Plugin for WinitPluginRawWindowHandle {
             NonSendMut<WinitWindows>,
             ResMut<AccessibilityRequested>,
         )> = SystemState::from_world(&mut app.world);
+
+        // https://github.com/bevyengine/bevy/issues/8658
+        // https://github.com/bevyengine/bevy/blob/b88ff154f24314539fc7f03572215bd0283d98ee/crates/bevy_winit/src/lib.rs#L339
+        // if !app.ready() {
+        //     #[cfg(not(target_arch = "wasm32"))]
+        //     bevy::tasks::tick_global_task_pools_on_main_thread();
+        // } else {
+        //     app.finish();
+        //     app.cleanup();
+        // }
+        info!("app ready? {}", app.ready());
+        bevy::tasks::tick_global_task_pools_on_main_thread();
+        app.finish();
+        app.cleanup();
 
         #[cfg(not(target_arch = "wasm32"))]
         let (

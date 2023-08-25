@@ -23,27 +23,14 @@ crate-type = ["cdylib", "staticlib", "lib"]
 # bench = false
 
 [features]
-# TODO if "bevy_winit" is ALSO needed for Android: move it to "dep:bevy" directly
-with_winit = ["bevy/bevy_winit", "bevy/x11"]
 # Forward to substrate-client's feature
+bevy_x11 = ["bevy/x11"]
 offline_demo = ["substrate-client/offline_demo"]
 
 [dependencies]
 ndarray = "0.15.4"
-# bevy: removed: "animation",  "bevy_gilrs", "bevy_audio", "vorbis", "png", "hdr", "x11", "filesystem_watcher"
-# to avoid dependency on "alsa"(alsa-sys)
-# IMPORTANT: DO NOT add direct dep "winit"; it breaks example: the loop runs once and exits immediately
-# MUST add either "wayland" or "x11" else
-# error: Please select a feature to build for unix: `x11`, `wayland`
-#   --> /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.26.1/src/platform_impl/linux/mod.rs:10:1
-#    |
-# 10 | compile_error!("Please select a feature to build for unix: `x11`, `wayland`");
-#
-# see also "target.'cfg(unix)'.dev-dependencies"
-#
-# TODO cleanup features; and also in dev-dependencies
 bevy = { version = "0.11", default-features = false, features = [
-    # https://github.com/bevyengine/bevy/blob/v0.10.0/Cargo.toml#L31
+    # https://github.com/bevyengine/bevy/blob/v0.11.2/Cargo.toml#L33
     # "animation",
     "bevy_asset",
     # "bevy_audio",
@@ -93,4 +80,4 @@ substrate-client = { path = "../substrate-client" }
 
 [[example]]
 name = "desktop"
-required-features = ["with_winit"]
+required-features = ["bevy_x11"]
