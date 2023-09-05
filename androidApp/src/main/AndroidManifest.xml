@@ -3,13 +3,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- IMPORTANT https://github.com/gfx-rs/wgpu OpenGL support is only "best effort" -->
+    <!-- but we DO NOT require Vulkan to avoid blocking installation on devices where Vulkan is not
+    supported -->
+    <!-- wgpu/bevy SHOULD fallback to OpenGL -->
     <!-- TODO which version to use -->
-    <!-- TODO do we need vulkan or opengl? (for wgpu; WARNING: OpenGL does not seem to be working on AVD)-->
     <uses-feature android:glEsVersion="0x00020000" android:required="true" />
-    <uses-feature
-        android:name="android.hardware.vulkan.version"
-        android:version="0x400003"
-        android:required="true" />
 
     <application
         android:allowBackup="false"
@@ -19,7 +18,7 @@
         android:theme="@style/Theme.Interstellar"
         android:icon="@mipmap/ic_interstellar_launcher">
 
-        <profileable android:shell="true"/>
+        <profileable android:shell="true" />
 
         <activity
             android:name=".MainActivity"
