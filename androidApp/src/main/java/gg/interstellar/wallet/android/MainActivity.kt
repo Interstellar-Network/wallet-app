@@ -7,8 +7,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -19,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import gg.interstellar.wallet.android.data.Currency
 import gg.interstellar.wallet.android.data.UserData
 import gg.interstellar.wallet.android.ui.TxPinpadScreen
 import gg.interstellar.wallet.android.ui.portfolio.PortfolioBody
@@ -47,7 +46,7 @@ fun WalletApp() {
         val currentScreen = WalletScreen.fromRoute(backstackEntry.value?.destination?.route)
 
         Scaffold(
-            bottomBar  = {
+            bottomBar = {
                 WalletTabRow(
                     allScreens = allScreens,
                     onTabSelected = { screen ->
@@ -64,9 +63,6 @@ fun WalletApp() {
 
 @Composable
 fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
-
-    val notUsed = remember { mutableStateOf("notUsed") }//TODO makecleaner to keep it generic?
-    val noBool = remember { mutableStateOf(false) }
     NavHost(
         navController = navController,
         // TODO start screen(=landing page) on null
@@ -77,19 +73,20 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
             ProfileScreen(
                 onSendClick = { navController.navigate(WalletScreen.Send.name) },
                 onMarketClick = {}, // navController.navigate(WalletScreen.Market.name) },
-                onPortfolioClick = {   navController.navigate(WalletScreen.Portfolio.name)   },
+                onPortfolioClick = { navController.navigate(WalletScreen.Portfolio.name) },
             )
         }
 
         composable(WalletScreen.Send.name) {
-            SendCurrenciesBody(currencies = UserData.currencies, addresses = UserData.addresses,
+            SendCurrenciesBody(
+                currencies = UserData.currencies, addresses = UserData.addresses,
                 onClickGo = { navController.navigate(WalletScreen.TxPinpad.name) },
             )
         }
 
         composable(WalletScreen.Portfolio.name) {
-            PortfolioBody(currencies = UserData.currencies,notUsed,notUsed,noBool) { name ->
-                navigateToSingleCurrency(navController = navController, currencyName = name)
+            PortfolioBody(currencies = UserData.currencies) { currency ->
+                navigateToSingleCurrency(navController = navController, currency)
             }
         }
         composable(WalletScreen.TxPinpad.name) {
@@ -116,43 +113,44 @@ fun WalletNavHost(navController: NavHostController, modifier: Modifier = Modifie
         ) { entry ->
             val currenciesName = entry.arguments?.getString("name")
             val currency = UserData.getCurrency(currenciesName)
-            SingleCurrencyBody(currency = currency,notUsed,notUsed,noBool)
+            SingleCurrencyBody(currency = currency)
         }
     }
 }
-private fun navigateToSingleCurrency(navController: NavHostController, currencyName: String) {
-    navController.navigate("${WalletScreen.Portfolio.name}/$currencyName")
+
+private fun navigateToSingleCurrency(navController: NavHostController, currency: Currency) {
+    navController.navigate("${WalletScreen.Portfolio.name}/${currency.name}")
 }
 
-        /**
-        val  addressesName = WalletScreen.Addresses.name
-        composable(
-            route = "$addressesName/{name}",
-            arguments = listOf(
-                navArgument("name") {
-                    type = NavType.StringType
-                }
-            ),
-            deepLinks = listOf(
-                navDeepLink {
-                    uriPattern = "wallet://$addressesName/{name}"
-                }
-            ),
-        ) { entry ->
-            val addressesName = entry.arguments?.getString("name")
-            val address = UserData.getAddress(addressesName)
-            SingleAddressBody(address = address,notUsed)
-        }
-        */
+/**
+val  addressesName = WalletScreen.Addresses.name
+composable(
+route = "$addressesName/{name}",
+arguments = listOf(
+navArgument("name") {
+type = NavType.StringType
+}
+),
+deepLinks = listOf(
+navDeepLink {
+uriPattern = "wallet://$addressesName/{name}"
+}
+),
+) { entry ->
+val addressesName = entry.arguments?.getString("name")
+val address = UserData.getAddress(addressesName)
+SingleAddressBody(address = address,notUsed)
+}
+ */
 
 
 /**
 
 private fun navigateToSingleAddress(navController: NavHostController, addressName: String) {
-        navController.navigate("${WalletScreen.Addresses.name}/$addressName")
+navController.navigate("${WalletScreen.Addresses.name}/$addressName")
 }
 
 /*
 private fun navigateToScreen(navController: NavHostController, addressName: String) {
-    navController.navigate("${WalletScreen.Addresses.name}/$addressName")
+navController.navigate("${WalletScreen.Addresses.name}/$addressName")
 }*/

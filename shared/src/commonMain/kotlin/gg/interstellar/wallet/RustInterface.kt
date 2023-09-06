@@ -11,7 +11,12 @@ interface RustInterface {
      */
     // WARNING: this CAN NOT be "external" if part of the commonMain?
     // e: Compilation failed: external function RustWrapper.CallExtrinsic must have @TypedIntrinsic, @SymbolName, @GCUnsafeCall or @ObjCMethod annotation
-    fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(ws_url: String, node_url: String, tx_message: String): String?
+    fun ExtrinsicGarbleAndStripDisplayCircuitsPackage(
+        ws_url: String,
+        node_url: String,
+        tx_message: String
+    ): String?
+
     fun ExtrinsicRegisterMobile(ws_url: String, node_url: String, pub_key: ByteArray): String?
     fun GetCircuits(
         ws_url: String,

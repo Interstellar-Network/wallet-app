@@ -11,17 +11,17 @@ import gg.interstellar.wallet.android.R
 
 
 val Modernista = FontFamily(
-        Font(R.font.modernista_regular)
-        )
+    Font(R.font.modernista_regular)
+)
 
 
 // Set of Material typography styles to start with
 /**val Typography = Typography(
-    body1 = TextStyle(
-        fontFamily = Modernista,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
-    )*/
+body1 = TextStyle(
+fontFamily = Modernista,
+fontWeight = FontWeight.Normal,
+fontSize = 16.sp
+)*/
 
 //From Rally
 val Typography = Typography(
