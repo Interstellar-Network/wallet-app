@@ -173,8 +173,7 @@ pub fn init_app(
             resolution: WindowResolution::new(physical_width as f32, physical_height as f32),
             #[cfg(not(target_os = "android"))]
             resolution: WindowResolution::new(1920. / 2., 1080. / 2.),
-            // TODO?
-            // present_mode: PresentMode::AutoVsync,
+            present_mode: bevy::window::PresentMode::AutoNoVsync,
             ..default()
         }),
         ..default()
