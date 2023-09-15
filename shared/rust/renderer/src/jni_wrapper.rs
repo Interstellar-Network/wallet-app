@@ -19,8 +19,8 @@ use android_logger::Config;
 use bevy::prelude::Color;
 use common::DisplayStrippedCircuitsPackageBuffers;
 use core::ffi::c_void;
-use jni::objects::{JClass, JObject, JString, ReleaseMode};
-use jni::sys::{jfloatArray, jint, jlong};
+use jni::objects::{JClass, JFloatArray, JObject, JString, ReleaseMode};
+use jni::sys::{jint, jlong};
 use jni::JNIEnv;
 use jni_fn::jni_fn;
 use log::{debug, info, LevelFilter};
@@ -38,8 +38,8 @@ extern "C" {
     pub fn ANativeWindow_getWidth(window_ptr: usize) -> u32;
 }
 
-pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle, u32, u32) {
-    let a_native_window = unsafe { ANativeWindow_fromSurface(env, surface) };
+pub fn get_raw_window_handle(surface: JObject, env: &JNIEnv) -> (RawWindowHandle, u32, u32) {
+    let a_native_window = unsafe { ANativeWindow_fromSurface(env.unsafe_clone(), surface) };
     let mut handle = AndroidNdkWindowHandle::empty();
     handle.a_native_window = a_native_window as *mut c_void;
 
@@ -53,10 +53,10 @@ pub fn get_raw_window_handle(env: JNIEnv, surface: JObject) -> (RawWindowHandle,
 // static mut state: Option<State> = None;size
 #[allow(clippy::too_many_arguments)]
 fn init_surface(
-    env: JNIEnv,
+    mut env: JNIEnv,
     surface: JObject,
-    message_rects: jfloatArray,
-    pinpad_rects: jfloatArray,
+    message_rects: JFloatArray,
+    pinpad_rects: JFloatArray,
     pinpad_nb_cols: usize,
     pinpad_nb_rows: usize,
     message_text_color: Color,
@@ -81,7 +81,7 @@ fn init_surface(
             ),
     );
 
-    let (handle, width, height) = get_raw_window_handle(env, surface);
+    let (handle, width, height) = get_raw_window_handle(surface, &env);
     log::debug!(
         "initSurface: got handle! width = {}, height = {}, handle = {:?}",
         width,
@@ -91,10 +91,10 @@ fn init_surface(
     info!("initSurface before new_native");
 
     let mut message_rects_vec = unsafe {
-        convert_rect_float_arr_to_vec_rect(env, message_rects, width as f32, height as f32)
+        convert_rect_float_arr_to_vec_rect(&mut env, message_rects, width as f32, height as f32)
     };
     let pinpad_rects_vec = unsafe {
-        convert_rect_float_arr_to_vec_rect(env, pinpad_rects, width as f32, height as f32)
+        convert_rect_float_arr_to_vec_rect(&mut env, pinpad_rects, width as f32, height as f32)
     };
     assert!(
         message_rects_vec.len() == 1,
@@ -172,11 +172,11 @@ fn init_surface(
 ///     NOTE: the pointer is NOT valid after this function returns!
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub unsafe fn initSurface(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _: JClass,
     surface: JObject,
-    message_rects: jfloatArray,
-    pinpad_rects: jfloatArray,
+    message_rects: JFloatArray,
+    pinpad_rects: JFloatArray,
     pinpad_nb_cols: jint,
     pinpad_nb_rows: jint,
     message_text_color_hex: JString,
@@ -190,6 +190,31 @@ pub unsafe fn initSurface(
     let display_stripped_circuits_package_buffers: Box<DisplayStrippedCircuitsPackageBuffers> =
         Box::from_raw(circuits_package_ptr as *mut _);
 
+    let message_text_color = Color::hex::<String>(
+        env.get_string(&message_text_color_hex)
+            .expect("Couldn't get java string message_text_color_hex!")
+            .into(),
+    )
+    .unwrap();
+    let circle_text_color = Color::hex::<String>(
+        env.get_string(&circle_text_color_hex)
+            .expect("Couldn't get java string circle_text_color_hex!")
+            .into(),
+    )
+    .unwrap();
+    let circle_color = Color::hex::<String>(
+        env.get_string(&circle_color_hex)
+            .expect("Couldn't get java string circle_color_hex!")
+            .into(),
+    )
+    .unwrap();
+    let background_color = Color::hex::<String>(
+        env.get_string(&background_color_hex)
+            .expect("Couldn't get java string background_color_hex!")
+            .into(),
+    )
+    .unwrap();
+
     init_surface(
         env,
         surface,
@@ -197,30 +222,10 @@ pub unsafe fn initSurface(
         pinpad_rects,
         pinpad_nb_cols.try_into().unwrap(),
         pinpad_nb_rows.try_into().unwrap(),
-        Color::hex::<String>(
-            env.get_string(message_text_color_hex)
-                .expect("Couldn't get java string message_text_color_hex!")
-                .into(),
-        )
-        .unwrap(),
-        Color::hex::<String>(
-            env.get_string(circle_text_color_hex)
-                .expect("Couldn't get java string circle_text_color_hex!")
-                .into(),
-        )
-        .unwrap(),
-        Color::hex::<String>(
-            env.get_string(circle_color_hex)
-                .expect("Couldn't get java string circle_color_hex!")
-                .into(),
-        )
-        .unwrap(),
-        Color::hex::<String>(
-            env.get_string(background_color_hex)
-                .expect("Couldn't get java string background_color_hex!")
-                .into(),
-        )
-        .unwrap(),
+        message_text_color,
+        circle_text_color,
+        circle_color,
+        background_color,
         display_stripped_circuits_package_buffers
             .message_pgarbled_buf
             .clone(),
@@ -261,28 +266,19 @@ pub unsafe fn cleanup(_env: *mut JNIEnv, _: JClass, obj: jlong) {
 // will be converted to:
 // Rect(left:0.0, top: height - 0.0, right: 1080, bottom: height - 381.0)
 unsafe fn convert_rect_float_arr_to_vec_rect(
-    env: JNIEnv,
-    rects_float_array: jfloatArray,
+    env: &mut JNIEnv,
+    rects_float_array: JFloatArray,
     width: f32,
     height: f32,
 ) -> Vec<Rect> {
     let rects_floatarr = env
-        .get_float_array_elements(rects_float_array, ReleaseMode::NoCopyBack)
-        .unwrap();
-    assert_ne!(
-        rects_floatarr.size().unwrap(),
-        0,
-        "rects_floatarr is empty!"
-    );
-    assert_eq!(
-        rects_floatarr.size().unwrap() % 4,
-        0,
-        "rects_floatarr MUST be % 4!"
-    );
+        .get_array_elements(&rects_float_array, ReleaseMode::NoCopyBack)
+        .expect("get_array_elements FAILED!");
+    assert_ne!(rects_floatarr.len(), 0, "rects_floatarr is empty!");
+    assert_eq!(rects_floatarr.len() % 4, 0, "rects_floatarr MUST be % 4!");
 
-    let mut rects_vec =
-        Vec::<Rect>::with_capacity((rects_floatarr.size().unwrap() / 4).try_into().unwrap());
-    for (idx, i) in (0..rects_floatarr.size().unwrap()).step_by(4).enumerate() {
+    let mut rects_vec = Vec::<Rect>::with_capacity(rects_floatarr.len() / 4);
+    for (idx, i) in (0..rects_floatarr.len()).step_by(4).enumerate() {
         rects_vec.insert(
             idx,
             Rect::new_to_ndc_android(
@@ -384,9 +380,13 @@ mod tests {
             .expect("JNIEnv#new_float_array must create a Java jfloat array with given size");
 
         // Insert array elements
-        let _ = env.set_float_array_region(java_array, 0, buf);
+        let _ = env.set_float_array_region(&java_array, 0, buf).unwrap();
 
-        let res = unsafe { convert_rect_float_arr_to_vec_rect(*env, java_array, 1080., 1920.) };
+        // Not sure why, but we need to clone everything?
+        let vm = env.get_java_vm().unwrap();
+        let mut env = vm.get_env().unwrap();
+
+        let res = unsafe { convert_rect_float_arr_to_vec_rect(&mut env, java_array, 1080., 1920.) };
 
         assert_eq!(res[0], Rect::new(-0.5625, 1.0, 0.5625, 0.603125))
     }

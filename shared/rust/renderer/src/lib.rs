@@ -158,8 +158,8 @@ pub fn init_app(
     // WARNING: order matters!
     app.add_plugin(bevy::log::LogPlugin::default());
     app.add_plugin(bevy::core::TaskPoolPlugin::default());
-    app.add_plugin(bevy::core::TypeRegistrationPlugin::default());
-    app.add_plugin(bevy::core::FrameCountPlugin::default());
+    app.add_plugin(bevy::core::TypeRegistrationPlugin);
+    app.add_plugin(bevy::core::FrameCountPlugin);
     app.add_plugin(bevy::time::TimePlugin {});
     app.add_plugin(bevy::transform::TransformPlugin {});
     app.add_plugin(bevy::hierarchy::HierarchyPlugin {});
@@ -182,14 +182,14 @@ pub fn init_app(
     // #[cfg(feature = "bevy_asset")]
     app.add_plugin(bevy::asset::AssetPlugin::default());
     // #[cfg(feature = "bevy_scene")]
-    // app.add_plugin(bevy::scene::ScenePlugin::default());
+    // app.add_plugin(bevy::scene::ScenePlugin);
     // the two next are feature gated behind #[cfg(feature = "bevy_render")]
     app.add_plugin(bevy::render::RenderPlugin::default());
     app.add_plugin(bevy::render::texture::ImagePlugin::default());
     // FAIL on Android?
     // thread '<unnamed>' panicked at 'called `Option::unwrap()` on a `None` value', /home/pratn/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_render-0.10.1/src/pipelined_rendering.rs:135:84
     #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
-    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin::default());
+    app.add_plugin(bevy::render::pipelined_rendering::PipelinedRenderingPlugin);
     // DO NOT use on Android:
     // else: thread '<unnamed>' panicked at 'Bevy must be setup with the #[bevy_main] macro on Android', /home/XXX/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_winit-0.10.1/src/lib.rs:65:22
     #[cfg(feature = "with_winit")]
@@ -220,7 +220,7 @@ pub fn init_app(
     // TODO only when Debug?
     app.add_plugin(LogDiagnosticsPlugin::default());
     // TODO only when Debug?
-    app.add_plugin(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugin(FrameTimeDiagnosticsPlugin);
 
     // TODO how much msaa?
     // MSAA makes some Android devices panic, this is under investigation

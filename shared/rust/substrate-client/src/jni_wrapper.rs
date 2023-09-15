@@ -18,9 +18,9 @@ use crate::loggers;
 use crate::InterstellarIntegriteeWorkerCli;
 use crate::InterstellarIntegriteeWorkerCliTrait;
 use common::{DisplayStrippedCircuitsPackage, DisplayStrippedCircuitsPackageBuffers};
-use jni::objects::{JClass, JString};
+use jni::objects::{JByteArray, JClass, JString};
 use jni::sys::JNI_VERSION_1_6;
-use jni::sys::{jbyteArray, jint, jlong, jstring};
+use jni::sys::{jint, jlong, jstring};
 use jni::{JNIEnv, JavaVM};
 use jni_fn::jni_fn;
 use std::os::raw::c_void;
@@ -48,7 +48,7 @@ pub extern "system" fn JNI_OnLoad(vm: JavaVM, _: *mut c_void) -> jint {
 // crate."
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
-    env: JNIEnv,
+    mut env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
     // native method."
@@ -60,16 +60,16 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
-        .get_string(ws_url)
+        .get_string(&ws_url)
         .expect("Couldn't get java string[ws_url]!")
         .into();
     let node_url: String = env
-        .get_string(node_url)
+        .get_string(&node_url)
         .expect("Couldn't get java string[node_url]!")
         .into();
 
     let tx_message: String = env
-        .get_string(tx_message)
+        .get_string(&tx_message)
         .expect("Couldn't get java string[tx_message]!")
         .into();
 
@@ -89,7 +89,7 @@ pub fn ExtrinsicGarbleAndStripDisplayCircuitsPackage(
     output.into_raw()
 }
 
-fn convert_jbytearray_to_vec(env: JNIEnv, byte_arr: jbyteArray) -> Vec<u8> {
+fn convert_jbytearray_to_vec(byte_arr: JByteArray, env: JNIEnv) -> Vec<u8> {
     // FAIL: works on desktop but crash on Android "panicked at 'called `Result::unwrap()` on an `Err` value: TryFromIntError(())', substrate-client/src/jni_wrapper.rs:104:18"
     // let byte_arr_autoarr = env
     //     .get_byte_array_elements(byte_arr, ReleaseMode::NoCopyBack)
@@ -131,27 +131,27 @@ fn convert_jbytearray_to_vec(env: JNIEnv, byte_arr: jbyteArray) -> Vec<u8> {
 // crate."
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub fn ExtrinsicRegisterMobile(
-    env: JNIEnv,
+    mut env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
     // native method."
     _class: JClass,
     ws_url: JString,
     node_url: JString,
-    pub_key: jbyteArray,
+    pub_key: JByteArray,
 ) -> jstring {
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
-        .get_string(ws_url)
+        .get_string(&ws_url)
         .expect("Couldn't get java string[ws_url]!")
         .into();
     let node_url: String = env
-        .get_string(node_url)
+        .get_string(&node_url)
         .expect("Couldn't get java string[node_url]!")
         .into();
 
-    let pub_key_vec = convert_jbytearray_to_vec(env, pub_key);
+    let pub_key_vec = unsafe { convert_jbytearray_to_vec(pub_key, env.unsafe_clone()) };
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli.extrinsic_register_mobile(pub_key_vec);
@@ -174,7 +174,7 @@ pub fn ExtrinsicRegisterMobile(
 ///
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub fn GetCircuits(
-    env: JNIEnv,
+    mut env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
     // native method."
@@ -186,16 +186,16 @@ pub fn GetCircuits(
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
-        .get_string(ws_url)
+        .get_string(&ws_url)
         .expect("Couldn't get java string[ws_url]!")
         .into();
     let node_url: String = env
-        .get_string(node_url)
+        .get_string(&node_url)
         .expect("Couldn't get java string[node_url]!")
         .into();
 
     let ipfs_addr: String = env
-        .get_string(ipfs_addr)
+        .get_string(&ipfs_addr)
         .expect("Couldn't get java string[ipfs_addr]!")
         .into();
 
@@ -298,7 +298,7 @@ pub fn GetTxIdPtrFromPtr(_env: JNIEnv, _class: JClass, circuits_package_ptr: jlo
 // crate."
 #[jni_fn("gg.interstellar.wallet.RustWrapper")]
 pub fn ExtrinsicCheckInput(
-    env: JNIEnv,
+    mut env: JNIEnv,
     // "This is the class that owns our static method. It's not going to be used,
     // but still must be present to match the expected signature of a static
     // native method."
@@ -306,7 +306,7 @@ pub fn ExtrinsicCheckInput(
     ws_url: JString,
     node_url: JString,
     tx_id_ptr: jlong,
-    inputs: jbyteArray,
+    inputs: JByteArray,
 ) -> jstring {
     // USE a Box, that way the pointer is properly cleaned up when exiting this function
     let package: Box<DisplayStrippedCircuitsPackage> =
@@ -315,15 +315,15 @@ pub fn ExtrinsicCheckInput(
     // "First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works."
     let ws_url: String = env
-        .get_string(ws_url)
+        .get_string(&ws_url)
         .expect("Couldn't get java string[ws_url]!")
         .into();
     let node_url: String = env
-        .get_string(node_url)
+        .get_string(&node_url)
         .expect("Couldn't get java string[node_url]!")
         .into();
 
-    let inputs_vec = convert_jbytearray_to_vec(env, inputs);
+    let inputs_vec = unsafe { convert_jbytearray_to_vec(inputs, env.unsafe_clone()) };
 
     let worker_cli = InterstellarIntegriteeWorkerCli::new(&ws_url, &node_url);
     worker_cli
@@ -380,8 +380,6 @@ pub fn attach_current_thread() -> jni::AttachGuard<'static> {
 #[cfg(target_os = "linux")] // we do not need jni features = ["invocation"] for Android
 #[test]
 pub fn test_convert_jbytearray_to_vec() {
-    use jni::sys::jbyte;
-
     let env = attach_current_thread();
 
     //     result = {Rect[1]@20529}
@@ -391,15 +389,14 @@ pub fn test_convert_jbytearray_to_vec() {
     //  1 = {Float@20690} 0.0
     //  2 = {Float@20691} 1080.0
     //  3 = {Float@20692} 381.0
-    let buf: &[jbyte] = &[0 as jbyte, 42 as jbyte, 12 as jbyte, 42 as jbyte];
-    let java_array = env
-        .new_byte_array(4)
-        .expect("JNIEnv#new_byte_array must create a Java jbyte array with given size");
+    let buf = vec![0, 42, 12, 42];
+    let java_byte_array = env.byte_array_from_slice(&buf).unwrap();
 
-    // Insert array elements
-    let _ = env.set_byte_array_region(java_array, 0, buf);
+    // Not sure why, but we need to clone everything?
+    let vm = env.get_java_vm().unwrap();
+    let env = vm.get_env().unwrap();
 
-    let res = convert_jbytearray_to_vec(*env, java_array);
+    let res = convert_jbytearray_to_vec(java_byte_array, env);
 
     assert_eq!(res, vec![0, 42, 12, 42])
 }
