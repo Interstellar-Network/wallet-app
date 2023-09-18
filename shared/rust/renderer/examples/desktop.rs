@@ -68,20 +68,6 @@ fn main() {
         display_pinpad_buf,
     );
 
-    // MUST be after "renderer::init_app" b/c it adds DefaultPlugins
-    // ELSE we FAIL thread 'main' panicked at 'Error adding plugin bevy_window::WindowPlugin in group bevy_internal::default_plugins::DefaultPlugins: plugin was already added in application', /home/xxx/.cargo/registry/src/github.com-1ecc6299db9ec823/bevy_app-0.9.1/src/plugin_group.rs:183:25
-    // app.add_plugin(WindowPlugin {
-    //     window: WindowDescriptor {
-    //         title: "renderer demo".to_string(),
-    //         width: 1920. / 2.,
-    //         height: 1080. / 2.,
-    //         // TODO?
-    //         // present_mode: PresentMode::AutoVsync,
-    //         ..default()
-    //     },
-    //     ..default()
-    // });
-
     // add "dev/debug only systems"
     // eg we DO NOT need movement in the apps, but is useful to dev/debug
     app.add_system(bevy::window::close_on_esc);

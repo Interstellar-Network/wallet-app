@@ -9,6 +9,24 @@ jobs:
   rust_lint:
     runs-on: ubuntu-latest
     steps:
+      # Sporadic error: "No space left on device"
+      # Sometimes work depending on version, OS, etc.
+      - name: Free Disk Space (Ubuntu)
+        # FIX https://github.com/jlumbroso/free-disk-space/issues/9
+        # https://github.com/jlumbroso/free-disk-space/pull/11
+        uses: hirnidrin/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       # install build dependencies
       # MUST match the same step in Dockerfile
       # - name: Install dependencies
@@ -24,8 +42,6 @@ jobs:
           # ignore the nightly, and use stable for tests and linters
           use_toolchain_toml: false
           toolchain_components: "rustfmt,clippy"
-
-      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
       - uses: Interstellar-Network/gh-actions/rust-lint@v3-dev
@@ -37,6 +53,24 @@ jobs:
   rust_test:
     runs-on: ubuntu-latest
     steps:
+      # Sporadic error: "No space left on device"
+      # Sometimes work depending on version, OS, etc.
+      - name: Free Disk Space (Ubuntu)
+        # FIX https://github.com/jlumbroso/free-disk-space/issues/9
+        # https://github.com/jlumbroso/free-disk-space/pull/11
+        uses: hirnidrin/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       # install build dependencies
       # MUST match the same step in Dockerfile
       # - name: Install dependencies
@@ -52,8 +86,6 @@ jobs:
           # ignore the nightly, and use stable for tests and linters
           use_toolchain_toml: false
           toolchain_components: "rustfmt,clippy"
-
-      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
 
@@ -145,7 +177,9 @@ jobs:
       # Sporadic error: "No space left on device"
       # Sometimes work depending on version, OS, etc.
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
+        # FIX https://github.com/jlumbroso/free-disk-space/issues/9
+        # https://github.com/jlumbroso/free-disk-space/pull/11
+        uses: hirnidrin/free-disk-space@main
         with:
           # this might remove tools that are actually needed,
           # if set to "true" but frees about 6 GB
@@ -178,8 +212,6 @@ jobs:
           toolchain_toml_path: ${{ github.workspace }}/rust-toolchain.toml
           toolchain_components: ""
           rust-cache-key: "${{ matrix.android-target.cargo_target }}"
-
-      - uses: Interstellar-Network/gh-actions/install-protoc@v3-dev
 
       ##########################################################################
       # cf https://github.com/android-actions/setup-android

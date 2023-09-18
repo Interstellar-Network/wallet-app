@@ -17,14 +17,17 @@ crate-type = ["cdylib", "staticlib", "lib"]
 log = "0.4"
 # NOTE: this is a dep of "android_logger" so no point in putting it behind a "cfg"
 env_logger = "0.10"
-ipfs-api-backend-hyper = { version = "0.6", features = [ "with-send-sync" , "with-builder" ] }
+ipfs-api-backend-hyper = { version = "0.6", features = [
+    "with-send-sync",
+    "with-builder",
+] }
 futures-util = "0.3"
 tokio = { version = "1.20", features = ["rt-multi-thread"] }
-clap = { version = "3.1.6", features = ["derive"] }
+clap = { version = "3", features = ["derive"] }
 url = "2.3.1"
 
 # only for Android
-jni = { version = "0.20", optional = true }
+jni = { version = "0.21", optional = true }
 jni_fn = { version = "0.1", optional = true }
 bytemuck = "1.11.0"
 
@@ -47,14 +50,19 @@ sp-keyring = { default-features = false, git = "https://github.com/paritytech/su
 # wabt = "0.10.0"
 
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
-sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
+sp-core = { default-features = false, features = [
+    "full_crypto",
+], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.39" }
 
 # local
 common = { path = "../common" }
-# https://github.com/Interstellar-Network/integritee-worker/commit/be35a1cb650c0584fcecaaec558a51d415ca09a2
-integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", rev = "be35a1cb650c0584fcecaaec558a51d415ca09a2", features = ["sidechain"] }
+integritee-cli = { git = "https://github.com/Interstellar-Network/integritee-worker.git", rev = "57f83fed041c7c9f56eae60af01499ce3132aaf9", features = [
+    "sidechain",
+] }
 # FIX: force correct features for this dep
-sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["crypto_direct"] }
+sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = [
+    "crypto_direct",
+] }
 
 # TEMP
 # else we hit: https://github.com/bytecodealliance/wasmtime/blob/v1.0.2/crates/runtime/src/traphandlers/unix.rs#L232
@@ -62,12 +70,12 @@ sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teacla
 # wasmtime-runtime = "5.0.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.12"
+android_logger = "0.13"
 
 [dev-dependencies]
 # features "invocation" needed for tests(to create a JVM)
-jni = { version = "0.20", features = ["invocation"] }
-serial_test = "1"
+jni = { version = "0.21", features = ["invocation"] }
+serial_test = "2"
 
 [features]
 default = ["std"]

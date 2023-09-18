@@ -46,15 +46,13 @@ impl EvaluateWrapper {
         let evaluator_inputs = lib_garble_rs::prepare_evaluator_inputs(&garbled).unwrap();
 
         let width = garbled
-            .config
-            .display_config
+            .get_display_config()
             .unwrap()
             .width
             .try_into()
             .unwrap();
         let height = garbled
-            .config
-            .display_config
+            .get_display_config()
             .unwrap()
             .height
             .try_into()
