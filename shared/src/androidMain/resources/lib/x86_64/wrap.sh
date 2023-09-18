@@ -20,4 +20,4 @@ fi
 
 # "WGPU_BACKEND=vulkan" compile and runs but is broken; display is completely borked
 # MAYBE related to width/height inversion; cf `WindowResolution::new`; OR scale_factor?
-WGPU_BACKEND=gl RUST_LOG=debug RUST_BACKTRACE=full exec $cmd
+WGPU_BACKEND=vulkan RUST_LOG=debug RUST_BACKTRACE=full exec $cmd

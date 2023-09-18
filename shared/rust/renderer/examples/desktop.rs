@@ -70,7 +70,7 @@ fn main() {
 
     // add "dev/debug only systems"
     // eg we DO NOT need movement in the apps, but is useful to dev/debug
-    app.add_system(bevy::window::close_on_esc);
+    app.add_systems(bevy::app::Update, bevy::window::close_on_esc);
     // app.add_system(camera_movement);
     // app.add_system(light_movement);
 

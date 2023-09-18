@@ -22,7 +22,7 @@ use crate::TEXTURE_PIXEL_NB_BYTES;
 
 /// Init the Camera, with a 2D projection
 // NOTE: not sure how to have a "add_startup_system" depends on another, so this is called FROM setup_main, not via "add_startup_system"
-pub fn setup_camera(mut commands: Commands) {
+pub(super) fn setup_camera(mut commands: Commands) {
     // TODO TOREMOVE
     // // camera
     // let mut camera = OrthographicCameraBundle::new_2d();
@@ -39,10 +39,9 @@ pub fn setup_camera(mut commands: Commands) {
     // TODO proper values
     commands.spawn(Camera2dBundle {
         projection: OrthographicProjection {
-            viewport_origin: Vec2::new(0.5, 0.5),
-            // scaling_mode: ScalingMode::None,
+            // Defaults to `0.0`
+            near: -1.,
             scaling_mode: ScalingMode::FixedVertical(2.0),
-            // depth_calculation: DepthCalculation::ZDifference,
             ..default()
         },
         ..default()
@@ -68,7 +67,7 @@ pub fn setup_camera(mut commands: Commands) {
 /// @param col_stride: spacing b/w columns
 /// @param row_offset: topmost column
 /// @param row_stride: spacing b/w rows
-pub fn setup_pinpad_textures(
+pub(super) fn setup_pinpad_textures(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     mut texture_atlas: ResMut<Assets<TextureAtlas>>,
@@ -141,7 +140,7 @@ pub fn setup_pinpad_textures(
 }
 
 /// Will draw the message texture at the given RectMessage
-pub fn setup_message_texture(
+pub(super) fn setup_message_texture(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     rect_message: Res<crate::RectMessage>,
@@ -214,7 +213,7 @@ pub fn setup_message_texture(
 // see https://github.com/bevyengine/bevy/blob/main/crates/bevy_sprite/src/render/mod.rs for where SPRITE_SHADER_HANDLE is used
 // cf colored_sprite_pipeline.rs
 // NOTE: right now we use a DEFINE(let in wgsl) so both message and pinpad sprite WILL have the same text color...
-pub fn setup_transparent_shader_for_sprites(
+pub(super) fn setup_transparent_shader_for_sprites(
     mut shaders: ResMut<Assets<Shader>>,
     // mut pipeline_cache: ResMut<bevy::render::render_resource::PipelineCache>,
     // mut pipelines: ResMut<
@@ -236,7 +235,7 @@ pub fn setup_transparent_shader_for_sprites(
 
     let shader_str = include_str!("../data/transparent_sprite.wgsl").to_string();
 
-    let new_sprite_shader = Shader::from_wgsl(shader_str);
+    let new_sprite_shader = Shader::from_wgsl(shader_str, file!());
     shaders.set_untracked(bevy::sprite::SPRITE_SHADER_HANDLE, new_sprite_shader);
 
     // TODO?
