@@ -45,6 +45,10 @@ impl EvaluateWrapper {
             lib_garble_rs::deserialize_for_evaluator(&pgarbled_buffer).unwrap();
         let evaluator_inputs = lib_garble_rs::prepare_evaluator_inputs(&garbled).unwrap();
 
+        let eval_cache = EvalCache::new(&garbled, &encoded_garbler_inputs);
+
+        println!("Circuit : {:#?}", garbled);
+
         let width = garbled
             .get_display_config()
             .unwrap()
@@ -67,7 +71,7 @@ impl EvaluateWrapper {
             evaluator_inputs,
             width,
             height,
-            eval_cache: EvalCache::new(),
+            eval_cache,
         }
     }
 

@@ -82,8 +82,11 @@ teerex-primitives = { git = "https://github.com/Interstellar-Network/integritee-
 ################################################################################
 # local dev
 
-# [patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
-# lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
+[patch."https://github.com/Interstellar-Network/lib-garble-rs.git"]
+lib-garble-rs = { path = "../lib-garble-rs/lib-garble-rs/" }
+
+[patch."https://github.com/Interstellar-Network/lib_circuits.git"]
+circuit-types-rs = { path = "../lib_circuits/circuit-types-rs" }
 
 # [patch."https://github.com/Interstellar-Network/integritee-worker.git"]
 # integritee-cli = { path = "../integritee-worker/cli" }
