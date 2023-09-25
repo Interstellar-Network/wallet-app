@@ -33,11 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat.recreate
-import androidx.core.app.ActivityCompat.startActivity
 import gg.interstellar.wallet.WGPUSurfaceView
 import gg.interstellar.wallet.android.R
-import gg.interstellar.wallet.android.ui.components.DisplayInterstellar
+import gg.interstellar.wallet.android.ui.components.HeaderWithBrand
 import gg.interstellar.wallet.android.ui.theme.InterstellarWalletTheme
 import androidx.compose.material.Icon as MaterialIcon
 
@@ -96,7 +94,7 @@ fun TxPinpadScreen(callbackTxDone: () -> Unit) {
 
     InterstellarWalletTheme {
         Column {
-            DisplayInterstellar()
+            HeaderWithBrand()
 
             // we need to store a ref to colors b/c AndroidView below is not a Composable
             val colors = MaterialTheme.colors

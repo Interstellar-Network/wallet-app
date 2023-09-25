@@ -1,25 +1,40 @@
 package gg.interstellar.wallet.android.ui.components
 
-import android.icu.text.DecimalFormat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,18 +44,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,7 +62,7 @@ import kotlin.math.abs
 
 
 @Composable
-fun DisplayInterstellar() {
+private fun DisplayInterstellar() {
 
     val myId = "inlineContent"
     val intLogoText = buildAnnotatedString {
@@ -70,7 +82,7 @@ fun DisplayInterstellar() {
                 Placeholder(
                     width = 16.sp,
                     height = 16.sp,
-                    placeholderVerticalAlign  = PlaceholderVerticalAlign.TextCenter
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
                 )
             ) {
                 // This Icon will fill maximum size, which is specified by the [Placeholder]
@@ -86,9 +98,10 @@ fun DisplayInterstellar() {
             }
         )
     )
-    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-        .fillMaxWidth()
-       .fillMaxHeight(0.05f)
+    Row(
+        horizontalArrangement = Arrangement.Center, modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.05f)
     ) {
         Text(
             intLogoText,
@@ -105,64 +118,72 @@ fun DisplayInterstellar() {
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun ScreenTopButton( onClickGo: ()->Unit,
-                    tittle:String
-) {
-        Box(
-            modifier = Modifier
-                .shadow(elevation = 50.dp, shape = CircleShape, clip = false)
-        ) {
-            Surface(
-                modifier = Modifier
-                    .sizeIn(280.dp, 120.dp, 280.dp, 120.dp)
-                    .padding(25.dp),
-                shape = CircleShape,
-                elevation = 50.dp,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Brush.linearGradient(
-                                0.3f to MaterialTheme.colors.secondary,
-                                1f to MaterialTheme.colors.primary,
-                                start = Offset(0f, 0f),
-                                end = Offset(310f, 310f)
-                            )
-                        )
-                ) {
-                    Button(onClick =onClickGo,
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent
-                        ),
-                        border = BorderStroke(0.dp,Color.Transparent),
-                        elevation = ButtonDefaults.elevation(0.dp,15.dp,0.dp)
-                    ){
-                        Text(
-                            tittle,
-                            color= MaterialTheme.colors.onSurface,
-                            fontSize = 35.sp,
-                        )
-                    }
-                }
-            }
-        }
+fun DisplayInterstellarPreview() {
+    DisplayInterstellar()
+}
+
+@Composable
+fun HeaderWithBrand() {
+    Spacer(Modifier.height(30.dp))
+    DisplayInterstellar()
+    Spacer(Modifier.height(10.dp))
 }
 
 //TODO make it cleaner
 @Composable
 fun ScreenTopBox(
-        modifier:Modifier,
-        tittle:String
+    modifier: Modifier,
+    tittle: String
 ) {
     Box(
-            modifier.shadow(elevation = 0.dp, shape = CircleShape, clip = false)
+        modifier.shadow(elevation = 0.dp, shape = CircleShape, clip = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .sizeIn(310.dp, 140.dp, 320.dp, 140.dp)
+                .padding(25.dp),
+            shape = CircleShape,
+            elevation = 20.dp,
         ) {
+            Box(
+                modifier
+                    .background(
+                        Brush.linearGradient(
+                            0.3f to MaterialTheme.colors.secondary,
+                            1f to MaterialTheme.colors.primary,
+                            start = Offset(0f, 0f),
+                            end = Offset(310f, 310f)
+                        )
+                    )
+            ) {
+                Text(
+                    tittle,
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    fontSize = 35.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ScreenTopBoxWithCircleLabel(
+    modifier: Modifier,
+    title: String,
+    number: Float
+) {
+    Box(
+        modifier
+            .shadow(elevation = 0.dp, shape = CircleShape, clip = false)
+    ) {
+        Box(modifier = Modifier.padding(0.dp, 10.dp))
+        {
             Surface(
                 modifier = Modifier
-                    .sizeIn(310.dp, 140.dp, 320.dp, 140.dp)
+                    .sizeIn(310.dp, 140.dp, 310.dp, 140.dp)
                     .padding(25.dp),
                 shape = CircleShape,
                 elevation = 20.dp,
@@ -178,115 +199,26 @@ fun ScreenTopBox(
                             )
                         )
                 ) {
-                        Text(
-                            tittle,
-                            modifier = Modifier
-                                .align(Alignment.Center),
-                            fontSize = 35.sp,
-                        )
-                    }
-            }
-     }
-}
-
-@Composable
-fun ScreenTopBoxWithCircleLabel(
-    modifier:Modifier,
-    tittle:String,
-    number:Float
-) {
-    Box(
-        modifier
-            .shadow(elevation = 0.dp, shape = CircleShape, clip = false)
-    ) {
-                Box  (modifier = Modifier.padding(0.dp,10.dp))
-                {
-                    Surface(
+                    Text(
+                        title,
                         modifier = Modifier
-                            .sizeIn(310.dp, 140.dp, 310.dp, 140.dp)
-                            .padding(25.dp),
-                        shape = CircleShape,
-                        elevation = 20.dp,
-                    ) {
-                        Box(
-                            modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        0.3f to MaterialTheme.colors.secondary,
-                                        1f to MaterialTheme.colors.primary,
-                                        start = Offset(0f, 0f),
-                                        end = Offset(310f, 310f)
-                                    )
-                                )
-                        ) {
-                            Text(
-                                tittle,
-                                modifier = Modifier
-                                    .align(Alignment.Center),
-                                fontSize = 35.sp,
-                            )
-                        }
-                    }
-                CircleLabelWithIconIn(
-                    modifier = Modifier
-                        //.align(Alignment.TopCenter),
-                        .offset(115.dp,13.dp),//TODO use alignment line
-                    "" + formatChange(number)+ "% ",
-                    if (number>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                    if (number>0)  Color(0xff12c785) else Color(0xffe93943)
-                )
-
+                            .align(Alignment.Center),
+                        fontSize = 35.sp,
+                    )
+                }
             }
+            SmallCoinChangeLabel(
+                //TODO use alignment line
+                modifier = Modifier
+                    //.align(Alignment.TopCenter),
+                    .offset(115.dp, 13.dp),
+                number,
+            )
+
         }
+    }
 }
 
-
-
-/**
- * A row representing the basic information of an Currency for Overview Market
- * and sendCurrencies screens
- */
-
-@Composable
-fun CurrencyRow(
-    modifier: Modifier = Modifier,
-    name: String,
-    coin: String,
-    pubKey: String,
-    amount: Float,
-    amountFiat: Float,
-    change:Float,
-    usd:Float,
-    changeOn:Boolean,
-    largeRow: Boolean, // doubleColumn
-    inputTextView: MutableState<String>,
-    currencyInFiat: MutableState<String>,
-    useInput: Boolean,
-    inputDone:MutableState<Boolean>,
-    single: Boolean,
-    fiat: Boolean,
-    color: Color
-) {
-    BaseRow(
-        modifier = modifier,
-        color = color,
-        title = name,
-        symbol  = coin,
-        subtitle = "address:$pubKey",
-        amount = amount,
-        amountFiat = amountFiat,
-        change = change,
-        usd =usd,
-        changeOn=changeOn,
-        largeRow  = largeRow,
-        single = single,
-        inputTextView = inputTextView,
-        currencyInFiat =currencyInFiat,
-        useInput = useInput,
-        inputDone = inputDone,
-        fiat = fiat,
-    )
-}
 
 /**
  * A row representing the basic information of a currency
@@ -297,205 +229,132 @@ val HEIGHT_REF = 100.dp
 val PADDING_V = 5.dp
 val PADDING_H = 18.dp
 val PADDING_CIRCLE = PADDING_V
-@Composable
-private fun BaseRow(
-    modifier: Modifier = Modifier,
-    color: Color,
-    title: String,
-    symbol: String,
-    subtitle: String,
-    amount: Float,
-    amountFiat: Float,
-    change: Float,
-    usd:Float,
-    changeOn: Boolean,
-    largeRow: Boolean,
-    single:Boolean,
-    inputTextView: MutableState<String>,
-    currencyInFiat: MutableState<String>,
-    useInput:Boolean,
-    inputDone:MutableState<Boolean>,
-    fiat: Boolean
-) {
-    val dollarSign = if (fiat) "$" else ""
-    val formattedAmount = formatAmount(amount)
-    val formattedAmountFiat = formatAmount(amount*usd)
-    val formattedChange = formatChange(change)
-
-    if (
-        useInput &&
-        inputTextView.value != "_" &&
-        inputTextView.value.isNotEmpty() &&
-        inputTextView.value.isNotBlank() &&
-        symbol != "select" &&
-        !inputDone.value
-    ) {// otherwise it crash
-        currencyInFiat.value = formatAmount(inputTextView.value.toFloat() * usd)
-    }
-    Row(
-        modifier = modifier
-            .height(
-                if (largeRow && single )
-                    HEIGHT_REF - PADDING_H + PADDING_V
-                else if (largeRow) HEIGHT_REF + PADDING_H
-                else HEIGHT_REF
-            )
-            //.padding(PADDING_ROW)
-
-            .clearAndSetSemantics {
-                contentDescription = // TODO update
-                    "$title  ending in ${subtitle.takeLast(4)}, current balance $dollarSign$formattedAmount"
-            },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = modifier
-        ){
-            Box( modifier =
-                if (largeRow && single )
-                    modifier.padding(PADDING_H, 0.dp)
-                else if (largeRow) modifier.padding(PADDING_H, PADDING_V)
-                else modifier.padding(PADDING_CIRCLE)
-                // enlarge the box to put image,labels on border
-                // no padding here for single row
-                // padding modifier is injected in row creation of SingleStatement
-
-            ) {// should use box in a box to display text label on border
-                if (largeRow) {
-                    LargeRow(
-                        //modifier,
-                        if (symbol == "select") "Tap Currency..."
-                            else formattedAmount,
-                        if (symbol == "select") "" else symbol,
-                        color,
-                        inputTextView,
-                        useInput,
-                        inputDone
-                    )
-                }
-                else // Circle Row in columns
-                   Box { CircleImage(modifier =Modifier,symbol,90.dp,90.dp) }
-            }
-            if (largeRow)
-                if (title!="select") CircleImage(
-                    modifier =Modifier.align(Alignment.CenterEnd),
-                    symbol,
-                    35.dp,35.dp
-                )
-            if (fiat) RoundedLabel(
-                modifier =Modifier.align(Alignment.BottomCenter),
-                if (useInput) " " +dollarSign + currencyInFiat.value +" "
-                else " $dollarSign$formattedAmountFiat ",
-
-            )
-            if (changeOn) CircleLabelWithIconIn(
-                modifier = Modifier.align(Alignment.TopCenter),
-                "$formattedChange% ",
-                if (change>0)  Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                if (change>0)  Color(0xff12c785) else Color(0xffe93943)
-            )
-        }
-    }
-    Spacer(Modifier.height(if (single) 0.dp else if (largeRow) 15.dp else 25.dp))
-}
 
 @Composable
-fun AddressRow(
+fun SmallCircleRow(
     modifier: Modifier = Modifier,
-    name: String,
-    pubKey: String,
-    largeRow: Boolean,
-    single: Boolean,
-    currencyInFiat: MutableState<String>,
-    useInput: Boolean,
-    color:Color
+    drawableId: Int,
+    label: String,
+    change: Float?,
 ) {
-    SimpleBaseRow(
-        modifier = modifier,
-        title = name,
-        largeRow  = largeRow,
-        single =single,
-        currencyInFiat = currencyInFiat,
-        useInput = useInput,
-        color = color
-    )
-}
-
-@Composable
-private fun SimpleBaseRow(
-    modifier: Modifier = Modifier,
-    color: Color,
-    title: String,
-    largeRow: Boolean,
-    single: Boolean,
-    currencyInFiat: MutableState<String>,
-    useInput: Boolean
-) {
-    val noInput = remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .height(HEIGHT_REF - 3.5.dp)
-            .clearAndSetSemantics {
-                contentDescription =
-                    "$title add other info"
-            },
+        // TODO? re-add?
+//            .clearAndSetSemantics {
+//                contentDescription =
+//                    "$title add other info"
+//            }
+        ,
         verticalAlignment = Alignment.CenterVertically
 
     ) {
         Box {
             Box(
                 modifier =
-                if (largeRow && single)
-                    modifier.padding(PADDING_H, PADDING_V,)
-                else modifier.padding(PADDING_CIRCLE)
-                    //.padding(PADDING_FOR_SIMPLE_ROW), // enlarge the box to put image,labels on border
+                modifier.padding(PADDING_CIRCLE)
+                //.padding(PADDING_FOR_SIMPLE_ROW), // enlarge the box to put image,labels on border
             ) {// use box in a box to display text label on border
-                if (largeRow) {
-                    LargeRow(
-                        //modifier,
-                        if (title=="select") "Tap Contact...."
-                        else title.uppercase(),
-                        "", //no symbol
-                        color,
-                        currencyInFiat, // no textview to update
-                        false,
-                        noInput,
-                    )
-                } else {// Row of Circles in two columns
-                    CircleImage(modifier = Modifier,//.align(Alignment.Center),
-                        title, 90.dp, 90.dp)
-                }
+                CircleImage(
+                    modifier = Modifier,
+                    drawableId = drawableId, 90.dp, 90.dp
+                )
 
                 //Row{Spacer(modifier =Modifier.height(100.dp))} TEST to enlarge
             }
-            if (largeRow) {
-                if (title!="select") CircleImage(
-                    modifier = Modifier.align(Alignment.CenterEnd), title,
+
+            change?.let { change ->
+                SmallCoinChangeLabel(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    change,
+                )
+            }
+
+            RoundedLabel(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                label
+            )
+
+        }
+    }
+    Spacer(Modifier.height(0.dp))
+}
+
+/**
+ *
+ * @param validatedFloatAmount: when NOT null it be an editable TextInput
+ */
+@Composable
+fun LargeTextOnlyRow(
+    color: Color,
+    drawableId: Int? = null,
+    text: String,
+    bottomLabel: String? = null,
+    change: Float? = null,
+    validatedFloatAmount: MutableState<Float?>?,
+    onClick: (() -> Unit)? = null,
+) {
+    Row(
+        modifier = if (onClick != null) (Modifier.clickable(onClick = onClick)) else Modifier,
+//        modifier = modifier?.
+//            .height(HEIGHT_REF - 3.5.dp)
+        // TODO? re-add?
+//            .clearAndSetSemantics {
+//                contentDescription =
+//                    "$title add other info"
+//            }
+//        ,
+        verticalAlignment = Alignment.CenterVertically
+
+    ) {
+        Box {
+            Box(
+//                modifier = modifier.padding(PADDING_H, PADDING_V)
+                //.padding(PADDING_FOR_SIMPLE_ROW), // enlarge the box to put image,labels on border
+            ) {// use box in a box to display text label on border
+                LargeTextWidget(
+                    //modifier,
+                    placeholder = text,
+                    color,
+                    validatedFloatAmount = validatedFloatAmount,
+                )
+
+                //Row{Spacer(modifier =Modifier.height(100.dp))} TEST to enlarge
+            }
+
+            drawableId?.let { drawableId ->
+                CircleImage(
+                    modifier = Modifier.align(Alignment.CenterEnd), drawableId = drawableId,
                     width = 35.dp, height = 35.dp
                 )
-                if (useInput) RoundedLabel(modifier= Modifier.align(Alignment.BottomCenter),
-                    label = " "+ currencyInFiat.value +" USD ")
+            }
 
-            } else {
+            bottomLabel?.let {
                 RoundedLabel(
                     modifier = Modifier.align(Alignment.BottomCenter),
-                    " "+title.uppercase()+ " "
+                    label = bottomLabel
                 )
+            }
+
+            change?.let {
+                SmallCoinChangeLabel(modifier = Modifier.align(Alignment.TopCenter), number = it)
             }
         }
     }
-    Spacer(Modifier.height(if (single) 0.dp else if (largeRow) 15.dp else 25.dp))
+    Spacer(Modifier.height(15.dp))
 }
 
+/**
+ * row variant: (almost) full width; no label, no widget etc
+ */
 @Composable
-fun LargeRow(
-        string:String, symbol:String,color: Color,
-        inputTextView: MutableState<String>,
-        useInput:Boolean,
-        inputDone:MutableState<Boolean>
- ) {
-    if ((inputTextView.value =="_") && (string != "select") &&(useInput))
-        inputTextView.value = string
+private fun LargeTextWidget(
+    placeholder: String, color: Color,
+    validatedFloatAmount: MutableState<Float?>?,
+) {
+    // TODO? re-add?
+//    if ((inputTextView.value =="_") && (string != "select") &&(useInput))
+//        inputTextView.value = string
     Box(
         modifier = Modifier
             .shadow(elevation = 20.dp, shape = CircleShape, clip = false)
@@ -510,142 +369,130 @@ fun LargeRow(
                 )
             )
     ) {
-        if (useInput) { // trigger usage of inputTextView for keypad
-            /**Text(
-                inputTextView.value + " " + symbol,
-                modifier = Modifier.align(Alignment.Center),
-                color = if (MaterialTheme.colors.isLight) Color.White
-                else Color.Black
-            )*/
+        if (validatedFloatAmount != null) {
             // with android keypad
-            InputTextNumber( modifier = Modifier.align(Alignment.Center)
-                ,inputTextView = inputTextView, inputDone =inputDone,string = symbol )
-
-        } else
+            InputTextNumber(
+                placeholder = "",
+                validatedFloatAmount = validatedFloatAmount,
+            )
+        } else {
             Text(
-                "$string $symbol",
+                placeholder,
                 modifier = Modifier.align(Alignment.Center),
                 color = MaterialTheme.colors.onSurface,
-                style = typography.h5)
+                style = typography.h5
+            )
+        }
+    }
+}
+
+/**
+ * OutlinedTextField with keyboard input for a FLOAT
+ */
+@Composable
+fun InputTextNumber(
+    placeholder: String,
+    validatedFloatAmount: MutableState<Float?>,
+) {
+    val focusManager = LocalFocusManager.current
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxHeight()
+    ) {
+        OutlinedTextField(
+            value = if (validatedFloatAmount.value != null) {
+                validatedFloatAmount.value.toString()
+            } else {
+                ""
+            },
+            singleLine = true,
+            textStyle = typography.h5.copy(textAlign = TextAlign.Center),
+            modifier = Modifier,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                textColor = MaterialTheme.colors.onPrimary,
+                disabledTextColor = MaterialTheme.colors.onSurface,
+                backgroundColor = Color.Transparent,
+                disabledBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                cursorColor = MaterialTheme.colors.onPrimary,
+                trailingIconColor = MaterialTheme.colors.onPrimary,
+            ),
+            placeholder = { Text(placeholder) },
+            // TODO only allow correctly formatted Floats!
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            onValueChange = { textInput ->
+                val parsedFloat = textInput.toFloatOrNull()
+                if (parsedFloat != null) {
+                    validatedFloatAmount.value = parsedFloat
+                }
+            },
+            keyboardActions = KeyboardActions(onDone = {
+                focusManager.clearFocus()
+            }),
+        )
     }
 }
 
 @Composable
-fun InputTextNumber(
-        modifier:Modifier,
-        inputTextView: MutableState<String>,
-        inputDone:MutableState<Boolean>,
-        string:String,
-
-) {
-    val change: (String)->Unit= {it->inputTextView.value = it}
-    val focusManager = LocalFocusManager.current
-
-    OutlinedTextField(
-        value = inputTextView.value,
-        singleLine = true,
-        enabled = !inputDone.value,
-        modifier = modifier,
-        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center,
-        fontSize = 26.sp, ), //TODO use style = typography.h5
-
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            textColor= MaterialTheme.colors.onPrimary,
-            disabledTextColor = MaterialTheme.colors.onSurface,
-            backgroundColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent,
-            cursorColor = MaterialTheme.colors.onPrimary,
-            trailingIconColor = MaterialTheme.colors.onPrimary,
-
-        ),
-        //label= { Text("amount in $string") },
-        placeholder ={ Text(text = "amount in $string")},
-
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Done
-        ),
-        onValueChange = change,
-
-        keyboardActions = KeyboardActions(onDone = {
-            inputTextView.value += " $string"
-            inputDone.value = true
-            focusManager.clearFocus()
-        }),
-
-    )
-
-}
-
-
-
-/**
- * A vertical colored line that will be used in a [BaseRow] to differentiate pubKey.
- */
-@Composable
-private fun PubKeyIndicator(color: Color, modifier: Modifier = Modifier) {
-    Spacer(
-        modifier
-            .size(4.dp, 36.dp)
-            .background(color = color)
-    )
-}
-@Composable
 fun CircleImage(
-    modifier:Modifier=Modifier,
-    string: String,
-    width:Dp,height:Dp)
- {
-     val context = LocalContext.current
-     val logoName = "ic_" + string.lowercase() // crash depend on those val position
-
-     Surface(
-         modifier
-             .sizeIn(width, height, width, height)
-             .aspectRatio(1f),
-         shape = CircleShape,
-         elevation = 20.dp
-     ) {
-         val drawableId = remember(logoName) {
-             context.resources.getIdentifier(
-                 logoName,
-                 "drawable",
-                 context.packageName
-             )
-         }
-         Image(
-             painterResource(id = drawableId),
-             contentDescription = "..."
-         )
-     }
+    modifier: Modifier = Modifier,
+    drawableId: Int,
+    width: Dp, height: Dp
+) {
+    Surface(
+        modifier
+            .sizeIn(width, height, width, height)
+            .aspectRatio(1f),
+        shape = CircleShape,
+        elevation = 20.dp
+    ) {
+        Image(
+            painterResource(id = drawableId),
+            contentDescription = "..."
+        )
+    }
 }
 
 @Composable
 fun RoundedLabel(
-    modifier: Modifier=Modifier,
-    label: String) {
+    modifier: Modifier = Modifier,
+    label: String
+) {
     Surface(
         modifier = modifier,
         shape = CircleShape,
     ) {
         Box(
             modifier = Modifier
-            .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
+                .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
         ) {
-            Text(label, Modifier
-                .align(Alignment.Center),
-                style = typography.h6)
+            Text(
+                label, Modifier
+                    .align(Alignment.Center),
+                style = typography.h6
+            )
         }
     }
 }
 
+/**
+ * Display a small label representing if the coin has gone up/down
+ *
+ * - if up: up arrow with green color
+ * - else: down arrow with red color
+ */
 //TODO reuse previous function with different type management for string
 @Composable
-fun CircleLabelWithIconIn(
-    modifier: Modifier=Modifier,
-    label:String, imageVector: ImageVector,color: Color) {
+fun SmallCoinChangeLabel(
+    modifier: Modifier = Modifier,
+    number: Float,
+) {
+    val label = "${abs(number)}% "
+    val imageVector = if (number > 0) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
+    val color = if (number > 0) Color(0xff12c785) else Color(0xffe93943)
 
     Surface(
         modifier = modifier,
@@ -657,13 +504,13 @@ fun CircleLabelWithIconIn(
             modifier = Modifier
                 .shadow(elevation = 20.dp, shape = RectangleShape, clip = false)
         ) {
-            TextWithIcon(label,imageVector)
+            TextWithIcon(label, imageVector)
         }
     }
 }
 
 @Composable
-fun TextWithIcon(string:String,imageVector: ImageVector) {
+fun TextWithIcon(string: String, imageVector: ImageVector) {
 
     val myId = "inlineContent"
     val text = buildAnnotatedString {
@@ -682,7 +529,7 @@ fun TextWithIcon(string:String,imageVector: ImageVector) {
                 Placeholder(
                     width = 21.sp,
                     height = 21.sp,
-                    placeholderVerticalAlign  = PlaceholderVerticalAlign.TextCenter
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
                 )
             ) {
                 // This Icon will fill maximum size, which is specified by the [Placeholder]
@@ -693,60 +540,57 @@ fun TextWithIcon(string:String,imageVector: ImageVector) {
             }
         )
     )
-    Text(text,
+    Text(
+        text,
         textAlign = TextAlign.Center,
         style = typography.body2,
         inlineContent = inlineContent,
 
-    )
+        )
 
 }
 
 @Composable
-fun CircleButtonDest( /// For sendCurrencies screen
-    modifier:Modifier=Modifier,
-    border:Dp,
-    onClickDest: () -> Unit
-)
-{
+fun CircleButtonDest(
+    border: Dp,
+    modifier: Modifier,
+) {
     Surface(
         modifier = modifier
             .sizeIn(20.dp, 20.dp, 30.dp, 30.dp)
             .aspectRatio(1f),
-            //.offset(x = dpx, y = dpy),
+        //.offset(x = dpx, y = dpy),
 
         color = MaterialTheme.colors.surface,
         shape = CircleShape,
         border = BorderStroke(
             border,
             if (MaterialTheme.colors.isLight) Color.LightGray
-                else MaterialTheme.colors.onSurface
+            else MaterialTheme.colors.onSurface
         ),
 
         ) {
-        IconButton(
-            onClick = onClickDest,
-        ) {
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = "arrow down",
+        Icon(
+            Icons.Filled.ArrowDropDown, contentDescription = "arrow down",
 
-                tint= MaterialTheme.colors.onSurface
-            )
-        }
+            tint = MaterialTheme.colors.onSurface
+        )
     }
 }
 
 
 @Composable
 fun CircleIcon(
-    modifier:Modifier=Modifier,
+    modifier: Modifier = Modifier,
     imageVector: ImageVector, border: Dp, string: String,
-    size_height: Dp, size_width: Dp) {
+    size_height: Dp, size_width: Dp
+) {
 
     Surface(
         modifier = Modifier
             .sizeIn(size_width, size_height, size_width, size_height)
             .aspectRatio(1f),
-            //.offset(x = dpx, y = dpy),
+        //.offset(x = dpx, y = dpy),
 
         color = MaterialTheme.colors.surface,
         shape = CircleShape,
@@ -754,31 +598,7 @@ fun CircleIcon(
             border,
             MaterialTheme.colors.onSurface
         )
-        ) {
+    ) {
         Icon(imageVector = imageVector, contentDescription = string)
     }
-}
-
-fun formatAmount(amount: Float): String {
-    return AmountDecimalFormat.format(amount)
-}
-fun formatChange(change: Float): String {
-    return AmountDecimalFormat.format(abs(change))
-}
-/** for future pubKey usage*/
-@Composable
-fun StellarDivider(modifier: Modifier = Modifier) {
-    Divider(color = MaterialTheme.colors.background, thickness = 1.dp, modifier = modifier)
-}
-
-
-//private val AccountDecimalFormat = DecimalFormat("####")
-private val AmountDecimalFormat = DecimalFormat("#,###.##")
-
-/**
- * Used with currencies  to create the animated circle.
- */
-fun <E> List<E>.extractProportions(selector: (E) -> Float): List<Float> {
-    val total = this.sumOf { selector(it).toDouble() }
-    return this.map { (selector(it) / total).toFloat() }
 }

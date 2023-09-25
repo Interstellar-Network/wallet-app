@@ -3,7 +3,6 @@ package gg.interstellar.wallet
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import android.util.Base64
 import android.view.Surface
 import java.security.KeyPairGenerator
 import java.security.KeyStore
@@ -25,18 +24,26 @@ class RustWrapper : RustInterface {
         node_url: String,
         tx_message: String
     ): String?
-    external override fun ExtrinsicRegisterMobile(ws_url: String, node_url: String, pub_key: ByteArray): String?
+
+    external override fun ExtrinsicRegisterMobile(
+        ws_url: String,
+        node_url: String,
+        pub_key: ByteArray
+    ): String?
+
     external override fun GetCircuits(
         ws_url: String,
         node_url: String,
         ipfs_addr: String,
     ): Long
+
     external override fun ExtrinsicCheckInput(
         ws_url: String,
         node_url: String,
         circuits_package_ptr: Long,
         inputs: ByteArray,
     )
+
     external override fun GetMessageNbDigitsFromPtr(ptr: Long): Int
     external override fun GetTxIdPtrFromPtr(circuits_package_ptr: Long): Long
 
