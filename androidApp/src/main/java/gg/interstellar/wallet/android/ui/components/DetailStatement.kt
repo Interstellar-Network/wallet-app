@@ -1,25 +1,27 @@
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T> StatementCard( //TODO card or box
-    modifier: Modifier=Modifier,
+fun <T> StatementCard(
+    //TODO card or box
+    modifier: Modifier = Modifier,
     items: List<T>,
-    doubleColumn: Boolean,
-    single:Boolean,
     rows: @Composable (T) -> Unit,
 ) {
-    Box(
-    ) {
+    Box {
         Column(
             //LazyColumn( ///TEST Lazy Column
-            modifier = Modifier.padding(0.dp)
+            modifier = modifier.padding(0.dp)
         ) {
-            if (doubleColumn) {
-                DoubleColumn(items, rows)
-            } else SingleColumn(items, rows, single)
+            DoubleColumn(items, rows)
         }
     }
 }
@@ -27,29 +29,23 @@ fun <T> StatementCard( //TODO card or box
 /** extract first row (use for send currencies init from list except in single currency
  * when doubleColumn are always false*/
 @Composable
-private fun <T> DoubleColumn( items: List<T>,  rows: @Composable (T) -> Unit ){
-
+private fun <T> DoubleColumn(items: List<T>, rows: @Composable (T) -> Unit) {
     Row {
         Column {
             //items(items) { //TEST lazy column
-             val list= items.filterIndexed { index, _ -> (index !=0) && (index%2==0) }
+            val list = items.filterIndexed { index, _ -> (index % 2 == 0) }
             list.forEach { item ->
-                rows(item)  }
+                rows(item)
+                Spacer(Modifier.height(30.dp))
+            }
         }
         Spacer(Modifier.width(30.dp))
         Column {
-            val list = items.filterIndexed { index, _ -> (index !=0) && (index%2!=0) }
+            val list = items.filterIndexed { index, _ -> (index % 2 != 0) }
             list.forEach { item ->
-                rows(item) }
+                rows(item)
+                Spacer(Modifier.height(30.dp))
+            }
         }
-    }
-}
-
-@Composable
-private fun <T> SingleColumn( items: List<T>,  rows: @Composable (T) -> Unit,
-                              single: Boolean ){//TODO check
-    val list = if (single) items else items.filterIndexed { index, _ -> (index !=0)}
-    list.forEach { item ->
-        rows(item)
     }
 }
