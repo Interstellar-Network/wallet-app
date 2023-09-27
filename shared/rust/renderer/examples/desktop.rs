@@ -33,8 +33,11 @@ fn main() {
 
     // roughly match what we get from Android; this is just for consistency
     // cf test_convert_rect_floatArr_to_vec_rect
+    // cf /lib_circuits/circuit-gen-rs/circuit_crop.odg for details
+    // NOTE: when changing the layout in Compose: grep logcat for "initSurface: got handle"
+    // AND put a breakpoint at/near eg "rustBridge.initSurface" (or something like that)
     let rect_message =
-        renderer::vertices_utils::Rect::new_to_ndc_android(0., 0., 1080.0, 381.0, 1080., 1920.);
+        renderer::vertices_utils::Rect::new_to_ndc_android(203., 47., 878., 413., 1080., 1875.);
     let rects_pinpad = generate_pinpad_rects();
 
     // if NOT offline: use crate substrate-client to generate then DL the circuits

@@ -82,11 +82,9 @@ fn init_surface(
     );
 
     let (handle, width, height) = get_raw_window_handle(surface, &env);
-    log::debug!(
+    info!(
         "initSurface: got handle! width = {}, height = {}, handle = {:?}",
-        width,
-        height,
-        handle,
+        width, height, handle,
     );
     info!("initSurface before new_native");
 

@@ -134,18 +134,40 @@ fun TxPinpadScreen(callbackTxDone: () -> Unit) {
 
                 // And on top of the Rust "native screen" we draw the UI(ie the slider for the confirmation)
                 Column {
+                    // First space: above the "message"
+                    // Then the "message" itself; it will be drawn over(or rather below) by the Rust renderer
+                    // Finally another spacer
+                    // IMPORTANT: all the heights MUST match the expected height(and aspect ratio) of the renderer
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxHeight(0.25f * 0.1f)
+                            .fillMaxWidth()
+                    )
                     // TODO add onGloballyPositioned, and same as PinpadBottomScreen
                     Spacer(
                         modifier = Modifier
-                            .fillMaxHeight(0.25f)
+                            // Height: previously it was "full width * 16/9" but with 10% padding top and bottom
+                            // Now the padding is removed hence 0.8 factor
+                            .fillMaxHeight(0.25f * 0.8f)
                             // IMPORTANT: without "fillMaxWidth" in onGloballyPositioned: localBoundingBoxOf will return Rect.Zero
-                            .fillMaxWidth()
+                            // cf /lib_circuits/circuit-gen-rs/circuit_crop.odg for why 0.1875
+                            // long story short: 1.2/6.4 = 0.1875
+                            .fillMaxWidth(1.0f - 0.1875f * 2.0f)
+                            .align(Alignment.CenterHorizontally)
                             .onGloballyPositioned { coordinates ->
+                                // TODO or keep fillMaxHeight / fillMaxWidth b/c that defines the positions of the rest
+                                // and update `coordinates` here? (in this case: remove both spacers?)
+
                                 // TODO? positionInWindow,boundsInParent,boundsInWindow,boundsInRoot,size?
                                 // NOTE: use wgpu_sv_pinpad_coordinates?. to make sure the Preview does not get an NPE
                                 messageRectRelativeToWGPUSurfaceView[0] =
                                     wgpu_sv_pinpad_coordinates[0]?.localBoundingBoxOf(coordinates)!!
                             })
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxHeight(0.25f * 0.1f)
+                            .fillMaxWidth()
+                    )
 
                     ConfirmMessageMiddleScreen()
 
